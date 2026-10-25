@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:persistent_device_id/persistent_device_id.dart';
 
 class SettingsProvider extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.dark; // Default gelap
+  ThemeMode _themeMode = ThemeMode.dark; 
   String _deviceId = 'Memuat ID...';
   bool _isLoading = true;
 
