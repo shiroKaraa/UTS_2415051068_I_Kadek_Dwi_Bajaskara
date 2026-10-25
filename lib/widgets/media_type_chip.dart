@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
 
 class MediaTypeChip extends StatelessWidget {
   final String label; 
