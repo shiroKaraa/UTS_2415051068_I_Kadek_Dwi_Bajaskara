@@ -7,7 +7,6 @@ import 'screens/responsive_shell.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ try/catch agar tidak crash jika .env tidak tersedia.
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
@@ -22,7 +21,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Dengarkan ThemeController agar perubahan tema langsung ter-apply.
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: ThemeController.mode,
       builder: (context, currentMode, _) {

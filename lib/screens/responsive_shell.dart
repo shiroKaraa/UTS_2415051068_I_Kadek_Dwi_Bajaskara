@@ -68,21 +68,18 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
 
-        // --- EXPANDED: tablet landscape / desktop → rail + label ---
         if (width >= ScreenBreakpoints.medium) {
           return _buildRailLayout(
             labelType: NavigationRailLabelType.all,
           );
         }
 
-        // --- MEDIUM: tablet portrait → rail tanpa label ---
         if (width >= ScreenBreakpoints.compact) {
           return _buildRailLayout(
             labelType: NavigationRailLabelType.none,
           );
         }
 
-        // --- COMPACT: HP → bottom navigation ---
         return _buildBottomNavLayout();
       },
     );
