@@ -24,11 +24,14 @@ class AppTheme {
       textTheme: const TextTheme(
         bodyLarge: TextStyle(color: AppColors.textLight),
         bodyMedium: TextStyle(color: AppColors.textLight),
-        titleLarge: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.bold),
+        titleLarge: TextStyle(
+          color: AppColors.textLight,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.darkCard,
-        indicatorColor: AppColors.primaryGreen.withOpacity(0.2),
+        indicatorColor: AppColors.primaryGreen.withValues(alpha: 0.2),
         labelTextStyle: WidgetStateProperty.all(
           const TextStyle(color: AppColors.textLight, fontSize: 12),
         ),
@@ -38,6 +41,18 @@ class AppTheme {
           }
           return const IconThemeData(color: AppColors.textLight);
         }),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: AppColors.darkCard,
+        indicatorColor: AppColors.primaryGreen.withValues(alpha: 0.2),
+        selectedLabelTextStyle:
+            const TextStyle(color: AppColors.textLight, fontSize: 12),
+        unselectedLabelTextStyle:
+            const TextStyle(color: AppColors.textLight, fontSize: 12),
+        selectedIconTheme:
+            const IconThemeData(color: AppColors.primaryGreen),
+        unselectedIconTheme:
+            const IconThemeData(color: AppColors.textLight),
       ),
     );
   }
@@ -62,7 +77,35 @@ class AppTheme {
       textTheme: const TextTheme(
         bodyLarge: TextStyle(color: AppColors.textDark),
         bodyMedium: TextStyle(color: AppColors.textDark),
-        titleLarge: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold),
+        titleLarge: TextStyle(
+          color: AppColors.textDark,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.lightCard,
+        indicatorColor: AppColors.primaryGreenDark.withValues(alpha: 0.2),
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(color: AppColors.textDark, fontSize: 12),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.primaryGreenDark);
+          }
+          return const IconThemeData(color: AppColors.textDark);
+        }),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: AppColors.lightCard,
+        indicatorColor: AppColors.primaryGreenDark.withValues(alpha: 0.2),
+        selectedLabelTextStyle:
+            const TextStyle(color: AppColors.textDark, fontSize: 12),
+        unselectedLabelTextStyle:
+            const TextStyle(color: AppColors.textDark, fontSize: 12),
+        selectedIconTheme:
+            const IconThemeData(color: AppColors.primaryGreenDark),
+        unselectedIconTheme:
+            const IconThemeData(color: AppColors.textDark),
       ),
     );
   }
