@@ -29,9 +29,11 @@ class CollectionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _entries = await _repository.getCollection(_settingsProvider.deviceId);
+      final data = await _repository.getCollection(_settingsProvider.deviceId);
+      data.sort((a, b) => (b.updatedAt ?? DateTime.now()).compareTo(a.updatedAt ?? DateTime.now()));
+      _entries = data;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = 'Gagal memuat koleksi. Periksa koneksi internet Anda.';
       _entries = [];
     } finally {
       _isLoading = false;

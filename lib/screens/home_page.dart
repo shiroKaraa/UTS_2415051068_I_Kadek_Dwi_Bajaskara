@@ -1,12 +1,353 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/app_colors.dart';
+import '../core/app_sizes.dart';
+import '../models/catalog_item.dart';
+import '../models/status_collection_enum.dart';
+import '../providers/collection_provider.dart';
+import '../providers/catalog_provider.dart';
+import '../widgets/cover_image.dart';
+import '../widgets/error_view.dart';
+import '../widgets/media_card.dart'; 
+import 'catalog_detail_page.dart';
+import 'collection_detail_page.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomePage extends StatefulWidget {
+  final VoidCallback? onLihatKatalog; 
+
+  const HomePage({super.key, this.onLihatKatalog});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final collection = context.read<CollectionProvider>();
+      final catalog = context.read<CatalogProvider>();
+
+      if (collection.entries.isEmpty && !collection.isLoading) {
+        collection.fetchCollection();
+      }
+      if (catalog.items.isEmpty && !catalog.isLoading) {
+        catalog.fetchCatalog();
+      }
+    });
+  }
+
+  Future<void> _onRefresh() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final catalog = context.read<CatalogProvider>();
+    final collection = context.read<CollectionProvider>();
+
+    try {
+      await Future.wait([
+        collection.refresh(),
+        catalog.refresh(),
+      ]);
+    } catch (e) {
+      debugPrint('Refresh error: $e');
+    }
+
+    if (!mounted) return;
+    if (catalog.errorMessage != null && catalog.items.isNotEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(catalog.errorMessage!)));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Home Page', style: TextStyle(fontSize: 24)),
+    final collection = context.watch<CollectionProvider>();
+    final catalog = context.watch<CatalogProvider>();
+
+    final catalogGagal = catalog.errorMessage != null && catalog.items.isEmpty;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tsuzuki'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh Data',
+            onPressed: () => _refreshKey.currentState?.show(),
+          ),
+        ],
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: RefreshIndicator(
+            key: _refreshKey,
+            onRefresh: _onRefresh,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppSizes.spacingM),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Halo, Selamat Datang!',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
+                  ),
+                  const SizedBox(height: AppSizes.spacingXs),
+                  Text(
+                    'Terus lacak progres tontonan dan bacaanmu.',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: AppSizes.spacingL),
+
+                  _buildLanjutkanSection(context, collection),
+                  const SizedBox(height: AppSizes.spacingL),
+                  _buildStatistikSection(context, collection),
+                  const SizedBox(height: AppSizes.spacingL),
+
+                  if (catalogGagal)
+                    ErrorView(
+                      message: catalog.errorMessage!,
+                      onRetry: () => context.read<CatalogProvider>().refresh(),
+                    )
+                  else ...[
+                    _buildPopulerSection(
+                      context,
+                      title: 'Anime Populer',
+                      items: catalog.topAnime,
+                      isLoading: catalog.isLoading && catalog.items.isEmpty,
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
+                    _buildPopulerSection(
+                      context,
+                      title: 'Komik Populer',
+                      items: catalog.topManga,
+                      isLoading: catalog.isLoading && catalog.items.isEmpty,
+                    ),
+                  ],
+                  const SizedBox(height: AppSizes.spacingL),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatistikSection(BuildContext context, CollectionProvider collection) {
+    if (collection.isLoading && collection.entries.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final total = collection.entries.length;
+    final sedang = collection.entries.where((e) => e.status == StatusKoleksi.sedang).length;
+    final selesai = collection.entries.where((e) => e.status == StatusKoleksi.selesai).length;
+
+    final cards = [
+      _statCard(context, 'Total', total.toString(), Icons.collections_bookmark, AppColors.infoBlue),
+      _statCard(context, 'Sedang', sedang.toString(), Icons.play_circle_outline, AppColors.primaryGreen),
+      _statCard(context, 'Selesai', selesai.toString(), Icons.check_circle_outline, AppColors.goldPrimary),
+    ];
+
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+
+    if (textScale > 1.3) {
+      return Column(
+        children: [
+          for (final card in cards) 
+            Padding(padding: const EdgeInsets.only(bottom: AppSizes.spacingS), child: card),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        for (int i = 0; i < cards.length; i++) ...[
+          if (i > 0) const SizedBox(width: AppSizes.spacingM),
+          Expanded(child: cards[i]),
+        ],
+      ],
+    );
+  }
+
+  Widget _statCard(BuildContext context, String title, String value, IconData icon, Color color) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.radiusM),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.spacingM),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: AppSizes.spacingS),
+            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(title, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanjutkanSection(BuildContext context, CollectionProvider collection) {
+    final lanjutkan = collection.entries
+        .where((e) => e.status == StatusKoleksi.sedang)
+        .take(3)
+        .toList();
+
+    if (lanjutkan.isEmpty) {
+      return Card(
+        color: Theme.of(context).cardColor,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSizes.spacingL),
+          child: Column(
+            children: [
+              const Icon(Icons.play_circle_outline, size: 48, color: Colors.grey),
+              const SizedBox(height: AppSizes.spacingM),
+              const Text('Belum ada yang dilacak.', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: AppSizes.spacingS),
+              Text(
+                'Cari anime atau komik pertamamu.',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSizes.spacingM),
+              ElevatedButton(
+                onPressed: widget.onLihatKatalog,
+                child: const Text('Cari Sekarang'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Lanjutkan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: AppSizes.spacingS),
+        ...lanjutkan.map((terbaru) {
+          final progress = (terbaru.total != null && terbaru.total! > 0)
+              ? (terbaru.progres / terbaru.total!).clamp(0.0, 1.0)
+              : 0.0;
+
+          return Card(
+            color: Theme.of(context).cardColor,
+            margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
+            child: ListTile(
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CoverImage(
+                  url: terbaru.coverUrl,
+                  width: 50,
+                  height: 70,
+                ),
+              ),
+              title: Text(terbaru.judul, maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${terbaru.progres} / ${terbaru.total ?? "?"} ${terbaru.jenis.satuanProgres}'),
+                  const SizedBox(height: 4),
+                  LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: AppColors.primaryGreen,
+                    minHeight: 4,
+                  ),
+                ],
+              ),
+              trailing: IconButton.filledTonal(
+                icon: const Icon(Icons.add),
+                tooltip: 'Tambah progres',
+                onPressed: (terbaru.total != null && terbaru.progres >= terbaru.total!)
+                    ? null
+                    : () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Fitur +1 akan diimplementasikan di Tahap 21')),
+                        );
+                      },
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CollectionDetailPage(entri: terbaru),
+                  ),
+                );
+              },
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildPopulerSection(
+    BuildContext context, {
+    required String title,
+    required List<ItemKatalog> items,
+    required bool isLoading,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            TextButton(
+              onPressed: widget.onLihatKatalog,
+              child: const Text('Lihat Semua'),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSizes.spacingS),
+        if (isLoading)
+          const Center(child: CircularProgressIndicator())
+        else if (items.isEmpty)
+          const Center(child: Text('Belum ada data populer.'))
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cardWidth = (constraints.maxWidth / 2.4).clamp(130.0, 180.0).toDouble();
+              final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5);
+              final listHeight = (cardWidth * 1.5) + AppSizes.spacingS + (40 * textScale);
+
+              return SizedBox(
+                height: listHeight,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSizes.spacingM),
+                      child: MediaCard(
+                        item: item,
+                        width: cardWidth,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CatalogDetailPage(item: item),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 }

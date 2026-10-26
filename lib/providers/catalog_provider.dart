@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/catalog_item.dart';
 import '../models/media_type_enum.dart';
@@ -8,13 +10,13 @@ class CatalogProvider extends ChangeNotifier {
 
   List<ItemKatalog> _items = [];
   bool _isLoading = false;
-  bool _isLoadingMore = false; 
-  bool _hasNextPage = true;   
+  bool _isLoadingMore = false;
+  bool _hasNextPage = true;
   int _currentPage = 1;
-  
+
   String? _errorMessage;
   JenisMedia _selectedJenis = JenisMedia.anime;
-  String _query = ''; 
+  String _query = '';
 
   List<ItemKatalog> get items => _items;
   bool get isLoading => _isLoading;
@@ -24,8 +26,23 @@ class CatalogProvider extends ChangeNotifier {
   JenisMedia get selectedJenis => _selectedJenis;
   String get query => _query;
 
+  // Tambahan Getter untuk Home
+  List<ItemKatalog> get topAnime => _items.where((i) => i.jenis == JenisMedia.anime).take(10).toList();
+  List<ItemKatalog> get topManga => _items.where((i) => i.jenis != JenisMedia.anime).take(10).toList();
+
   CatalogProvider() {
     fetchCatalog();
+  }
+
+  // Fungsi Pesan Error Ramah
+  String _pesanError(Object e) {
+    if (e is SocketException || e.toString().contains('ClientException')) {
+      return 'Tidak bisa terhubung ke server. Periksa internet Anda lalu coba lagi.';
+    }
+    if (e is TimeoutException) {
+      return 'Server terlalu lama merespons. Coba lagi.';
+    }
+    return 'Terjadi kesalahan saat memuat data.';
   }
 
   Future<void> fetchCatalog() async {
@@ -37,15 +54,10 @@ class CatalogProvider extends ChangeNotifier {
 
     try {
       final rawData = await _fetchData(_currentPage);
-
-      _items = rawData
-          .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
-          .toList();
-          
+      _items = rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
       if (rawData.length < 20) _hasNextPage = false;
-      
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = _pesanError(e);
       _items = [];
     } finally {
       _isLoading = false;
@@ -53,23 +65,19 @@ class CatalogProvider extends ChangeNotifier {
     }
   }
 
+  // loadMore, _fetchData, setJenis, setQuery, refresh (Sama seperti sebelumnya)
   Future<void> loadMore() async {
     if (_isLoadingMore || !_hasNextPage || _isLoading) return;
-
     _isLoadingMore = true;
     notifyListeners();
-
     try {
       final nextPage = _currentPage + 1;
       final rawData = await _fetchData(nextPage);
-
       if (rawData.isEmpty) {
         _hasNextPage = false;
       } else {
         _currentPage = nextPage;
-        _items.addAll(
-          rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)),
-        );
+        _items.addAll(rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)));
         if (rawData.length < 20) _hasNextPage = false;
       }
     } catch (e) {
@@ -84,18 +92,14 @@ class CatalogProvider extends ChangeNotifier {
     if (_query.isEmpty) {
       return _aniListService.getTop(jenis: _selectedJenis, page: page);
     } else {
-      return _aniListService.search(
-        query: _query,
-        jenis: _selectedJenis,
-        page: page,
-      );
+      return _aniListService.search(query: _query, jenis: _selectedJenis, page: page);
     }
   }
 
   void setJenis(JenisMedia jenis) {
     if (_selectedJenis == jenis) return;
     _selectedJenis = jenis;
-    fetchCatalog(); 
+    fetchCatalog();
   }
 
   void setQuery(String query) {

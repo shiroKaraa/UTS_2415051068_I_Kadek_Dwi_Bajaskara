@@ -2,110 +2,107 @@ import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/catalog_item.dart';
+import 'cover_image.dart';
 import 'media_type_chip.dart';
-import 'shimmer_loading.dart';
 
 class MediaCard extends StatelessWidget {
   final ItemKatalog item;
   final VoidCallback onTap;
   final VoidCallback? onAddProgress;
+  final double? width;
 
   const MediaCard({
     super.key,
     required this.item,
     required this.onTap,
     this.onAddProgress,
+    this.width,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusM),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AspectRatio(
-            aspectRatio: AppSizes.aspectRatioPoster,
-            child: Hero(
-              tag: 'poster_${item.malId}',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppSizes.radiusM),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    item.coverUrl != null
-                        ? Image.network(
-                            item.coverUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const Center(
-                              child: Icon(Icons.broken_image, color: Colors.grey),
-                            ),
-                          )
-                        : const ShimmerLoading(),
-
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 60,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.8),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    if (onAddProgress != null)
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: AppSizes.aspectRatioPoster, 
+              child: Hero(
+                tag: 'poster_${item.malId}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CoverImage(url: item.coverUrl), 
+                      
                       Positioned(
-                        bottom: AppSizes.spacingS,
-                        right: AppSizes.spacingS,
-                        child: Material(
-                          color: AppColors.primaryGreen,
-                          shape: const CircleBorder(),
-                          child: InkWell(
-                            onTap: onAddProgress,
-                            customBorder: const CircleBorder(),
-                            child: const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Icon(Icons.add, color: Colors.black, size: 20),
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 60,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.8),
+                              ],
                             ),
                           ),
                         ),
                       ),
 
-                    Positioned(
-                      top: AppSizes.spacingS,
-                      left: AppSizes.spacingS,
-                      child: MediaTypeChip(
-                        label: item.jenis.label,
-                        dotColor: _getColorForType(item.jenis.label),
+                      if (onAddProgress != null)
+                        Positioned(
+                          bottom: AppSizes.spacingS,
+                          right: AppSizes.spacingS,
+                          child: Material(
+                            color: AppColors.primaryGreen,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              onTap: onAddProgress,
+                              customBorder: const CircleBorder(),
+                              child: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Icon(Icons.add, color: Colors.black, size: 20),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      Positioned(
+                        top: AppSizes.spacingS,
+                        left: AppSizes.spacingS,
+                        child: MediaTypeChip(
+                          label: item.jenis.label,
+                          dotColor: _getColorForType(item.jenis.label),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: AppSizes.spacingS),
-          Text(
-            item.displayTitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          Text(
-            '${item.total ?? "?"} ${item.jenis.satuanProgres}',
-            style: TextStyle(color: Colors.grey[500], fontSize: 12),
-          ),
-        ],
+            const SizedBox(height: AppSizes.spacingS),
+            Text(
+              item.displayTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            Text(
+              '${item.total ?? "?"} ${item.jenis.satuanProgres}',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+            ),
+          ],
+        ),
       ),
     );
   }
