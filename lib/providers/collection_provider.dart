@@ -61,6 +61,28 @@ class CollectionProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateEntry(EntriKoleksi entri) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedEntry = await _repository.updateEntry(entri);
+      final index = _entries.indexWhere((e) => e.id == updatedEntry.id);
+      if (index != -1) {
+        _entries[index] = updatedEntry;
+        _entries.sort((a, b) => (b.updatedAt ?? DateTime.now()).compareTo(a.updatedAt ?? DateTime.now()));
+      }
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> refresh() async {
     await fetchCollection();
   }

@@ -28,4 +28,17 @@ class SupabaseCollectionService implements CollectionDataSource {
 
     return EntriKoleksi.fromJson(response);
   }
+
+  @override
+  Future<EntriKoleksi> updateEntry(EntriKoleksi entri) async {
+    final response = await _supabase
+        .from('koleksi')
+        .update(entri.toJson())
+        .eq('id', entri.id!)
+        .select()
+        .single();
+
+    return EntriKoleksi.fromJson(response);
+  }
+  
 }

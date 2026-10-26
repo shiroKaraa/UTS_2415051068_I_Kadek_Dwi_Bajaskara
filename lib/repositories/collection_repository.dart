@@ -13,4 +13,9 @@ class CollectionRepository {
   Future<EntriKoleksi> createEntry(EntriKoleksi entri) {
     return _dataSource.createEntry(entri);
   }
+
+  Future<EntriKoleksi> updateEntry(EntriKoleksi entri) {
+    return _dataSource.updateEntry(entri);
+  }
+  
 }

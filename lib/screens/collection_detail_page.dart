@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/collection_entry.dart';
+import 'edit_entry_page.dart';
 
 class CollectionDetailPage extends StatelessWidget {
   final EntriKoleksi entri;
@@ -15,8 +16,11 @@ class CollectionDetailPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur edit akan dibuat di Tahap 20')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditEntryPage(entri: entri),
+                ),
               );
             },
           ),
@@ -44,12 +48,16 @@ class CollectionDetailPage extends StatelessWidget {
             const SizedBox(height: 4),
             Text(entri.catatan ?? 'Tidak ada catatan.'),
             const SizedBox(height: 24),
+            
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fitur edit akan dibuat di Tahap 20')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditEntryPage(entri: entri),
+                    ),
                   );
                 },
                 icon: const Icon(Icons.edit_note),
