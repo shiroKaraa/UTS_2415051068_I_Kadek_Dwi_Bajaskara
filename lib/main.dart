@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'core/app_theme.dart';
 import 'providers/settings_provider.dart';
+import 'providers/catalog_provider.dart';
 import 'screens/responsive_shell.dart';
 
 Future<void> main() async {
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => CatalogProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
