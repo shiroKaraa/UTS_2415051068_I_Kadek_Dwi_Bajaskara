@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; 
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/app_theme.dart';
-import 'core/app_config.dart'; 
+import 'core/app_config.dart';
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
+import 'providers/collection_provider.dart'; 
+import 'repositories/collection_repository.dart'; 
+import 'services/supabase_collection_service.dart'; 
 import 'screens/responsive_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await dotenv.load(fileName: ".env");
-
     await Supabase.initialize(
       url: KonfigurasiApp.supabaseUrl,
       publishableKey: KonfigurasiApp.supabaseAnonKey,
@@ -32,6 +34,16 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => CatalogProvider()),
+        ChangeNotifierProxyProvider<SettingsProvider, CollectionProvider>(
+          create: (context) => CollectionProvider(
+            CollectionRepository(SupabaseCollectionService()),
+            context.read<SettingsProvider>(),
+          ),
+          update: (context, settings, previous) => previous ?? CollectionProvider(
+            CollectionRepository(SupabaseCollectionService()),
+            settings,
+          ),
+        ),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
