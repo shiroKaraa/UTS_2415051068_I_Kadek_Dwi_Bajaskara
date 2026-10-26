@@ -10,6 +10,7 @@ class MediaCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onAddProgress;
   final double? width;
+  final String? heroTag;
 
   const MediaCard({
     super.key,
@@ -17,6 +18,7 @@ class MediaCard extends StatelessWidget {
     required this.onTap,
     this.onAddProgress,
     this.width,
+    this.heroTag,
   });
 
   @override
@@ -32,7 +34,7 @@ class MediaCard extends StatelessWidget {
             AspectRatio(
               aspectRatio: AppSizes.aspectRatioPoster, 
               child: Hero(
-                tag: 'poster_${item.malId}',
+                tag: heroTag ?? 'poster_${item.malId}',
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.radiusM),
                   child: Stack(

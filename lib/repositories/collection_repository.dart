@@ -9,4 +9,8 @@ class CollectionRepository {
   Future<List<EntriKoleksi>> getCollection(String deviceId) {
     return _dataSource.getCollection(deviceId);
   }
+
+  Future<EntriKoleksi> createEntry(EntriKoleksi entri) {
+    return _dataSource.createEntry(entri);
+  }
 }

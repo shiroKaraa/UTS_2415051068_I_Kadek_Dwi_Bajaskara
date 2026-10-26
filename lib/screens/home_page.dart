@@ -332,6 +332,7 @@ class _HomePageState extends State<HomePage> {
                       child: MediaCard(
                         item: item,
                         width: cardWidth,
+                        heroTag: 'home_${item.malId}',
                         onTap: () {
                           Navigator.push(
                             context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/catalog_item.dart';
+import 'entry_form_page.dart';
 
 class CatalogDetailPage extends StatelessWidget {
   final ItemKatalog item;
@@ -18,21 +19,24 @@ class CatalogDetailPage extends StatelessWidget {
             if (item.coverUrl != null)
               Center(
                 child: Hero(
-                  tag: 'poster_${item.malId}', 
+                  tag: 'poster_${item.malId}',
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.network(
                       item.coverUrl!,
                       height: 250,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, size: 100),
                     ),
                   ),
                 ),
               ),
             const SizedBox(height: 16),
-            
-            Text(item.displayTitle, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+
+            Text(item.displayTitle,
+                style: const TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -40,11 +44,13 @@ class CatalogDetailPage extends StatelessWidget {
                 const SizedBox(width: 8),
                 if (item.skor != null) Chip(label: Text('⭐ ${item.skor}')),
                 const SizedBox(width: 8),
-                if (item.total != null) Chip(label: Text('${item.total} ${item.jenis.satuanProgres}')),
+                if (item.total != null)
+                  Chip(label: Text('${item.total} ${item.jenis.satuanProgres}')),
               ],
             ),
             const SizedBox(height: 16),
-            const Text('Sinopsis:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Sinopsis:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text(item.sinopsis ?? 'Tidak ada sinopsis.'),
             const SizedBox(height: 24),
@@ -53,8 +59,11 @@ class CatalogDetailPage extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fitur tambah koleksi akan dibuat di Tahap 19')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EntryFormPage(item: item),
+                    ),
                   );
                 },
                 icon: const Icon(Icons.add),

@@ -9,10 +9,12 @@ class CollectionProvider extends ChangeNotifier {
 
   List<EntriKoleksi> _entries = [];
   bool _isLoading = false;
+  bool _isSaving = false;
   String? _errorMessage;
 
   List<EntriKoleksi> get entries => _entries;
   bool get isLoading => _isLoading;
+  bool get isSaving => _isSaving;
   String? get errorMessage => _errorMessage;
 
   CollectionProvider(this._repository, this._settingsProvider) {
@@ -37,6 +39,24 @@ class CollectionProvider extends ChangeNotifier {
       _entries = [];
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> createEntry(EntriKoleksi entri) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final newEntry = await _repository.createEntry(entri);
+      _entries.insert(0, newEntry);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isSaving = false;
       notifyListeners();
     }
   }

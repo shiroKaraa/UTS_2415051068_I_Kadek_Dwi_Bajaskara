@@ -43,6 +43,19 @@ class CollectionDetailPage extends StatelessWidget {
             const Text('Catatan:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text(entri.catatan ?? 'Tidak ada catatan.'),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fitur edit akan dibuat di Tahap 20')),
+                  );
+                },
+                icon: const Icon(Icons.edit_note),
+                label: const Text('Edit Entri Ini'),
+              ),
+            ),
           ],
         ),
       ),

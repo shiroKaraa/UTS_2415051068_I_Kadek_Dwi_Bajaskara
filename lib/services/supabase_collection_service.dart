@@ -17,4 +17,15 @@ class SupabaseCollectionService implements CollectionDataSource {
         .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
         .toList();
   }
+
+  @override
+  Future<EntriKoleksi> createEntry(EntriKoleksi entri) async {
+    final response = await _supabase
+        .from('koleksi')
+        .insert(entri.toJson())
+        .select()
+        .single();
+
+    return EntriKoleksi.fromJson(response);
+  }
 }

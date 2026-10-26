@@ -26,7 +26,6 @@ class CatalogProvider extends ChangeNotifier {
   JenisMedia get selectedJenis => _selectedJenis;
   String get query => _query;
 
-  // Tambahan Getter untuk Home
   List<ItemKatalog> get topAnime => _items.where((i) => i.jenis == JenisMedia.anime).take(10).toList();
   List<ItemKatalog> get topManga => _items.where((i) => i.jenis != JenisMedia.anime).take(10).toList();
 
@@ -34,7 +33,6 @@ class CatalogProvider extends ChangeNotifier {
     fetchCatalog();
   }
 
-  // Fungsi Pesan Error Ramah
   String _pesanError(Object e) {
     if (e is SocketException || e.toString().contains('ClientException')) {
       return 'Tidak bisa terhubung ke server. Periksa internet Anda lalu coba lagi.';
@@ -65,7 +63,6 @@ class CatalogProvider extends ChangeNotifier {
     }
   }
 
-  // loadMore, _fetchData, setJenis, setQuery, refresh (Sama seperti sebelumnya)
   Future<void> loadMore() async {
     if (_isLoadingMore || !_hasNextPage || _isLoading) return;
     _isLoadingMore = true;
