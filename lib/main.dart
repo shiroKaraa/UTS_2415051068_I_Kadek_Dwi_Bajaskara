@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; 
 import 'core/app_theme.dart';
+import 'core/app_config.dart'; 
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'screens/responsive_shell.dart';
@@ -10,8 +12,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await dotenv.load(fileName: ".env");
+
+    await Supabase.initialize(
+      url: KonfigurasiApp.supabaseUrl,
+      publishableKey: KonfigurasiApp.supabaseAnonKey,
+    );
   } catch (e) {
-    debugPrint('Gagal memuat .env: $e');
+    debugPrint('Gagal inisialisasi: $e');
   }
   runApp(const MyApp());
 }

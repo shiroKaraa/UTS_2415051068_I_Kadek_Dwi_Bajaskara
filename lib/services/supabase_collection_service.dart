@@ -1,0 +1,20 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/collection_entry.dart';
+import 'collection_data_source.dart';
+
+class SupabaseCollectionService implements CollectionDataSource {
+  final SupabaseClient _supabase = Supabase.instance.client;
+
+  @override
+  Future<List<EntriKoleksi>> getCollection(String deviceId) async {
+    final response = await _supabase
+        .from('koleksi')
+        .select()
+        .eq('device_id', deviceId)
+        .order('updated_at', ascending: false);
+
+    return (response as List)
+        .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+}
