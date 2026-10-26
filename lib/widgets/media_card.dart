@@ -38,7 +38,9 @@ class MediaCard extends StatelessWidget {
                         ? Image.network(
                             item.coverUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const ShimmerLoading(),
+                            errorBuilder: (_, _, _) => const Center(
+                              child: Icon(Icons.broken_image, color: Colors.grey),
+                            ),
                           )
                         : const ShimmerLoading(),
 

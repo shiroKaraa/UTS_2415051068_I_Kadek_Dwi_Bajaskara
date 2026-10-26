@@ -28,11 +28,11 @@ class ItemKatalog {
     return judul;
   }
 
-  factory ItemKatalog.fromJikan(Map<String, dynamic> json, JenisMedia jenis) {
-    String? cover;
-    if (json['images'] != null && json['images']['jpg'] != null) {
-      cover = json['images']['jpg']['image_url'] as String?;
-    }
+  factory ItemKatalog.fromAniList(Map<String, dynamic> json, JenisMedia jenis) {
+    final titleObj = json['title'] as Map<String, dynamic>?;
+    final coverObj = json['coverImage'] as Map<String, dynamic>?;
+    
+    final malId = json['idMal'] as int? ?? json['id'] as int;
 
     int? totalData;
     if (jenis == JenisMedia.anime) {
@@ -41,13 +41,18 @@ class ItemKatalog {
       totalData = json['chapters'] as int?;
     }
 
+    double? skor;
+    if (json['averageScore'] != null) {
+      skor = (json['averageScore'] as num).toDouble() / 10.0;
+    }
+
     return ItemKatalog(
-      malId: json['mal_id'] as int,
-      judul: json['title'] as String? ?? 'Tanpa Judul',
-      judulInggris: json['title_english'] as String?,
-      coverUrl: cover,
-      sinopsis: json['synopsis'] as String?,
-      skor: (json['score'] as num?)?.toDouble(),
+      malId: malId,
+      judul: titleObj?['romaji'] as String? ?? 'Tanpa Judul',
+      judulInggris: titleObj?['english'] as String?,
+      coverUrl: coverObj?['large'] as String?,
+      sinopsis: json['description'] as String?,
+      skor: skor,
       total: totalData,
       jenis: jenis,
     );

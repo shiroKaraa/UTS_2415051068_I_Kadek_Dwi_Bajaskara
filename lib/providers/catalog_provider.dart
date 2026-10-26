@@ -1,72 +1,109 @@
 import 'package:flutter/material.dart';
 import '../models/catalog_item.dart';
 import '../models/media_type_enum.dart';
+import '../services/anilist_service.dart';
 
 class CatalogProvider extends ChangeNotifier {
+  final AniListService _aniListService = AniListService();
+
   List<ItemKatalog> _items = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false; 
+  bool _hasNextPage = true;   
+  int _currentPage = 1;
+  
   String? _errorMessage;
-  JenisMedia? _selectedJenis; 
+  JenisMedia _selectedJenis = JenisMedia.anime;
+  String _query = ''; 
 
   List<ItemKatalog> get items => _items;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasNextPage => _hasNextPage;
   String? get errorMessage => _errorMessage;
-  JenisMedia? get selectedJenis => _selectedJenis;
+  JenisMedia get selectedJenis => _selectedJenis;
+  String get query => _query;
 
   CatalogProvider() {
-    // Karena belum ada API, kita nemakai data dummy dulu.
-    _loadDummyData();
+    fetchCatalog();
   }
 
-  Future<void> _loadDummyData() async {
+  Future<void> fetchCatalog() async {
     _isLoading = true;
     _errorMessage = null;
+    _currentPage = 1;
+    _hasNextPage = true;
     notifyListeners();
-
-    await Future.delayed(const Duration(seconds: 1));
 
     try {
-      _items = [
-        ItemKatalog(
-          malId: 1,
-          judul: 'Cowboy Bebop',
-          jenis: JenisMedia.anime,
-          total: 26,
-          skor: 8.75,
-          coverUrl: 'https://cdn.myanimelist.net/images/anime/4/19644.jpg',
-        ),
-        ItemKatalog(
-          malId: 2,
-          judul: 'One Piece',
-          jenis: JenisMedia.manga,
-          total: 1100,
-          skor: 9.2,
-          coverUrl: 'https://cdn.myanimelist.net/images/manga/2/253146.jpg',
-        ),
-        ItemKatalog(
-          malId: 3,
-          judul: 'Solo Leveling',
-          jenis: JenisMedia.manhwa,
-          total: 179,
-          skor: 8.5,
-          coverUrl: 'https://cdn.myanimelist.net/images/manga/3/222841.jpg',
-        ),
-      ];
-      _isLoading = false;
+      final rawData = await _fetchData(_currentPage);
+
+      _items = rawData
+          .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
+          .toList();
+          
+      if (rawData.length < 20) _hasNextPage = false;
+      
     } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _items = [];
+    } finally {
       _isLoading = false;
-      _errorMessage = 'Gagal memuat data: $e';
+      notifyListeners();
     }
-    notifyListeners();
   }
 
-  void setFilter(JenisMedia? jenis) {
-    if (_selectedJenis == jenis) return; 
-    _selectedJenis = jenis;
+  Future<void> loadMore() async {
+    if (_isLoadingMore || !_hasNextPage || _isLoading) return;
+
+    _isLoadingMore = true;
     notifyListeners();
+
+    try {
+      final nextPage = _currentPage + 1;
+      final rawData = await _fetchData(nextPage);
+
+      if (rawData.isEmpty) {
+        _hasNextPage = false;
+      } else {
+        _currentPage = nextPage;
+        _items.addAll(
+          rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)),
+        );
+        if (rawData.length < 20) _hasNextPage = false;
+      }
+    } catch (e) {
+      debugPrint('Gagal memuat halaman berikutnya: $e');
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchData(int page) {
+    if (_query.isEmpty) {
+      return _aniListService.getTop(jenis: _selectedJenis, page: page);
+    } else {
+      return _aniListService.search(
+        query: _query,
+        jenis: _selectedJenis,
+        page: page,
+      );
+    }
+  }
+
+  void setJenis(JenisMedia jenis) {
+    if (_selectedJenis == jenis) return;
+    _selectedJenis = jenis;
+    fetchCatalog(); 
+  }
+
+  void setQuery(String query) {
+    _query = query;
+    fetchCatalog();
   }
 
   Future<void> refresh() async {
-    await _loadDummyData();
+    await fetchCatalog();
   }
 }

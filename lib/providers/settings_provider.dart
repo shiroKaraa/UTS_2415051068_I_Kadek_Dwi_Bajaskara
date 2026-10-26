@@ -16,18 +16,17 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final savedTheme = prefs.getString('theme_mode');
-    if (savedTheme == 'light') {
-      _themeMode = ThemeMode.light;
-    } else if (savedTheme == 'system') {
-      _themeMode = ThemeMode.system;
-    } else {
-      _themeMode = ThemeMode.dark;
-    }
-
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedTheme = prefs.getString('theme_mode');
+      if (savedTheme == 'light') {
+        _themeMode = ThemeMode.light;
+      } else if (savedTheme == 'system') {
+        _themeMode = ThemeMode.system;
+      } else {
+        _themeMode = ThemeMode.dark;
+      }
+
       final persistentId = await PersistentDeviceId.getDeviceId();
       if (persistentId != null && persistentId.isNotEmpty) {
         _deviceId = persistentId;
@@ -35,12 +34,12 @@ class SettingsProvider extends ChangeNotifier {
         _deviceId = 'ID tidak tersedia';
       }
     } catch (e) {
-      debugPrint('Gagal mendapatkan ID perangkat: $e');
+      debugPrint('Gagal memuat settings: $e');
       _deviceId = 'Gagal memuat ID';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
