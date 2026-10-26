@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/media_type_enum.dart';
@@ -17,6 +18,7 @@ class CatalogPage extends StatefulWidget {
 class _CatalogPageState extends State<CatalogPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _CatalogPageState extends State<CatalogPage> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -50,6 +53,10 @@ class _CatalogPageState extends State<CatalogPage> {
               controller: _searchController,
               onChanged: (value) {
                 setState(() {});
+                if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+                _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+                  context.read<CatalogProvider>().setQuery(value);
+                });
               },
               decoration: InputDecoration(
                 hintText: 'Cari judul...',
@@ -59,7 +66,7 @@ class _CatalogPageState extends State<CatalogPage> {
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
-                          catalog.setQuery('');
+                          context.read<CatalogProvider>().setQuery('');
                           setState(() {});
                         },
                       )
@@ -68,9 +75,6 @@ class _CatalogPageState extends State<CatalogPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onSubmitted: (value) {
-                catalog.setQuery(value);
-              },
             ),
           ),
           SingleChildScrollView(
@@ -92,6 +96,19 @@ class _CatalogPageState extends State<CatalogPage> {
             ),
           ),
           const SizedBox(height: 8),
+          
+          if (!catalog.isLoading && catalog.errorMessage == null && catalog.items.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Menampilkan ${catalog.items.length} hasil',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+            ),
+
           Expanded(
             child: _buildContent(context, catalog),
           ),
@@ -102,7 +119,7 @@ class _CatalogPageState extends State<CatalogPage> {
 
   Widget _buildContent(BuildContext context, CatalogProvider catalog) {
     if (catalog.isLoading) {
-    return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (catalog.errorMessage != null) {
