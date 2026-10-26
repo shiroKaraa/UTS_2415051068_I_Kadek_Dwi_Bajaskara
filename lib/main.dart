@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           }
 
           return MaterialApp(
-            title: 'MediaShelf',
+            title: 'Tsuzuki',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,

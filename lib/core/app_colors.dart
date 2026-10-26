@@ -23,4 +23,8 @@ class AppColors {
   static const Color typeManhwa = Color(0xFFE3B964); 
   static const Color typeManhua = Color(0xFFB08AE8); 
   static const Color typeLainnya = Color(0xFF8C9E96); 
+
+  // Warna untuk efek Shimmer
+  static const Color shimmerBase = Color(0xFF2C3A33);
+  static const Color shimmerHighlight = Color(0xFF3D4F46);
 }
