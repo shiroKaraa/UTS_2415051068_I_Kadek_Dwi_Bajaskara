@@ -17,13 +17,16 @@ class CatalogDetailPage extends StatelessWidget {
           children: [
             if (item.coverUrl != null)
               Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    item.coverUrl!,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
+                child: Hero(
+                  tag: 'poster_${item.malId}', 
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      item.coverUrl!,
+                      height: 250,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
+                    ),
                   ),
                 ),
               ),
