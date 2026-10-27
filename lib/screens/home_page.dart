@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/catalog_item.dart';
 import '../models/status_collection_enum.dart';
+import '../providers/auth_provider.dart';
 import '../providers/collection_provider.dart';
 import '../providers/catalog_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/cover_image.dart';
 import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
@@ -28,13 +31,80 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<RefreshIndicatorState> _refreshKey =
       GlobalKey<RefreshIndicatorState>();
 
+  bool _claimChecked = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final catalog = context.read<CatalogProvider>();
       catalog.fetchPopularHome();
+      _maybeOfferClaim();
     });
+  }
+
+  Future<void> _maybeOfferClaim() async {
+    if (_claimChecked) return;
+    _claimChecked = true;
+
+    final auth = context.read<AuthProvider>();
+    final settings = context.read<SettingsProvider>();
+    final collection = context.read<CollectionProvider>();
+
+    final deviceId = settings.deviceId;
+    if (!auth.isAuthenticated) return;
+    if (deviceId == null || deviceId.isEmpty) return;
+    if (collection.isOffline) return;
+
+    try {
+      final res = await Supabase.instance.client.rpc(
+        'count_claimable_collections',
+        params: {'p_device_id': deviceId},
+      );
+      final count = res is int ? res : 0;
+      if (count <= 0) return;
+      if (!mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
+      final username = auth.username ?? '-';
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('Pindahkan data lama?'),
+          content: Text(
+            'Ditemukan $count koleksi lama di perangkat ini yang belum '
+            'terhubung ke akun. Pindahkan ke akun @$username?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, true),
+              child: const Text('Pindahkan'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      final claimed = await collection.claimDeviceCollections(deviceId);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            claimed > 0
+                ? '$claimed koleksi berhasil dipindahkan ke akun Anda.'
+                : 'Tidak ada koleksi yang dipindahkan.',
+          ),
+        ),
+      );
+    } catch (_) {
+    }
   }
 
   Future<void> _onRefresh() async {
@@ -264,8 +334,7 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(l10n.continueWatching,
-            style:
-                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: AppSizes.spacingS),
         ...lanjutkan.map((terbaru) {
           final progress = (terbaru.total != null && terbaru.total! > 0)
@@ -307,49 +376,51 @@ class _HomePageState extends State<HomePage> {
               trailing: IconButton.filledTonal(
                 icon: const Icon(Icons.add),
                 tooltip: l10n.progress,
-                onPressed: (terbaru.total != null &&
-                        terbaru.progres >= terbaru.total!)
-                    ? null
-                    : () async {
-                        final provider =
-                            context.read<CollectionProvider>();
-                        final messenger =
-                            ScaffoldMessenger.of(context);
+                onPressed:
+                    (terbaru.total != null && terbaru.progres >= terbaru.total!)
+                        ? null
+                        : () async {
+                            final provider =
+                                context.read<CollectionProvider>();
+                            final messenger =
+                                ScaffoldMessenger.of(context);
 
-                        final ok =
-                            await provider.incrementProgress(terbaru);
+                            final ok =
+                                await provider.incrementProgress(terbaru);
 
-                        if (!context.mounted) return;
+                            if (!context.mounted) return;
 
-                        if (!ok) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(provider.errorMessage ??
-                                  l10n.offlineMode),
-                            ),
-                          );
-                          return;
-                        }
+                            if (!ok) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(provider.errorMessage ??
+                                      l10n.offlineMode),
+                                ),
+                              );
+                              return;
+                            }
 
-                        final updated =
-                            provider.allEntries.firstWhere(
-                          (e) => e.id == terbaru.id,
-                          orElse: () => terbaru,
-                        );
-                        if (updated.status == StatusKoleksi.selesai) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${l10n.statCompleted}: ${terbaru.judul}',
-                              ),
-                            ),
-                          );
-                        } else {
-                          messenger.showSnackBar(
-                            SnackBar(content: Text('${l10n.progress} +1')),
-                          );
-                        }
-                      },
+                            final updated =
+                                provider.allEntries.firstWhere(
+                              (e) => e.id == terbaru.id,
+                              orElse: () => terbaru,
+                            );
+                            if (updated.status == StatusKoleksi.selesai) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${l10n.statCompleted}: ${terbaru.judul}',
+                                  ),
+                                ),
+                              );
+                            } else {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('${l10n.progress} +1'),
+                                ),
+                              );
+                            }
+                          },
               ),
               onTap: () {
                 Navigator.push(
