@@ -16,12 +16,12 @@ class CatalogProvider extends ChangeNotifier {
   JenisMedia _selectedJenis = JenisMedia.anime;
   String _query = '';
   int _requestGeneration = 0;
-
+  String? _filterGenre;
+  int? _filterTahun;
   List<ItemKatalog> _popularAnime = [];
   List<ItemKatalog> _popularManga = [];
   bool _isLoadingPopular = false;
   bool _hasFetchedPopular = false;
-
   List<ItemKatalog> get items => _items;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -29,6 +29,8 @@ class CatalogProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   JenisMedia get selectedJenis => _selectedJenis;
   String get query => _query;
+  String? get filterGenre => _filterGenre;
+  int? get filterTahun => _filterTahun;
 
   List<ItemKatalog> get topAnime => _popularAnime;
   List<ItemKatalog> get topManga => _popularManga;
@@ -127,9 +129,20 @@ class CatalogProvider extends ChangeNotifier {
 
   Future<List<Map<String, dynamic>>> _fetchData(int page) {
     if (_query.isEmpty) {
-      return _aniListService.getTop(jenis: _selectedJenis, page: page);
+      return _aniListService.getTop(
+        jenis: _selectedJenis, 
+        page: page,
+        genre: _filterGenre,
+        tahun: _filterTahun,
+      );
     } else {
-      return _aniListService.search(query: _query, jenis: _selectedJenis, page: page);
+      return _aniListService.search(
+        query: _query, 
+        jenis: _selectedJenis, 
+        page: page,
+        genre: _filterGenre,
+        tahun: _filterTahun,
+      );
     }
   }
 
@@ -141,6 +154,18 @@ class CatalogProvider extends ChangeNotifier {
 
   void setQuery(String query) {
     _query = query;
+    fetchCatalog();
+  }
+
+  void setFilters({String? genre, int? tahun}) {
+    _filterGenre = genre;
+    _filterTahun = tahun;
+    fetchCatalog();
+  }
+
+  void clearFilters() {
+    _filterGenre = null;
+    _filterTahun = null;
     fetchCatalog();
   }
 

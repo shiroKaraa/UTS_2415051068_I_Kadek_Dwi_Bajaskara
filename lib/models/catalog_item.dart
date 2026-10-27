@@ -9,6 +9,11 @@ class ItemKatalog {
   final double? skor;
   final int? total;
   final JenisMedia jenis;
+  
+  // Field Baru
+  final List<String> genres;
+  final int? tahunRilis;
+  final String? statusTayang;
 
   ItemKatalog({
     required this.malId,
@@ -19,6 +24,9 @@ class ItemKatalog {
     this.skor,
     this.total,
     required this.jenis,
+    this.genres = const [],
+    this.tahunRilis,
+    this.statusTayang,
   });
 
   String get displayTitle {
@@ -46,6 +54,9 @@ class ItemKatalog {
       skor = (json['averageScore'] as num).toDouble() / 10.0;
     }
 
+    // Parsing field baru
+    final genresList = (json['genres'] as List<dynamic>?)?.cast<String>() ?? [];
+
     return ItemKatalog(
       malId: malId,
       judul: titleObj?['romaji'] as String? ?? 'Tanpa Judul',
@@ -55,6 +66,9 @@ class ItemKatalog {
       skor: skor,
       total: totalData,
       jenis: jenis,
+      genres: genresList,
+      tahunRilis: json['seasonYear'] as int?,
+      statusTayang: json['status'] as String?,
     );
   }
 }

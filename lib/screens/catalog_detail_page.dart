@@ -125,17 +125,37 @@ class CatalogDetailPage extends StatelessWidget {
                     label: item.skor!.toStringAsFixed(1),
                     color: AppColors.goldPrimary,
                   ),
+                if (item.tahunRilis != null)
+                  _infoChip(
+                    context,
+                    icon: Icons.calendar_today,
+                    label: item.tahunRilis.toString(),
+                    color: AppColors.infoBlue,
+                  ),
+                if (item.statusTayang != null)
+                  _infoChip(
+                    context,
+                    icon: Icons.play_circle_outline,
+                    label: item.statusTayang!,
+                    color: AppColors.primaryGreen,
+                  ),
                 if (item.total != null)
                   _infoChip(
                     context,
                     icon: Icons.menu_book_outlined,
-                    label:
-                        '${item.total} ${item.jenis.satuanProgres}',
-                    color: AppColors.infoBlue,
+                    label: '${item.total} ${item.jenis.satuanProgres}',
+                    color: AppColors.typeAnime,
                   ),
               ],
             ),
-
+            if (item.genres.isNotEmpty) ...[
+              const SizedBox(height: AppSizes.spacingM),
+              Wrap(
+                spacing: AppSizes.spacingS,
+                runSpacing: AppSizes.spacingS,
+                children: item.genres.map((g) => Chip(label: Text(g))).toList(),
+              ),
+            ],
             const SizedBox(height: AppSizes.spacingL),
             Text(
               'Sinopsis',

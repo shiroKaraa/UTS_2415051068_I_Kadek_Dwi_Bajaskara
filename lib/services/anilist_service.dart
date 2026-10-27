@@ -71,11 +71,13 @@ class AniListService {
     required String query,
     required JenisMedia jenis,
     int page = 1,
+    String? genre,
+    int? tahun,
   }) {
     const gql = '''
-      query (\$page: Int, \$perPage: Int, \$search: String, \$type: MediaType, \$country: CountryCode) {
+      query (\$page: Int, \$perPage: Int, \$search: String, \$type: MediaType, \$country: CountryCode, \$genre: String, \$seasonYear: Int) {
         Page(page: \$page, perPage: \$perPage) {
-          media(search: \$search, type: \$type, countryOfOrigin: \$country, isAdult: false) {
+          media(search: \$search, type: \$type, countryOfOrigin: \$country, isAdult: false, genre: \$genre, seasonYear: \$seasonYear) {
             $_fields
           }
         }
@@ -87,17 +89,21 @@ class AniListService {
       'search': query,
       'type': _type(jenis),
       'country': _country(jenis),
+      'genre': genre,
+      'seasonYear': tahun,
     });
   }
 
   Future<List<Map<String, dynamic>>> getTop({
     required JenisMedia jenis,
     int page = 1,
+    String? genre,
+    int? tahun,
   }) {
     const gql = '''
-      query (\$page: Int, \$perPage: Int, \$type: MediaType, \$country: CountryCode) {
+      query (\$page: Int, \$perPage: Int, \$type: MediaType, \$country: CountryCode, \$genre: String, \$seasonYear: Int) {
         Page(page: \$page, perPage: \$perPage) {
-          media(type: \$type, countryOfOrigin: \$country, sort: SCORE_DESC, isAdult: false) {
+          media(type: \$type, countryOfOrigin: \$country, sort: SCORE_DESC, isAdult: false, genre: \$genre, seasonYear: \$seasonYear) {
             $_fields
           }
         }
@@ -108,6 +114,8 @@ class AniListService {
       'perPage': 20,
       'type': _type(jenis),
       'country': _country(jenis),
+      'genre': genre,
+      'seasonYear': tahun,
     });
   }
 }

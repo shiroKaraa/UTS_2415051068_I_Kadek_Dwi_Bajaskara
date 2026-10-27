@@ -42,12 +42,104 @@ class _CatalogPageState extends State<CatalogPage> {
     super.dispose();
   }
 
+  void _showFilterSheet(BuildContext context) {
+    final catalog = context.read<CatalogProvider>();
+    String? tempGenre = catalog.filterGenre;
+    int? tempTahun = catalog.filterTahun;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 16,
+                right: 16,
+                top: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Filter Katalog', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: tempGenre,
+                    decoration: const InputDecoration(labelText: 'Genre', border: OutlineInputBorder()),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('Semua Genre')),
+                      DropdownMenuItem(value: 'Action', child: Text('Action')),
+                      DropdownMenuItem(value: 'Romance', child: Text('Romance')),
+                      DropdownMenuItem(value: 'Comedy', child: Text('Comedy')),
+                      DropdownMenuItem(value: 'Fantasy', child: Text('Fantasy')),
+                      DropdownMenuItem(value: 'Sci-Fi', child: Text('Sci-Fi')),
+                    ],
+                    onChanged: (val) => setState(() => tempGenre = val),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    initialValue: tempTahun,
+                    decoration: const InputDecoration(labelText: 'Tahun Rilis', border: OutlineInputBorder()),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('Semua Tahun')),
+                      ...List.generate(10, (i) => DateTime.now().year - i).map((thn) {
+                        return DropdownMenuItem(value: thn, child: Text(thn.toString()));
+                      }),
+                    ],
+                    onChanged: (val) => setState(() => tempTahun = val),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            catalog.clearFilters();
+                            Navigator.pop(sheetCtx);
+                          },
+                          child: const Text('Reset'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            catalog.setFilters(genre: tempGenre, tahun: tempTahun);
+                            Navigator.pop(sheetCtx);
+                          },
+                          child: const Text('Terapkan'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final catalog = context.watch<CatalogProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Katalog')),
+      appBar: AppBar(
+        title: const Text('Katalog'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filter',
+            onPressed: () => _showFilterSheet(context),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -85,18 +177,29 @@ class _CatalogPageState extends State<CatalogPage> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              children: JenisMedia.values.map((jenis) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(jenis.label),
-                    selected: catalog.selectedJenis == jenis,
-                    onSelected: (selected) {
-                      if (selected) catalog.setJenis(jenis);
-                    },
+              children: [
+                ...JenisMedia.values.map((jenis) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      label: Text(jenis.label),
+                      selected: catalog.selectedJenis == jenis,
+                      onSelected: (selected) {
+                        if (selected) catalog.setJenis(jenis);
+                      },
+                    ),
+                  );
+                }),
+                if (catalog.filterGenre != null || catalog.filterTahun != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Chip(
+                      avatar: const Icon(Icons.filter_alt, size: 16),
+                      label: const Text('Filter Aktif'),
+                      onDeleted: () => catalog.clearFilters(),
+                    ),
                   ),
-                );
-              }).toList(),
+              ],
             ),
           ),
           const SizedBox(height: 8),
@@ -108,7 +211,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Menampilkan ${catalog.items.length} hasil',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
@@ -146,7 +249,7 @@ class _CatalogPageState extends State<CatalogPage> {
     if (catalog.items.isEmpty) {
       return const EmptyView(
         title: 'Tidak Ditemukan',
-        subtitle: 'Coba kata kunci lain atau ubah jenis media.',
+        subtitle: 'Coba kata kunci lain, ubah jenis media, atau reset filter.',
         icon: Icons.search_off,
       );
     }
