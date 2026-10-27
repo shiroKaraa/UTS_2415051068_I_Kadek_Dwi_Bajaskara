@@ -14,15 +14,33 @@ class StatisticsPage extends StatelessWidget {
     final collection = context.watch<CollectionProvider>();
     final entries = collection.allEntries;
 
-    int totalProgres = 0;
+    // --- PERHITUNGAN DATA ---
+    int totalAnime = 0;
+    int totalManga = 0;
+    int totalEpisodesWatch = 0;
+    int totalChaptersRead = 0;
     int totalSelesai = 0;
-    final Map<JenisMedia, int> jumlahPerJenis = {};
+    int totalProgres = 0;
 
     for (var e in entries) {
       totalProgres += e.progres;
       if (e.status == StatusKoleksi.selesai) totalSelesai++;
-      jumlahPerJenis[e.jenis] = (jumlahPerJenis[e.jenis] ?? 0) + 1;
+
+      if (e.jenis == JenisMedia.anime) {
+        totalAnime++;
+        totalEpisodesWatch += e.progres;
+      } else {
+        totalManga++;
+        totalChaptersRead += e.progres;
+      }
     }
+
+    // Estimasi Days Watch (Asumsi 1 episode = 24 menit)
+    final double totalMenitAnime = totalEpisodesWatch * 24.0;
+    final double daysWatch = totalMenitAnime / (60 * 24); // Konversi ke hari
+
+    // Estimasi Volumes Read (Asumsi 1 volume = 9 chapter)
+    final int volumesRead = (totalChaptersRead / 9).ceil();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Statistik Perpustakaan')),
@@ -31,6 +49,7 @@ class StatisticsPage extends StatelessWidget {
           : ListView(
               padding: const EdgeInsets.all(AppSizes.spacingM),
               children: [
+                // --- KARTU RINGKASAN UTAMA ---
                 Row(
                   children: [
                     Expanded(
@@ -55,36 +74,85 @@ class StatisticsPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSizes.spacingM),
-                _buildSummaryCard(
+                
+                // --- KARTU WAKTU (DAYS WATCH) ---
+                _buildWideSummaryCard(
                   context,
-                  'Total Episode/Chapter Dilacak',
-                  totalProgres.toString(),
-                  Icons.play_arrow,
+                  'Estimasi Waktu Menonton',
+                  '${daysWatch.toStringAsFixed(1)} Hari',
+                  Icons.access_time,
                   AppColors.primaryGreen,
                 ),
-                
+
                 const SizedBox(height: AppSizes.spacingL),
                 Text(
-                  'Rincian per Jenis Media',
+                  'Rincian Aktivitas',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppSizes.spacingS),
-                ...JenisMedia.values.map((jenis) {
-                  final count = jumlahPerJenis[jenis] ?? 0;
-                  if (count == 0) return const SizedBox.shrink();
-                  
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
-                    child: ListTile(
-                      leading: Icon(Icons.book, color: AppColors.typeAnime),
-                      title: Text(jenis.label),
-                      trailing: Text(
-                        '$count Judul',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+
+                // --- RINCIAN ANIME ---
+                Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: const Icon(Icons.play_circle_outline, color: AppColors.typeAnime),
+                    title: const Text('Anime'),
+                    subtitle: Text('$totalAnime Judul dilacak'),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('$totalEpisodesWatch', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text('Episode', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      ],
                     ),
-                  );
-                }),
+                  ),
+                ),
+
+                // --- RINCIAN MANGA ---
+                Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: const Icon(Icons.menu_book_outlined, color: AppColors.typeManga),
+                    title: const Text('Manga / Komik'),
+                    subtitle: Text('$totalManga Judul dilacak'),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('$totalChaptersRead', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text('Chapter', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // --- RINCIAN VOLUME ---
+                Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: const Icon(Icons.auto_stories, color: AppColors.primaryGreen),
+                    title: const Text('Estimasi Volume'),
+                    subtitle: const Text('Berdasarkan rasio 9 Chapter/Volume'),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('$volumesRead', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text('Volume', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: AppSizes.spacingL),
+                const Center(
+                  child: Text(
+                    'Catatan: Estimasi waktu menonton dihitung dari 1 episode = 24 menit.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ),
               ],
             ),
     );
@@ -112,6 +180,39 @@ class StatisticsPage extends StatelessWidget {
             const SizedBox(height: AppSizes.spacingS),
             Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             Text(title, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWideSummaryCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.radiusM),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.spacingM),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 40),
+            const SizedBox(width: AppSizes.spacingM),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              ],
+            ),
           ],
         ),
       ),
