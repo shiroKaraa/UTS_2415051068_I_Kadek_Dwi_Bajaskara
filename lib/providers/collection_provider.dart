@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/collection_entry.dart';
+import '../models/media_type_enum.dart';
 import '../models/status_collection_enum.dart'; 
 import '../repositories/collection_repository.dart';
 
-enum UrutanKoleksi { terbaru, judul }
+enum UrutanKoleksi { terbaru, judul, progres, rating }
 
 class CollectionProvider extends ChangeNotifier {
   final CollectionRepository _repository;
@@ -20,6 +21,11 @@ class CollectionProvider extends ChangeNotifier {
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
   StatusKoleksi? _filterStatus;
   bool _isListView = false;
+  
+  // State Filter Baru
+  String _query = '';
+  JenisMedia? _filterJenis;
+  int? _filterRating;
 
   bool get isOffline => _isOffline;
   bool get isListView => _isListView;
@@ -29,22 +35,60 @@ class CollectionProvider extends ChangeNotifier {
   UrutanKoleksi get urutan => _urutan;
   StatusKoleksi? get filterStatus => _filterStatus;
   String? get deviceId => _deviceId;
+  
+  String get query => _query;
+  JenisMedia? get filterJenis => _filterJenis;
+  int? get filterRating => _filterRating;
+
+  bool get hasActiveFilters =>
+      _filterStatus != null || _filterJenis != null || _filterRating != null || _query.isNotEmpty;
 
   List<EntriKoleksi> get allEntries => _entries;
+
   List<EntriKoleksi> get entries {
-    var filtered = List<EntriKoleksi>.from(_entries); 
+    var filtered = List<EntriKoleksi>.from(_entries);
+
+    // 1. Filter Pencarian (Judul / Catatan)
+    if (_query.isNotEmpty) {
+      final q = _query.toLowerCase();
+      filtered = filtered.where((e) {
+        final matchJudul = e.judul.toLowerCase().contains(q);
+        final matchCatatan = e.catatan?.toLowerCase().contains(q) ?? false;
+        return matchJudul || matchCatatan;
+      }).toList();
+    }
+
+    // 2. Filter Status
     if (_filterStatus != null) {
       filtered = filtered.where((e) => e.status == _filterStatus).toList();
     }
+
+    // 3. Filter Jenis Media
+    if (_filterJenis != null) {
+      filtered = filtered.where((e) => e.jenis == _filterJenis).toList();
+    }
+
+    // 4. Filter Rating
+    if (_filterRating != null) {
+      filtered = filtered.where((e) => e.rating == _filterRating).toList();
+    }
+
+    // 5. Urutan
     if (_urutan == UrutanKoleksi.terbaru) {
       filtered.sort((a, b) => (b.updatedAt ?? DateTime.now()).compareTo(a.updatedAt ?? DateTime.now()));
-    } else {
+    } else if (_urutan == UrutanKoleksi.judul) {
       filtered.sort((a, b) => a.judul.toLowerCase().compareTo(b.judul.toLowerCase()));
+    } else if (_urutan == UrutanKoleksi.progres) {
+      filtered.sort((a, b) => b.progres.compareTo(a.progres));
+    } else if (_urutan == UrutanKoleksi.rating) {
+      filtered.sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
     }
+
     return filtered;
   }
 
   CollectionProvider(this._repository);
+
   void bindDevice(String? id) {
     if (_deviceId == id) return;
     _deviceId = id;
@@ -204,6 +248,27 @@ class CollectionProvider extends ChangeNotifier {
   void setFilterStatus(StatusKoleksi? status) {
     if (_filterStatus == status) return;
     _filterStatus = status;
+    notifyListeners();
+  }
+
+  void setQuery(String query) {
+    if (_query == query) return;
+    _query = query;
+    notifyListeners();
+  }
+
+  void setFilters({JenisMedia? jenis, int? rating, StatusKoleksi? status}) {
+    _filterJenis = jenis;
+    _filterRating = rating;
+    _filterStatus = status;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _filterJenis = null;
+    _filterRating = null;
+    _filterStatus = null;
+    _query = '';
     notifyListeners();
   }
 
