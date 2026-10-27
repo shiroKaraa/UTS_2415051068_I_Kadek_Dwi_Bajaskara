@@ -50,8 +50,6 @@ class ProfilePage extends StatelessWidget {
             ),
 
             const Divider(height: 48),
-
-            // Tambahan Informasi Atribusi API (Sesuai Blueprint)
             const ListTile(
               leading: Icon(Icons.info_outline),
               title: Text('Sumber Data Katalog'),
@@ -62,31 +60,6 @@ class ProfilePage extends StatelessWidget {
               title: Text('Penyimpanan Data'),
               subtitle: Text('Koleksi pribadi disimpan dengan aman di Supabase (PostgreSQL).'),
             ),
-            ListTile(
-              leading: const Icon(Icons.dark_mode_outlined),
-              title: const Text('Tema Aplikasi'),
-              subtitle: Text(
-                settings.themeMode == ThemeMode.dark
-                    ? 'Gelap'
-                    : settings.themeMode == ThemeMode.light
-                        ? 'Terang'
-                        : 'Ikuti Sistem',
-              ),
-              trailing: DropdownButton<ThemeMode>(
-                value: settings.themeMode,
-                onChanged: (ThemeMode? newMode) {
-                  if (newMode != null) {
-                    context.read<SettingsProvider>().setThemeMode(newMode);
-                  }
-                },
-                items: const [
-                  DropdownMenuItem(value: ThemeMode.dark, child: Text('Gelap')),
-                  DropdownMenuItem(value: ThemeMode.light, child: Text('Terang')),
-                  DropdownMenuItem(value: ThemeMode.system, child: Text('Sistem')),
-                ],
-              ),
-            ),
-
             const Divider(),
             ListTile(
               leading: const Icon(Icons.fingerprint),
@@ -104,7 +77,7 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             
-            // Space kosong di bagian paling bawah agar tidak terlalu mepet
+
             const SizedBox(height: 48),
           ],
         ),
