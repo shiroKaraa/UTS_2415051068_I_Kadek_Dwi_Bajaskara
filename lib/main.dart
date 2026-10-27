@@ -7,10 +7,11 @@ import 'core/app_config.dart';
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'providers/collection_provider.dart'; 
-import 'providers/category_provider.dart'; 
+import 'providers/category_provider.dart';
 import 'repositories/collection_repository.dart'; 
 import 'services/supabase_collection_service.dart'; 
 import 'screens/responsive_shell.dart';
+import 'screens/onboarding_page.dart'; // <-- Import Onboarding
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,7 +70,10 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: settings.themeMode,
-            home: const ResponsiveShell(),
+            // Cek Onboarding
+            home: settings.hasSeenOnboarding 
+                ? const ResponsiveShell() 
+                : const OnboardingPage(),
           );
         },
       ),

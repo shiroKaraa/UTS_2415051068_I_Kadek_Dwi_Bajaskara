@@ -6,10 +6,12 @@ class SettingsProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark; 
   String? _deviceId;
   bool _isLoading = true;
+  bool _hasSeenOnboarding = false; // <-- State Baru
 
   ThemeMode get themeMode => _themeMode;
   String? get deviceId => _deviceId;
   bool get isLoading => _isLoading;
+  bool get hasSeenOnboarding => _hasSeenOnboarding;
 
   SettingsProvider() {
     _loadSettings();
@@ -26,6 +28,9 @@ class SettingsProvider extends ChangeNotifier {
       } else {
         _themeMode = ThemeMode.dark;
       }
+
+      // Baca status onboarding
+      _hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
 
       final persistentId = await PersistentDeviceId.getDeviceId();
       if (persistentId != null && persistentId.isNotEmpty) {
@@ -51,5 +56,13 @@ class SettingsProvider extends ChangeNotifier {
     if (mode == ThemeMode.light) modeString = 'light';
     if (mode == ThemeMode.system) modeString = 'system';
     await prefs.setString('theme_mode', modeString);
+  }
+
+  Future<void> setHasSeenOnboarding(bool value) async {
+    _hasSeenOnboarding = value;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_onboarding', value);
   }
 }
