@@ -11,39 +11,37 @@ enum StatusKoleksi {
   String label(JenisMedia jenis, [AppLocalizations? l10n]) {
     switch (this) {
       case StatusKoleksi.direncanakan:
-        return l10n?.activeFilter ?? 'Direncanakan';
+        return l10n?.statusPlanned ?? 'Direncanakan';
       case StatusKoleksi.sedang:
         if (jenis == JenisMedia.anime) {
           return l10n?.statReading ?? 'Sedang Menonton';
         }
         return l10n?.statReading ?? 'Sedang Membaca';
       case StatusKoleksi.selesai:
-        return l10n?.statCompleted ?? 'Selesai';
+        return l10n?.statusCompleted ?? 'Selesai';
       case StatusKoleksi.ditunda:
-        return l10n?.system ?? 'Ditunda';
+        return l10n?.statusPaused ?? 'Ditunda';
       case StatusKoleksi.dihentikan:
-        return l10n?.delete ?? 'Dihentikan'; 
-    }
-  }
-  
-  String netralLabel([AppLocalizations? l10n]) {
-    switch (this) {
-      case StatusKoleksi.direncanakan:
-        return l10n?.activeFilter ?? 'Direncanakan';
-      case StatusKoleksi.sedang:
-        return l10n?.statReading ?? 'Sedang';
-      case StatusKoleksi.selesai:
-        return l10n?.statCompleted ?? 'Selesai';
-      case StatusKoleksi.ditunda:
-        return l10n?.system ?? 'Ditunda';
-      case StatusKoleksi.dihentikan:
-        return l10n?.delete ?? 'Dihentikan';
+        return l10n?.statusDropped ?? 'Dihentikan';
     }
   }
 
-  String get value {
-    return name;
+  String netralLabel([AppLocalizations? l10n]) {
+    switch (this) {
+      case StatusKoleksi.direncanakan:
+        return l10n?.statusPlanned ?? 'Direncanakan';
+      case StatusKoleksi.sedang:
+        return l10n?.statusOngoing ?? 'Sedang';
+      case StatusKoleksi.selesai:
+        return l10n?.statusCompleted ?? 'Selesai';
+      case StatusKoleksi.ditunda:
+        return l10n?.statusPaused ?? 'Ditunda';
+      case StatusKoleksi.dihentikan:
+        return l10n?.statusDropped ?? 'Dihentikan';
+    }
   }
+
+  String get value => name;
 
   static StatusKoleksi fromString(String value) {
     return StatusKoleksi.values.firstWhere(

@@ -42,7 +42,7 @@ class CoverImage extends StatelessWidget {
         if (progress == null) return child;
         return placeholder(Icons.image_outlined);
       },
-      errorBuilder: (_, _, _) => placeholder(Icons.broken_image_outlined), 
+      errorBuilder: (context, error, stackTrace) => placeholder(Icons.broken_image_outlined),
     );
   }
 }

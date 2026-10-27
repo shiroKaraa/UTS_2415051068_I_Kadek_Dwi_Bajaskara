@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
@@ -33,7 +34,7 @@ class _StoragePageState extends State<StoragePage> {
     for (final key in keys) {
       final value = prefs.getString(key);
       if (value != null) {
-        dataSize += value.length; 
+        dataSize += utf8.encode(value).length;
       }
     }
 

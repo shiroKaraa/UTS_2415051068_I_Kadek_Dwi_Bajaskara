@@ -223,8 +223,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildLanjutkanSection(
-      BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
+  Widget _buildLanjutkanSection(BuildContext context,
+      CollectionProvider collection, AppLocalizations l10n) {
     final lanjutkan = collection.allEntries
         .where((e) => e.status == StatusKoleksi.sedang)
         .take(3)
@@ -264,7 +264,8 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(l10n.continueWatching,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            style:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: AppSizes.spacingS),
         ...lanjutkan.map((terbaru) {
           final progress = (terbaru.total != null && terbaru.total! > 0)
@@ -289,7 +290,9 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${terbaru.progres} / ${terbaru.total ?? "?"} ${terbaru.jenis.satuanProgres(l10n)}'), // <-- Perbaikan
+                    '${terbaru.progres} / ${terbaru.total ?? "?"} '
+                    '${terbaru.jenis.satuanProgres(l10n)}',
+                  ),
                   const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: progress,
@@ -303,43 +306,50 @@ class _HomePageState extends State<HomePage> {
               ),
               trailing: IconButton.filledTonal(
                 icon: const Icon(Icons.add),
-                tooltip: 'Tambah progres',
-                onPressed:
-                    (terbaru.total != null && terbaru.progres >= terbaru.total!)
-                        ? null
-                        : () async {
-                            final provider =
-                                context.read<CollectionProvider>();
+                tooltip: l10n.progress,
+                onPressed: (terbaru.total != null &&
+                        terbaru.progres >= terbaru.total!)
+                    ? null
+                    : () async {
+                        final provider =
+                            context.read<CollectionProvider>();
+                        final messenger =
+                            ScaffoldMessenger.of(context);
+
+                        final ok =
                             await provider.incrementProgress(terbaru);
 
-                            if (!context.mounted) return;
-                            
-                            if (provider.errorMessage != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(provider.errorMessage!)),
-                              );
-                              return;
-                            }
+                        if (!context.mounted) return;
 
-                            final updated = provider.allEntries.firstWhere(
-                              (e) => e.id == terbaru.id,
-                              orElse: () => terbaru,
-                            );
-                            if (updated.status == StatusKoleksi.selesai) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Selamat! Kamu telah menamatkan judul ini.'),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Progres +1 berhasil.'),
-                                ),
-                              );
-                            }
-                          },
+                        if (!ok) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(provider.errorMessage ??
+                                  l10n.offlineMode),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final updated =
+                            provider.allEntries.firstWhere(
+                          (e) => e.id == terbaru.id,
+                          orElse: () => terbaru,
+                        );
+                        if (updated.status == StatusKoleksi.selesai) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${l10n.statCompleted}: ${terbaru.judul}',
+                              ),
+                            ),
+                          );
+                        } else {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('${l10n.progress} +1')),
+                          );
+                        }
+                      },
               ),
               onTap: () {
                 Navigator.push(

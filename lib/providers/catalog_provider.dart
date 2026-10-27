@@ -170,6 +170,9 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
+    _hasFetchedPopular = false;
     await fetchCatalog();
+    await fetchPopularHome();
   }
+  
 }

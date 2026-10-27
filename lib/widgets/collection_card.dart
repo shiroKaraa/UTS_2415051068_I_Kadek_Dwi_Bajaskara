@@ -27,7 +27,7 @@ class CollectionCard extends StatelessWidget {
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
         : 0.0;
     final isSelesai = entri.status == StatusKoleksi.selesai;
-    
+
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -84,42 +84,45 @@ class CollectionCard extends StatelessWidget {
                           shape: const CircleBorder(),
                           child: InkWell(
                             onTap: () async {
-                              final provider = context.read<CollectionProvider>();
-                              if (provider.isOffline) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          'Tidak dapat menambah progres saat offline.')),
-                                );
-                                return;
-                              }
+                              final provider =
+                                  context.read<CollectionProvider>();
+                              final messenger =
+                                  ScaffoldMessenger.of(context);
 
-                              await provider.incrementProgress(entri);
+                              final ok =
+                                  await provider.incrementProgress(entri);
 
                               if (!context.mounted) return;
-                              if (provider.errorMessage != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(provider.errorMessage!)),
+
+                              if (!ok) {
+                                final msg = provider.errorMessage ??
+                                    l10n.offlineMode;
+                                messenger.showSnackBar(
+                                  SnackBar(content: Text(msg)),
                                 );
                                 return;
                               }
 
-                              final updated = provider.allEntries.firstWhere(
+                              final updated =
+                                  provider.allEntries.firstWhere(
                                 (e) => e.id == entri.id,
                                 orElse: () => entri,
                               );
 
                               if (updated.status == StatusKoleksi.selesai) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          'Selamat! Kamu telah menamatkan judul ini.')),
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${l10n.statCompleted}: ${entri.judul}',
+                                    ),
+                                  ),
                                 );
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Progres +1 berhasil.')),
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('${l10n.progress} +1'),
+                                  ),
                                 );
                               }
                             },
@@ -145,14 +148,18 @@ class CollectionCard extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
-            entri.status.netralLabel(l10n), // <-- Perbaikan
-            style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+            entri.status.netralLabel(l10n),
+            style: TextStyle(
+                fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
           ),
           Semantics(
-            label: 'Progres ${entri.progres} dari ${entri.total ?? "tidak diketahui"}',
+            label:
+                '${l10n.progress} ${entri.progres} / ${entri.total ?? "?"}',
             child: Text(
               '${entri.progres}/${entri.total ?? "?"}',
-              style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.onSurfaceVariant),
             ),
           ),
           const SizedBox(height: 4),

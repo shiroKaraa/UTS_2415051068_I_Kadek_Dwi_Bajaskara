@@ -14,7 +14,7 @@ class CollectionDetailPage extends StatelessWidget {
   final EntriKoleksi entri;
 
   const CollectionDetailPage({super.key, required this.entri});
-  
+
   Color _statusColor(StatusKoleksi status) {
     switch (status) {
       case StatusKoleksi.direncanakan:
@@ -30,7 +30,8 @@ class CollectionDetailPage extends StatelessWidget {
     }
   }
 
-  Future<void> _konfirmasiHapus(BuildContext context, AppLocalizations l10n) async {
+  Future<void> _konfirmasiHapus(
+      BuildContext context, AppLocalizations l10n) async {
     final collection = context.read<CollectionProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -65,15 +66,13 @@ class CollectionDetailPage extends StatelessWidget {
       navigator.pop();
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.categoryDeleted), // <-- Gunakan l10n
+          content: Text(l10n.categoryDeleted),
           action: SnackBarAction(
             label: l10n.undo,
             onPressed: () async {
               if (collection.isOffline) {
                 messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.offlineMode), // <-- Gunakan l10n
-                  ),
+                  SnackBar(content: Text(l10n.offlineMode)),
                 );
                 return;
               }
@@ -81,7 +80,9 @@ class CollectionDetailPage extends StatelessWidget {
               if (!ok) {
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(collection.errorMessage ?? l10n.errorLoadData), // <-- Gunakan l10n
+                    content: Text(
+                      collection.errorMessage ?? l10n.errorLoadData,
+                    ),
                   ),
                 );
               }
@@ -92,7 +93,7 @@ class CollectionDetailPage extends StatelessWidget {
     } else {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(collection.errorMessage ?? l10n.errorLoadData), // <-- Gunakan l10n
+          content: Text(collection.errorMessage ?? l10n.errorLoadData),
         ),
       );
     }
@@ -109,23 +110,43 @@ class CollectionDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(entri.judul, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title:
+            Text(entri.judul, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
           IconButton(
             icon: Icon(
               entri.isFavorite ? Icons.star : Icons.star_border,
               color: entri.isFavorite ? AppColors.goldPrimary : null,
             ),
-            tooltip: entri.isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
+            tooltip:
+                entri.isFavorite ? l10n.delete : l10n.addToCollection,
             onPressed: () async {
               final collection = context.read<CollectionProvider>();
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              final wasFavorite = entri.isFavorite;
+
               final berhasil = await collection.toggleFavorite(entri);
               if (!context.mounted) return;
               if (berhasil) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(entri.isFavorite ? 'Dihapus dari favorit.' : 'Ditambahkan ke favorit!')),
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      wasFavorite
+                          ? l10n.delete
+                          : l10n.categoryAdded,
+                    ),
+                  ),
                 );
-                Navigator.pop(context);
+                navigator.pop();
+              } else {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      collection.errorMessage ?? l10n.errorLoadData,
+                    ),
+                  ),
+                );
               }
             },
           ),
@@ -185,8 +206,9 @@ class CollectionDetailPage extends StatelessWidget {
                       top: AppSizes.spacingS,
                       left: AppSizes.spacingS,
                       child: StatusChip(
-                        label: entri.status.netralLabel(l10n), // <-- Perbaikan
-                        backgroundColor: statusColor.withValues(alpha: 0.2),
+                        label: entri.status.netralLabel(l10n),
+                        backgroundColor:
+                            statusColor.withValues(alpha: 0.2),
                         textColor: statusColor,
                       ),
                     ),
@@ -206,7 +228,7 @@ class CollectionDetailPage extends StatelessWidget {
                     size: 16, color: theme.colorScheme.onSurfaceVariant),
                 const SizedBox(width: AppSizes.spacingXs),
                 Text(
-                  entri.jenis.label(l10n), // <-- Perbaikan
+                  entri.jenis.label(l10n),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -216,7 +238,7 @@ class CollectionDetailPage extends StatelessWidget {
                     size: 16, color: theme.colorScheme.onSurfaceVariant),
                 const SizedBox(width: AppSizes.spacingXs),
                 Text(
-                  entri.status.label(entri.jenis, l10n), // <-- Perbaikan
+                  entri.status.label(entri.jenis, l10n),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -230,7 +252,8 @@ class CollectionDetailPage extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppSizes.radiusM),
                 side: BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color:
+                      theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                 ),
               ),
               child: Padding(
@@ -242,7 +265,8 @@ class CollectionDetailPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${l10n.progress} ${entri.jenis.satuanProgres(l10n)}', // <-- Perbaikan
+                          '${l10n.progress} '
+                          '${entri.jenis.satuanProgres(l10n)}',
                           style: theme.textTheme.bodyMedium,
                         ),
                         Text(
@@ -319,13 +343,14 @@ class CollectionDetailPage extends StatelessWidget {
               ),
               child: Text(
                 (entri.catatan == null || entri.catatan!.isEmpty)
-                    ? l10n.noNotes // <-- Perbaikan Isi "Tidak ada catatan"
+                    ? l10n.noNotes
                     : entri.catatan!,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
-                  fontStyle: (entri.catatan == null || entri.catatan!.isEmpty)
-                      ? FontStyle.italic
-                      : FontStyle.normal,
+                  fontStyle:
+                      (entri.catatan == null || entri.catatan!.isEmpty)
+                          ? FontStyle.italic
+                          : FontStyle.normal,
                 ),
               ),
             ),

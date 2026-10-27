@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
-import '../models/status_collection_enum.dart'; 
+import '../models/status_collection_enum.dart';
 import '../repositories/collection_repository.dart';
 
 enum UrutanKoleksi { terbaru, judul, progres, rating }
@@ -24,6 +24,7 @@ class CollectionProvider extends ChangeNotifier {
   String _query = '';
   JenisMedia? _filterJenis;
   int? _filterRating;
+
   bool get isOffline => _isOffline;
   bool get isListView => _isListView;
   bool get filterFavorit => _filterFavorit;
@@ -32,12 +33,16 @@ class CollectionProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   UrutanKoleksi get urutan => _urutan;
   StatusKoleksi? get filterStatus => _filterStatus;
-  String? get deviceId => _deviceId; 
+  String? get deviceId => _deviceId;
   String get query => _query;
   JenisMedia? get filterJenis => _filterJenis;
   int? get filterRating => _filterRating;
   bool get hasActiveFilters =>
-      _filterStatus != null || _filterJenis != null || _filterRating != null || _query.isNotEmpty || _filterFavorit;
+      _filterStatus != null ||
+      _filterJenis != null ||
+      _filterRating != null ||
+      _query.isNotEmpty ||
+      _filterFavorit;
 
   List<EntriKoleksi> get allEntries => _entries;
 
@@ -69,9 +74,11 @@ class CollectionProvider extends ChangeNotifier {
     }
 
     if (_urutan == UrutanKoleksi.terbaru) {
-      filtered.sort((a, b) => (b.updatedAt ?? DateTime.now()).compareTo(a.updatedAt ?? DateTime.now()));
+      filtered.sort((a, b) => (b.updatedAt ?? DateTime.now())
+          .compareTo(a.updatedAt ?? DateTime.now()));
     } else if (_urutan == UrutanKoleksi.judul) {
-      filtered.sort((a, b) => a.judul.toLowerCase().compareTo(b.judul.toLowerCase()));
+      filtered.sort(
+          (a, b) => a.judul.toLowerCase().compareTo(b.judul.toLowerCase()));
     } else if (_urutan == UrutanKoleksi.progres) {
       filtered.sort((a, b) => b.progres.compareTo(a.progres));
     } else if (_urutan == UrutanKoleksi.rating) {
@@ -88,11 +95,12 @@ class CollectionProvider extends ChangeNotifier {
     _deviceId = id;
     _entries = [];
     _errorMessage = null;
-    
+
     if (id != null) {
       Future.microtask(() => fetchCollection());
     } else {
-      _errorMessage = 'ID Perangkat tidak tersedia. Tidak dapat memuat koleksi.';
+      _errorMessage =
+          'ID Perangkat tidak tersedia. Tidak dapat memuat koleksi.';
       notifyListeners();
     }
   }
@@ -108,29 +116,30 @@ class CollectionProvider extends ChangeNotifier {
       final data = await _repository.getCollection(_deviceId!);
       _entries = data;
       _isOffline = false;
-      
+
       final prefs = await SharedPreferences.getInstance();
       final jsonString = jsonEncode(data.map((e) => e.toJson()).toList());
       await prefs.setString('cache_koleksi_$_deviceId', jsonString);
-
     } catch (e) {
       final prefs = await SharedPreferences.getInstance();
       final cachedData = prefs.getString('cache_koleksi_$_deviceId');
-      
+
       if (cachedData != null && cachedData.isNotEmpty) {
         try {
           final List<dynamic> decoded = jsonDecode(cachedData);
-          _entries = decoded.map((json) => EntriKoleksi.fromJson(json)).toList();
-          _isOffline = true; 
+          _entries =
+              decoded.map((json) => EntriKoleksi.fromJson(json)).toList();
+          _isOffline = true;
           _errorMessage = null;
-        } catch (cacheError) {
+        } catch (_) {
           _entries = [];
           _errorMessage = 'Gagal membaca cache lokal.';
         }
       } else {
         _entries = [];
         _isOffline = false;
-        _errorMessage = 'Gagal memuat koleksi. Periksa koneksi internet Anda.';
+        _errorMessage =
+            'Gagal memuat koleksi. Periksa koneksi internet Anda.';
       }
     } finally {
       _isLoading = false;
@@ -140,7 +149,9 @@ class CollectionProvider extends ChangeNotifier {
 
   Future<bool> createEntry(EntriKoleksi entri) async {
     if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline ? 'Tidak dapat menambah data saat offline.' : 'ID Perangkat tidak valid.';
+      _errorMessage = _isOffline
+          ? 'Tidak dapat menambah data saat offline.'
+          : 'ID Perangkat tidak valid.';
       notifyListeners();
       return false;
     }
@@ -187,7 +198,7 @@ class CollectionProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   Future<int> deleteAll() async {
     if (_deviceId == null || _isOffline) {
       _errorMessage = _isOffline
@@ -203,13 +214,15 @@ class CollectionProvider extends ChangeNotifier {
 
     int deleted = 0;
     try {
-      final snapshot = List<EntriKoleksi>.from(_entries);
-      for (final e in snapshot) {
-        if (e.id == null) continue;
-        await _repository.deleteEntry(e.id!);
+      final ids = _entries
+          .map((e) => e.id)
+          .whereType<int>()
+          .toList(growable: false);
+      for (final id in ids) {
+        await _repository.deleteEntry(id);
         deleted++;
+        _entries.removeWhere((e) => e.id == id);
       }
-      _entries.clear();
       return deleted;
     } catch (e) {
       _errorMessage = e.toString();
@@ -222,7 +235,9 @@ class CollectionProvider extends ChangeNotifier {
 
   Future<bool> updateEntry(EntriKoleksi entri) async {
     if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline ? 'Tidak dapat mengubah data saat offline.' : 'ID Perangkat tidak valid.';
+      _errorMessage = _isOffline
+          ? 'Tidak dapat mengubah data saat offline.'
+          : 'ID Perangkat tidak valid.';
       notifyListeners();
       return false;
     }
@@ -248,7 +263,9 @@ class CollectionProvider extends ChangeNotifier {
 
   Future<bool> deleteEntry(EntriKoleksi entri) async {
     if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline ? 'Tidak dapat menghapus data saat offline.' : 'ID Perangkat tidak valid.';
+      _errorMessage = _isOffline
+          ? 'Tidak dapat menghapus data saat offline.'
+          : 'ID Perangkat tidak valid.';
       notifyListeners();
       return false;
     }
@@ -269,16 +286,18 @@ class CollectionProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> incrementProgress(EntriKoleksi entri) async {
+  /// Mengembalikan `true` jika progres berhasil ditambah.
+  /// `false` jika diblokir (offline/sedang simpan/sudah selesai/tanpa total).
+  Future<bool> incrementProgress(EntriKoleksi entri) async {
     if (_isOffline) {
       _errorMessage = 'Tidak dapat menambah progres saat offline.';
       notifyListeners();
-      return;
+      return false;
     }
-    if (_isSaving) return;
-    if (entri.status == StatusKoleksi.selesai) return;
-    if (entri.total == null) return;
-    if (entri.progres >= entri.total!) return;
+    if (_isSaving) return false;
+    if (entri.status == StatusKoleksi.selesai) return false;
+    if (entri.total == null) return false;
+    if (entri.progres >= entri.total!) return false;
 
     final newProgres = entri.progres + 1;
     final isSelesai = newProgres >= entri.total!;
@@ -289,7 +308,7 @@ class CollectionProvider extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
-    await updateEntry(updated);
+    return updateEntry(updated);
   }
 
   Future<bool> toggleFavorite(EntriKoleksi entri) async {
@@ -297,7 +316,7 @@ class CollectionProvider extends ChangeNotifier {
       isFavorite: !entri.isFavorite,
       updatedAt: DateTime.now(),
     );
-    return await updateEntry(updated);
+    return updateEntry(updated);
   }
 
   void setFilterFavorit(bool value) {

@@ -56,7 +56,8 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
   Future<void> _imporData(AppLocalizations l10n) async {
     final collection = context.read<CollectionProvider>();
-    const typeGroup = XTypeGroup(label: 'JSON', extensions: ['json']);
+    const typeGroup =
+        XTypeGroup(label: 'JSON', extensions: ['json']);
     final XFile? pickedFile;
     try {
       pickedFile = await openFile(acceptedTypeGroups: [typeGroup]);
@@ -68,7 +69,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
     setState(() {
       _isProcessing = true;
-      _progressText = l10n.searchFirst;
+      _progressText = l10n.backupRestore;
     });
 
     List<EntriKoleksi> parsed;
@@ -115,9 +116,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     }
 
     if (toImport.isEmpty) {
-      _snack(
-        '${parsed.length} ${l10n.noResultsDesc}',
-      );
+      _snack('${l10n.noResults}: ${parsed.length}');
       return;
     }
 
@@ -157,8 +156,8 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
       if (!mounted) return;
 
-      final parts = <String>['$inserted ${l10n.categoryAdded}'];
-      if (skipped > 0) parts.add('$skipped ${l10n.cancel}');
+      final parts = <String>['+$inserted'];
+      if (skipped > 0) parts.add('-$skipped');
       _snack(parts.join(', '));
 
       Navigator.pop(context);
@@ -180,11 +179,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.backupRestore),
-        content: Text(
-          '${l10n.searchFirst}\n\n'
-          '• ${l10n.apply}\n'
-          '• ${l10n.delete}',
-        ),
+        content: Text('$totalEntri ${l10n.navCollection}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -196,7 +191,8 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, _ImportMode.replace),
-            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            style:
+                TextButton.styleFrom(foregroundColor: Colors.redAccent),
             child: Text(l10n.delete),
           ),
         ],
@@ -209,10 +205,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.delete),
-        content: Text(
-          '${l10n.delete} $totalEntri ${l10n.categoryAdded}\n\n'
-          '${l10n.deleteCategoryDesc(l10n.delete)}',
-        ),
+        content: Text('$totalEntri ${l10n.navCollection}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -220,7 +213,8 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            style:
+                TextButton.styleFrom(foregroundColor: Colors.redAccent),
             child: Text(l10n.delete),
           ),
         ],
@@ -251,11 +245,13 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
               padding: const EdgeInsets.all(AppSizes.spacingM),
               child: Column(
                 children: [
-                  const Icon(Icons.backup, size: 64, color: AppColors.primaryGreen),
+                  const Icon(Icons.backup,
+                      size: 64, color: AppColors.primaryGreen),
                   const SizedBox(height: AppSizes.spacingM),
                   Text(
                     l10n.backupRestore,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSizes.spacingS),
                   Text(
@@ -267,15 +263,18 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _isProcessing ? null : () => _eksporData(l10n),
+                      onPressed:
+                          _isProcessing ? null : () => _eksporData(l10n),
                       icon: const Icon(Icons.upload_file),
                       label: Text(
-                        '${l10n.backupRestore} (${collection.allEntries.length})',
+                        '${l10n.backupRestore} '
+                        '(${collection.allEntries.length})',
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
                         foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -291,11 +290,13 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
               padding: const EdgeInsets.all(AppSizes.spacingM),
               child: Column(
                 children: [
-                  const Icon(Icons.restore, size: 64, color: AppColors.infoBlue),
+                  const Icon(Icons.restore,
+                      size: 64, color: AppColors.infoBlue),
                   const SizedBox(height: AppSizes.spacingM),
                   Text(
                     l10n.backupRestore,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSizes.spacingS),
                   Text(
@@ -307,13 +308,16 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: _isProcessing ? null : () => _imporData(l10n),
+                      onPressed:
+                          _isProcessing ? null : () => _imporData(l10n),
                       icon: const Icon(Icons.file_open),
                       label: Text(l10n.backupRestore),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.infoBlue,
-                        side: const BorderSide(color: AppColors.infoBlue),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side:
+                            const BorderSide(color: AppColors.infoBlue),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -351,7 +355,8 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline, size: 18, color: AppColors.infoBlue),
+                const Icon(Icons.info_outline,
+                    size: 18, color: AppColors.infoBlue),
                 const SizedBox(width: AppSizes.spacingS),
                 Expanded(
                   child: Text(

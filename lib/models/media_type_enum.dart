@@ -18,7 +18,7 @@ enum JenisMedia {
       case JenisMedia.manhua:
         return 'Manhua';
       case JenisMedia.lainnya:
-        return l10n?.about ?? 'Lainnya'; 
+        return 'Lainnya';
     }
   }
 

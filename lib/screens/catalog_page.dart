@@ -212,7 +212,7 @@ class _CatalogPageState extends State<CatalogPage> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  '${catalog.items.length} results',
+                  l10n.trackedTitles(catalog.items.length),
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),

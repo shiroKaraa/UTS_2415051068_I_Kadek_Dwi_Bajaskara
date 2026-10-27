@@ -11,6 +11,7 @@ class EntryFormFields extends StatelessWidget {
   final ValueChanged<StatusKoleksi> onStatusChanged;
   final int progres;
   final ValueChanged<int> onProgresChanged;
+  final TextEditingController progresController;
   final TextEditingController totalController;
   final int? rating;
   final ValueChanged<int?> onRatingChanged;
@@ -27,6 +28,7 @@ class EntryFormFields extends StatelessWidget {
     required this.onStatusChanged,
     required this.progres,
     required this.onProgresChanged,
+    required this.progresController,
     required this.totalController,
     required this.rating,
     required this.onRatingChanged,
@@ -48,7 +50,7 @@ class EntryFormFields extends StatelessWidget {
           DropdownButtonFormField<StatusKoleksi>(
             initialValue: status,
             decoration: const InputDecoration(
-              labelText: 'Status', 
+              labelText: 'Status',
               border: OutlineInputBorder(),
             ),
             items: StatusKoleksi.values.map((s) {
@@ -57,25 +59,33 @@ class EntryFormFields extends StatelessWidget {
                 child: Text(s.label(jenisMedia, l10n)),
               );
             }).toList(),
-            onChanged: (val) => val != null ? onStatusChanged(val) : null,
+            onChanged: (val) {
+              if (val != null) onStatusChanged(val);
+            },
           ),
           const SizedBox(height: AppSizes.spacingM),
           Row(
             children: [
               Expanded(
                 child: TextFormField(
-                  initialValue: progres.toString(),
+                  controller: progresController,
                   decoration: InputDecoration(
-                    labelText: '${l10n.progress} (${jenisMedia.satuanProgres(l10n)})',
+                    labelText:
+                        '${l10n.progress} (${jenisMedia.satuanProgres(l10n)})',
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
-                  onChanged: (val) => onProgresChanged(int.tryParse(val) ?? 0),
+                  onChanged: (val) =>
+                      onProgresChanged(int.tryParse(val) ?? 0),
                   validator: (val) {
                     if (val == null || val.isEmpty) return 'Wajib diisi';
                     final num = int.tryParse(val);
                     if (num == null) return 'Harus angka';
                     if (num < 0) return 'Tidak boleh negatif';
+                    final total = int.tryParse(totalController.text);
+                    if (total != null && num > total) {
+                      return 'Melebihi total';
+                    }
                     return null;
                   },
                 ),
@@ -90,7 +100,9 @@ class EntryFormFields extends StatelessWidget {
                   ),
                   keyboardType: TextInputType.number,
                   validator: (val) {
-                    if (val != null && val.isNotEmpty && int.tryParse(val) == null) {
+                    if (val != null &&
+                        val.isNotEmpty &&
+                        int.tryParse(val) == null) {
                       return 'Harus angka';
                     }
                     return null;
@@ -107,7 +119,7 @@ class EntryFormFields extends StatelessWidget {
               border: OutlineInputBorder(),
             ),
             items: [
-              DropdownMenuItem(value: null, child: Text(l10n.noResults)), // Fallback
+              DropdownMenuItem(value: null, child: Text(l10n.noNotes)),
               ...List.generate(5, (i) => i + 1).map((val) {
                 return DropdownMenuItem(
                   value: val,
@@ -121,7 +133,7 @@ class EntryFormFields extends StatelessWidget {
           TextFormField(
             controller: catatanController,
             decoration: InputDecoration(
-              labelText: '${l10n.faq4Title} (Opsional)', // Menggunakan key "Catatan"
+              labelText: '${l10n.note} (Opsional)',
               border: const OutlineInputBorder(),
             ),
             maxLines: 3,

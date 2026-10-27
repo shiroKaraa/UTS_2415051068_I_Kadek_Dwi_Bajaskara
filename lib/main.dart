@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; 
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/app_theme.dart';
@@ -8,10 +8,10 @@ import 'core/app_config.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
-import 'providers/collection_provider.dart'; 
+import 'providers/collection_provider.dart';
 import 'providers/category_provider.dart';
-import 'repositories/collection_repository.dart'; 
-import 'services/supabase_collection_service.dart'; 
+import 'repositories/collection_repository.dart';
+import 'services/supabase_collection_service.dart';
 import 'screens/responsive_shell.dart';
 import 'screens/onboarding_page.dart';
 
@@ -38,21 +38,25 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => CatalogProvider()),
-        ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProxyProvider<SettingsProvider, CollectionProvider>(
-          create: (context) => CollectionProvider(
+          create: (_) => CollectionProvider(
             CollectionRepository(SupabaseCollectionService()),
           ),
           update: (context, settings, previous) {
-            previous?.bindDevice(settings.deviceId);
-            return previous!;
+            final provider = previous ??
+                CollectionProvider(
+                  CollectionRepository(SupabaseCollectionService()),
+                );
+            provider.bindDevice(settings.deviceId);
+            return provider;
           },
         ),
         ChangeNotifierProxyProvider<SettingsProvider, CategoryProvider>(
           create: (_) => CategoryProvider(),
           update: (_, settings, previous) {
-            previous?.bindDevice(settings.deviceId);
-            return previous!;
+            final provider = previous ?? CategoryProvider();
+            provider.bindDevice(settings.deviceId);
+            return provider;
           },
         ),
       ],
@@ -83,8 +87,8 @@ class MyApp extends StatelessWidget {
               Locale('en'),
             ],
             locale: settings.locale,
-            home: settings.hasSeenOnboarding 
-                ? const ResponsiveShell() 
+            home: settings.hasSeenOnboarding
+                ? const ResponsiveShell()
                 : const OnboardingPage(),
           );
         },
