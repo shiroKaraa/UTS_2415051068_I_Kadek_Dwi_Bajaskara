@@ -19,7 +19,20 @@ class _OtherPageState extends State<OtherPage> {
     final iconColor = theme.colorScheme.primary;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Lainnya')),
+      appBar: AppBar(
+        title: const Text('Lainnya'),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset(
+            'assets/logo/logo.png',
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              Icons.auto_stories,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ),
+      ),
       body: ListView(
         children: [
           const Divider(),
