@@ -1,6 +1,7 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/collection_entry.dart';
@@ -21,10 +22,10 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
   bool _isProcessing = false;
   String? _progressText;
 
-  Future<void> _eksporData() async {
+  Future<void> _eksporData(AppLocalizations l10n) async {
     final collection = context.read<CollectionProvider>();
     if (collection.allEntries.isEmpty) {
-      _snack('Koleksi masih kosong, tidak ada yang bisa diekspor.');
+      _snack(l10n.errorEmptyData);
       return;
     }
 
@@ -36,13 +37,13 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     try {
       final path = await _backupService.exportToJson(collection.allEntries);
       if (!mounted) return;
-      _snack('Backup berhasil dibuat: ${path.split('/').last}');
+      _snack('${l10n.backupRestore}: ${path.split('/').last}');
     } on BackupException catch (e) {
       if (!mounted) return;
       _snack(e.message);
     } catch (e) {
       if (!mounted) return;
-      _snack('Gagal mengekspor: $e');
+      _snack('${l10n.errorLoadData}: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -53,21 +54,21 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     }
   }
 
-  Future<void> _imporData() async {
+  Future<void> _imporData(AppLocalizations l10n) async {
     final collection = context.read<CollectionProvider>();
     const typeGroup = XTypeGroup(label: 'JSON', extensions: ['json']);
     final XFile? pickedFile;
     try {
       pickedFile = await openFile(acceptedTypeGroups: [typeGroup]);
     } catch (e) {
-      _snack('Gagal membuka file picker: $e');
+      _snack('${l10n.errorLoadData}: $e');
       return;
     }
     if (pickedFile == null) return;
 
     setState(() {
       _isProcessing = true;
-      _progressText = 'Membaca file...';
+      _progressText = l10n.searchFirst;
     });
 
     List<EntriKoleksi> parsed;
@@ -84,7 +85,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       return;
     } catch (e) {
       if (!mounted) return;
-      _snack('Gagal membaca file: $e');
+      _snack('${l10n.errorLoadData}: $e');
       setState(() {
         _isProcessing = false;
         _progressText = null;
@@ -98,7 +99,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       _progressText = null;
     });
 
-    final mode = await _pilihMode(parsed.length);
+    final mode = await _pilihMode(parsed.length, l10n);
     if (mode == null) return;
 
     List<EntriKoleksi> toImport = parsed;
@@ -115,21 +116,19 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
     if (toImport.isEmpty) {
       _snack(
-        'Semua ${parsed.length} entri sudah ada di koleksi. Tidak ada yang diimpor.',
+        '${parsed.length} ${l10n.noResultsDesc}',
       );
       return;
     }
 
     if (mode == _ImportMode.replace) {
-      final yakin = await _konfirmasiReplace(parsed.length);
+      final yakin = await _konfirmasiReplace(parsed.length, l10n);
       if (yakin != true) return;
     }
 
     setState(() {
       _isProcessing = true;
-      _progressText = mode == _ImportMode.replace
-          ? 'Menghapus koleksi lama...'
-          : 'Mengimpor ${toImport.length} entri...';
+      _progressText = l10n.backupRestore;
     });
 
     try {
@@ -141,7 +140,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
         }
         if (!mounted) return;
         setState(() {
-          _progressText = 'Menghapus $deleted entri lama... Mengimpor...';
+          _progressText = l10n.delete;
         });
       }
 
@@ -150,7 +149,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       if (!mounted) return;
 
       if (inserted == 0 && collection.errorMessage != null) {
-        _snack('Gagal impor: ${collection.errorMessage}');
+        _snack(collection.errorMessage!);
         return;
       }
 
@@ -158,14 +157,14 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
       if (!mounted) return;
 
-      final parts = <String>['$inserted entri berhasil diimpor'];
-      if (skipped > 0) parts.add('$skipped dilewati (duplikat)');
-      _snack(parts.join(', ') + '.');
+      final parts = <String>['$inserted ${l10n.categoryAdded}'];
+      if (skipped > 0) parts.add('$skipped ${l10n.cancel}');
+      _snack(parts.join(', '));
 
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      _snack('Gagal impor: $e');
+      _snack('${l10n.errorLoadData}: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -176,54 +175,53 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     }
   }
 
-  Future<_ImportMode?> _pilihMode(int totalEntri) async {
+  Future<_ImportMode?> _pilihMode(int totalEntri, AppLocalizations l10n) async {
     return showDialog<_ImportMode>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Impor Data'),
+        title: Text(l10n.backupRestore),
         content: Text(
-          'File berisi $totalEntri entri.\n\n'
-          '• Gabung (Merge): tambah entri baru, lewati duplikat.\n'
-          '• Ganti Semua (Replace): hapus koleksi lama, lalu impor file ini.',
+          '${l10n.searchFirst}\n\n'
+          '• ${l10n.apply}\n'
+          '• ${l10n.delete}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, _ImportMode.merge),
-            child: const Text('Gabung'),
+            child: Text(l10n.apply),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, _ImportMode.replace),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: const Text('Ganti Semua'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
     );
   }
 
-  Future<bool?> _konfirmasiReplace(int totalEntri) async {
+  Future<bool?> _konfirmasiReplace(int totalEntri, AppLocalizations l10n) async {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Ganti Semua Koleksi?'),
+        title: Text(l10n.delete),
         content: Text(
-          'Semua koleksi saat ini akan DIHAPUS, lalu diganti dengan '
-          '$totalEntri entri dari file ini.\n\n'
-          'Tindakan ini tidak bisa dibatalkan.',
+          '${l10n.delete} $totalEntri ${l10n.categoryAdded}\n\n'
+          '${l10n.deleteCategoryDesc(l10n.delete)}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: const Text('Ya, Ganti Semua'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -237,11 +235,12 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Backup & Restore')),
+      appBar: AppBar(title: Text(l10n.backupRestore)),
       body: ListView(
         padding: const EdgeInsets.all(AppSizes.spacingM),
         children: [
@@ -252,29 +251,26 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
               padding: const EdgeInsets.all(AppSizes.spacingM),
               child: Column(
                 children: [
-                  const Icon(Icons.backup,
-                      size: 64, color: AppColors.primaryGreen),
+                  const Icon(Icons.backup, size: 64, color: AppColors.primaryGreen),
                   const SizedBox(height: AppSizes.spacingM),
-                  const Text(
-                    'Cadangkan Koleksi Anda',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.backupRestore,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSizes.spacingS),
-                  const Text(
-                    'Ekspor koleksi ke file JSON. Anda bisa menyimpannya di '
-                    'Google Drive, Files, atau tempat aman lainnya.',
+                  Text(
+                    l10n.backupDesc,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13),
                   ),
                   const SizedBox(height: AppSizes.spacingL),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _isProcessing ? null : _eksporData,
+                      onPressed: _isProcessing ? null : () => _eksporData(l10n),
                       icon: const Icon(Icons.upload_file),
                       label: Text(
-                        'Ekspor Data (${collection.allEntries.length} item)',
+                        '${l10n.backupRestore} (${collection.allEntries.length})',
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
@@ -287,7 +283,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
               ),
             ),
           ),
-
           const SizedBox(height: AppSizes.spacingL),
           Card(
             elevation: 0,
@@ -296,28 +291,25 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
               padding: const EdgeInsets.all(AppSizes.spacingM),
               child: Column(
                 children: [
-                  const Icon(Icons.restore,
-                      size: 64, color: AppColors.infoBlue),
+                  const Icon(Icons.restore, size: 64, color: AppColors.infoBlue),
                   const SizedBox(height: AppSizes.spacingM),
-                  const Text(
-                    'Pulihkan Koleksi',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.backupRestore,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSizes.spacingS),
-                  const Text(
-                    'Pilih file JSON backup yang sebelumnya Anda ekspor. '
-                    'Anda bisa memilih untuk menggabungkan atau mengganti koleksi.',
+                  Text(
+                    l10n.backupDesc,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13),
                   ),
                   const SizedBox(height: AppSizes.spacingL),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: _isProcessing ? null : _imporData,
+                      onPressed: _isProcessing ? null : () => _imporData(l10n),
                       icon: const Icon(Icons.file_open),
-                      label: const Text('Impor Data dari File'),
+                      label: Text(l10n.backupRestore),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.infoBlue,
                         side: const BorderSide(color: AppColors.infoBlue),
@@ -329,7 +321,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
               ),
             ),
           ),
-
           const SizedBox(height: AppSizes.spacingL),
           if (_isProcessing)
             Center(
@@ -350,7 +341,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                 ],
               ),
             ),
-
           const SizedBox(height: AppSizes.spacingL),
           Container(
             padding: const EdgeInsets.all(AppSizes.spacingM),
@@ -361,14 +351,11 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline,
-                    size: 18, color: AppColors.infoBlue),
+                const Icon(Icons.info_outline, size: 18, color: AppColors.infoBlue),
                 const SizedBox(width: AppSizes.spacingS),
                 Expanded(
                   child: Text(
-                    'Data koleksi Anda tetap aman di server (Supabase). '
-                    'Fitur backup ini berguna untuk migrasi antar perangkat '
-                    'atau menyimpan salinan lokal.',
+                    l10n.storageDataDesc,
                     style: TextStyle(
                       fontSize: 12,
                       color: theme.colorScheme.onSurfaceVariant,

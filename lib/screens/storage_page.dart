@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 
@@ -50,34 +51,31 @@ class _StoragePageState extends State<StoragePage> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
   }
 
-  Future<void> _hapusCacheGambar() async {
+  Future<void> _hapusCacheGambar(AppLocalizations l10n) async {
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
     await _hitungUkuran();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cache gambar berhasil dihapus.')),
+      SnackBar(content: Text('${l10n.storage} ${l10n.clearAll}')),
     );
   }
 
-  Future<void> _hapusCacheData() async {
+  Future<void> _hapusCacheData(AppLocalizations l10n) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Hapus Cache Data?'),
-        content: const Text(
-          'Data koleksi yang tersimpan offline akan dihapus. '
-          'Data utama di server tetap aman dan akan dimuat ulang saat online.',
-        ),
+        title: Text(l10n.delete),
+        content: Text(l10n.storageDataDesc),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: const Text('Hapus'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -94,22 +92,23 @@ class _StoragePageState extends State<StoragePage> {
     await _hitungUkuran();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cache data berhasil dihapus.')),
+      SnackBar(content: Text('${l10n.storage} ${l10n.clearAll}')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final totalSize = _imageCacheSize + _dataCacheSize;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Data dan Penyimpanan'),
+        title: Text(l10n.storage),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Hitung Ulang',
+            tooltip: 'Refresh',
             onPressed: _hitungUkuran,
           ),
         ],
@@ -128,7 +127,7 @@ class _StoragePageState extends State<StoragePage> {
                       children: [
                         const Icon(Icons.pie_chart_outline, size: 48, color: AppColors.primaryGreen),
                         const SizedBox(height: AppSizes.spacingS),
-                        const Text('Total Penggunaan', style: TextStyle(fontSize: 14)),
+                        Text(l10n.storage, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: AppSizes.spacingXs),
                         Text(
                           _formatBytes(totalSize),
@@ -140,7 +139,7 @@ class _StoragePageState extends State<StoragePage> {
                 ),
                 const SizedBox(height: AppSizes.spacingL),
                 Text(
-                  'Rincian Penyimpanan',
+                  l10n.activityDetails,
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppSizes.spacingS),
@@ -149,12 +148,12 @@ class _StoragePageState extends State<StoragePage> {
                   color: theme.cardColor,
                   child: ListTile(
                     leading: const Icon(Icons.image_outlined, color: AppColors.infoBlue),
-                    title: const Text('Cache Gambar'),
+                    title: Text(l10n.storage),
                     subtitle: Text(_formatBytes(_imageCacheSize)),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                      tooltip: 'Hapus Cache Gambar',
-                      onPressed: _imageCacheSize > 0 ? _hapusCacheGambar : null,
+                      tooltip: 'Delete',
+                      onPressed: _imageCacheSize > 0 ? () => _hapusCacheGambar(l10n) : null,
                     ),
                   ),
                 ),
@@ -163,22 +162,21 @@ class _StoragePageState extends State<StoragePage> {
                   color: theme.cardColor,
                   child: ListTile(
                     leading: const Icon(Icons.storage_outlined, color: AppColors.goldPrimary),
-                    title: const Text('Cache Data Koleksi'),
+                    title: Text(l10n.storageData),
                     subtitle: Text(_formatBytes(_dataCacheSize)),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                      tooltip: 'Hapus Cache Data',
-                      onPressed: _dataCacheSize > 0 ? _hapusCacheData : null,
+                      tooltip: 'Delete',
+                      onPressed: _dataCacheSize > 0 ? () => _hapusCacheData(l10n) : null,
                     ),
                   ),
                 ),
-
                 const SizedBox(height: AppSizes.spacingL),
-                const Center(
+                Center(
                   child: Text(
-                    'Menghapus cache tidak akan menghapus data dari server (Supabase).',
+                    l10n.storageDataDesc,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ),
               ],

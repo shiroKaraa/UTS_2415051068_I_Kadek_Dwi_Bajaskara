@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_sizes.dart';
 import '../models/status_collection_enum.dart';
 import '../models/media_type_enum.dart';
@@ -37,6 +38,8 @@ class EntryFormFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Form(
       key: formKey,
       child: Column(
@@ -45,13 +48,13 @@ class EntryFormFields extends StatelessWidget {
           DropdownButtonFormField<StatusKoleksi>(
             initialValue: status,
             decoration: const InputDecoration(
-              labelText: 'Status',
+              labelText: 'Status', 
               border: OutlineInputBorder(),
             ),
             items: StatusKoleksi.values.map((s) {
               return DropdownMenuItem(
                 value: s,
-                child: Text(s.label(jenisMedia)),
+                child: Text(s.label(jenisMedia, l10n)),
               );
             }).toList(),
             onChanged: (val) => val != null ? onStatusChanged(val) : null,
@@ -63,7 +66,7 @@ class EntryFormFields extends StatelessWidget {
                 child: TextFormField(
                   initialValue: progres.toString(),
                   decoration: InputDecoration(
-                    labelText: 'Progres (${jenisMedia.satuanProgres})',
+                    labelText: '${l10n.progress} (${jenisMedia.satuanProgres(l10n)})',
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
@@ -104,7 +107,7 @@ class EntryFormFields extends StatelessWidget {
               border: OutlineInputBorder(),
             ),
             items: [
-              const DropdownMenuItem(value: null, child: Text('Tidak ada')),
+              DropdownMenuItem(value: null, child: Text(l10n.noResults)), // Fallback
               ...List.generate(5, (i) => i + 1).map((val) {
                 return DropdownMenuItem(
                   value: val,
@@ -117,9 +120,9 @@ class EntryFormFields extends StatelessWidget {
           const SizedBox(height: AppSizes.spacingM),
           TextFormField(
             controller: catatanController,
-            decoration: const InputDecoration(
-              labelText: 'Catatan (Opsional)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: '${l10n.faq4Title} (Opsional)', // Menggunakan key "Catatan"
+              border: const OutlineInputBorder(),
             ),
             maxLines: 3,
           ),

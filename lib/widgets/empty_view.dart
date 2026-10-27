@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 
 class EmptyView extends StatelessWidget {
-  final String title;
-  final String subtitle;
+  final String? title;
+  final String? subtitle;
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
 
   const EmptyView({
     super.key,
-    this.title = 'Belum Ada Data',
-    this.subtitle = 'Data yang kamu cari tidak ditemukan.',
+    this.title,
+    this.subtitle,
     this.icon = Icons.inbox_outlined,
     this.actionLabel,
     this.onAction,
@@ -19,7 +20,12 @@ class EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    
+    final displayTitle = title ?? l10n.errorEmptyData;
+    final displaySubtitle = subtitle ?? l10n.noResultsDesc;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -40,13 +46,13 @@ class EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              title,
+              displayTitle,
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              subtitle,
+              displaySubtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

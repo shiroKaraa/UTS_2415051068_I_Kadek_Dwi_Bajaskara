@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.3
 
   cupertino_icons: ^1.0.8
   provider: ^6.1.5+1
@@ -31,14 +34,15 @@ dev_dependencies:
   flutter_native_splash: ^2.4.1
 
 flutter:
+  generate: true
+
 
   uses-material-design: true
 
-
   assets:
-  - .env
-  - assets/images/
-  - assets/logo/
+    - .env
+    - assets/images/
+    - assets/logo/
 
 # Konfigurasi Ikon Aplikasi
 flutter_launcher_icons:

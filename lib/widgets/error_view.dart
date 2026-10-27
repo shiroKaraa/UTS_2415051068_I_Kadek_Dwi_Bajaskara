@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 
 class ErrorView extends StatelessWidget {
@@ -13,7 +14,9 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -34,7 +37,7 @@ class ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Gagal Memuat Data',
+              l10n.errorLoadData, // <-- Terjemahan
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -51,7 +54,7 @@ class ErrorView extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Coba Lagi'),
+                label: Text(l10n.tryAgain), // <-- Terjemahan
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen,
                   foregroundColor: Colors.black,

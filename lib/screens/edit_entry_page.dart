@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_sizes.dart';
 import '../models/collection_entry.dart';
 import '../models/status_collection_enum.dart';
@@ -43,6 +44,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
   Future<void> _simpan() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!; // <-- Tambahan
     final collection = context.read<CollectionProvider>();
 
     final entriUpdate = widget.entri.copyWith(
@@ -60,23 +62,24 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
     if (berhasil) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil diperbarui!')),
+        SnackBar(content: Text(l10n.categoryUpdated)), // <-- Menggunakan l10n
       );
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(collection.errorMessage ?? 'Gagal menyimpan.')),
+        SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)), // <-- Menggunakan l10n
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
     final isSaving = collection.isSaving;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Entri')),
+      appBar: AppBar(title: Text(l10n.edit)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSizes.spacingM),
         child: Column(
@@ -88,7 +91,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
                     ? Image.network(widget.entri.coverUrl!, width: 40, height: 60, fit: BoxFit.cover)
                     : const Icon(Icons.image),
                 title: Text(widget.entri.judul),
-                subtitle: Text('${widget.entri.jenis.label} • ${widget.entri.total ?? "?"} ${widget.entri.jenis.satuanProgres}'),
+                subtitle: Text('${widget.entri.jenis.label(l10n)} • ${widget.entri.total ?? "?"} ${widget.entri.jenis.satuanProgres(l10n)}'),
               ),
             ),
             const SizedBox(height: AppSizes.spacingM),
@@ -105,7 +108,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
               catatanController: _catatanController,
               isSaving: isSaving,
               onSimpan: _simpan,
-              buttonText: 'Simpan Perubahan',
+              buttonText: l10n.save,
             ),
           ],
         ),

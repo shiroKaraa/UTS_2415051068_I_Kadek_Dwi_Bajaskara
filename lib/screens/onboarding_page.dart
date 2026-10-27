@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../providers/settings_provider.dart';
@@ -15,24 +16,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, dynamic>> _slides = [
-    {
-      'icon': Icons.auto_stories,
-      'title': 'Selamat Datang di Tsuzuki',
-      'desc': 'Aplikasi pelacak progres tontonan Anime dan bacaan Komik favoritmu.',
-    },
-    {
-      'icon': Icons.track_changes,
-      'title': 'Lacak Progresmu',
-      'desc': 'Catat episode atau chapter yang sudah kamu tonton dan baca dengan mudah.',
-    },
-    {
-      'icon': Icons.collections_bookmark,
-      'title': 'Koleksi Pribadi',
-      'desc': 'Simpan judul favoritmu, beri rating, dan buat catatan pribadi.',
-    },
-  ];
-
   void _finishOnboarding() {
     context.read<SettingsProvider>().setHasSeenOnboarding(true);
   }
@@ -46,6 +29,25 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    final slides = [
+      {
+        'icon': Icons.auto_stories,
+        'title': l10n.onboardingTitle,
+        'desc': l10n.onboardingDesc,
+      },
+      {
+        'icon': Icons.track_changes,
+        'title': 'Lacak Progresmu',
+        'desc': 'Catat episode atau chapter yang sudah kamu tonton dan baca dengan mudah.',
+      },
+      {
+        'icon': Icons.collections_bookmark,
+        'title': 'Koleksi Pribadi',
+        'desc': 'Simpan judul favoritmu, beri rating, dan buat catatan pribadi.',
+      },
+    ];
 
     return Scaffold(
       body: SafeArea(
@@ -55,7 +57,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               alignment: Alignment.topRight,
               child: TextButton(
                 onPressed: _finishOnboarding,
-                child: const Text('Lewati'),
+                child: Text(l10n.skip),
               ),
             ),
             Expanded(
@@ -64,9 +66,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 onPageChanged: (index) {
                   setState(() => _currentPage = index);
                 },
-                itemCount: _slides.length,
+                itemCount: slides.length,
                 itemBuilder: (context, index) {
-                  final slide = _slides[index];
+                  final slide = slides[index];
                   return Padding(
                     padding: const EdgeInsets.all(AppSizes.spacingXl),
                     child: Column(
@@ -113,7 +115,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _slides.length,
+                      slides.length,
                       (index) => Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         width: _currentPage == index ? 24 : 8,
@@ -132,7 +134,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (_currentPage == _slides.length - 1) {
+                        if (_currentPage == slides.length - 1) {
                           _finishOnboarding();
                         } else {
                           _pageController.nextPage(
@@ -147,8 +149,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: Text(
-                        _currentPage == _slides.length - 1 ? 'Mulai Sekarang' : 'Lanjut',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        _currentPage == slides.length - 1
+                            ? l10n.getStarted
+                            : l10n.next,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),

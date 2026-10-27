@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/collection_entry.dart';
@@ -13,6 +14,7 @@ class CollectionDetailPage extends StatelessWidget {
   final EntriKoleksi entri;
 
   const CollectionDetailPage({super.key, required this.entri});
+  
   Color _statusColor(StatusKoleksi status) {
     switch (status) {
       case StatusKoleksi.direncanakan:
@@ -28,7 +30,7 @@ class CollectionDetailPage extends StatelessWidget {
     }
   }
 
-  Future<void> _konfirmasiHapus(BuildContext context) async {
+  Future<void> _konfirmasiHapus(BuildContext context, AppLocalizations l10n) async {
     final collection = context.read<CollectionProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -36,19 +38,17 @@ class CollectionDetailPage extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Hapus Koleksi?'),
-        content: Text(
-          'Apakah kamu yakin ingin menghapus "${entri.judul}" dari koleksi?',
-        ),
+        title: Text(l10n.delete),
+        content: Text('${l10n.delete} "${entri.judul}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: const Text('Hapus'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -65,16 +65,14 @@ class CollectionDetailPage extends StatelessWidget {
       navigator.pop();
       messenger.showSnackBar(
         SnackBar(
-          content: const Text('Berhasil dihapus dari koleksi.'),
+          content: Text(l10n.categoryDeleted), // <-- Gunakan l10n
           action: SnackBarAction(
-            label: 'Urungkan',
+            label: l10n.undo,
             onPressed: () async {
               if (collection.isOffline) {
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Tidak dapat mengurungkan saat offline.',
-                    ),
+                  SnackBar(
+                    content: Text(l10n.offlineMode), // <-- Gunakan l10n
                   ),
                 );
                 return;
@@ -83,9 +81,7 @@ class CollectionDetailPage extends StatelessWidget {
               if (!ok) {
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(
-                      collection.errorMessage ?? 'Gagal mengurungkan.',
-                    ),
+                    content: Text(collection.errorMessage ?? l10n.errorLoadData), // <-- Gunakan l10n
                   ),
                 );
               }
@@ -96,7 +92,7 @@ class CollectionDetailPage extends StatelessWidget {
     } else {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(collection.errorMessage ?? 'Gagal menghapus.'),
+          content: Text(collection.errorMessage ?? l10n.errorLoadData), // <-- Gunakan l10n
         ),
       );
     }
@@ -104,6 +100,7 @@ class CollectionDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final progress = (entri.total != null && entri.total! > 0)
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
@@ -134,7 +131,7 @@ class CollectionDetailPage extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit',
+            tooltip: l10n.edit,
             onPressed: () {
               Navigator.push(
                 context,
@@ -146,8 +143,8 @@ class CollectionDetailPage extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            tooltip: 'Hapus',
-            onPressed: () => _konfirmasiHapus(context),
+            tooltip: l10n.delete,
+            onPressed: () => _konfirmasiHapus(context, l10n),
           ),
         ],
       ),
@@ -188,7 +185,7 @@ class CollectionDetailPage extends StatelessWidget {
                       top: AppSizes.spacingS,
                       left: AppSizes.spacingS,
                       child: StatusChip(
-                        label: entri.status.netralLabel,
+                        label: entri.status.netralLabel(l10n), // <-- Perbaikan
                         backgroundColor: statusColor.withValues(alpha: 0.2),
                         textColor: statusColor,
                       ),
@@ -209,7 +206,7 @@ class CollectionDetailPage extends StatelessWidget {
                     size: 16, color: theme.colorScheme.onSurfaceVariant),
                 const SizedBox(width: AppSizes.spacingXs),
                 Text(
-                  entri.jenis.label,
+                  entri.jenis.label(l10n), // <-- Perbaikan
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -219,7 +216,7 @@ class CollectionDetailPage extends StatelessWidget {
                     size: 16, color: theme.colorScheme.onSurfaceVariant),
                 const SizedBox(width: AppSizes.spacingXs),
                 Text(
-                  entri.status.label(entri.jenis),
+                  entri.status.label(entri.jenis, l10n), // <-- Perbaikan
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -245,7 +242,7 @@ class CollectionDetailPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Progres ${entri.jenis.satuanProgres}',
+                          '${l10n.progress} ${entri.jenis.satuanProgres(l10n)}', // <-- Perbaikan
                           style: theme.textTheme.bodyMedium,
                         ),
                         Text(
@@ -307,7 +304,7 @@ class CollectionDetailPage extends StatelessWidget {
             ],
             const SizedBox(height: AppSizes.spacingL),
             Text(
-              'Catatan',
+              l10n.note,
               style: theme.textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -322,7 +319,7 @@ class CollectionDetailPage extends StatelessWidget {
               ),
               child: Text(
                 (entri.catatan == null || entri.catatan!.isEmpty)
-                    ? 'Tidak ada catatan.'
+                    ? l10n.noNotes // <-- Perbaikan Isi "Tidak ada catatan"
                     : entri.catatan!,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -332,7 +329,6 @@ class CollectionDetailPage extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: AppSizes.spacingXl),
             SizedBox(
               width: double.infinity,
@@ -346,16 +342,16 @@ class CollectionDetailPage extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.edit_note),
-                label: const Text('Edit Entri Ini'),
+                label: Text(l10n.edit),
               ),
             ),
             const SizedBox(height: AppSizes.spacingS),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _konfirmasiHapus(context),
+                onPressed: () => _konfirmasiHapus(context, l10n),
                 icon: const Icon(Icons.delete_outline),
-                label: const Text('Hapus dari Koleksi'),
+                label: Text(l10n.delete),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.redAccent,
                   side: BorderSide(

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; 
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/app_theme.dart';
 import 'core/app_config.dart';
+import 'l10n/app_localizations.dart';
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'providers/collection_provider.dart'; 
@@ -11,7 +13,7 @@ import 'providers/category_provider.dart';
 import 'repositories/collection_repository.dart'; 
 import 'services/supabase_collection_service.dart'; 
 import 'screens/responsive_shell.dart';
-import 'screens/onboarding_page.dart'; // <-- Import Onboarding
+import 'screens/onboarding_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,7 +72,17 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: settings.themeMode,
-            // Cek Onboarding
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('id'),
+              Locale('en'),
+            ],
+            locale: settings.locale,
             home: settings.hasSeenOnboarding 
                 ? const ResponsiveShell() 
                 : const OnboardingPage(),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/media_type_enum.dart';
 import '../providers/catalog_provider.dart';
 import '../widgets/media_card.dart';
@@ -42,7 +43,7 @@ class _CatalogPageState extends State<CatalogPage> {
     super.dispose();
   }
 
-  void _showFilterSheet(BuildContext context) {
+  void _showFilterSheet(BuildContext context, AppLocalizations l10n) {
     final catalog = context.read<CatalogProvider>();
     String? tempGenre = catalog.filterGenre;
     int? tempTahun = catalog.filterTahun;
@@ -64,27 +65,27 @@ class _CatalogPageState extends State<CatalogPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Filter Katalog', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(l10n.filterCatalog, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: tempGenre,
-                    decoration: const InputDecoration(labelText: 'Genre', border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('Semua Genre')),
-                      DropdownMenuItem(value: 'Action', child: Text('Action')),
-                      DropdownMenuItem(value: 'Romance', child: Text('Romance')),
-                      DropdownMenuItem(value: 'Comedy', child: Text('Comedy')),
-                      DropdownMenuItem(value: 'Fantasy', child: Text('Fantasy')),
-                      DropdownMenuItem(value: 'Sci-Fi', child: Text('Sci-Fi')),
+                    decoration: InputDecoration(labelText: 'Genre', border: const OutlineInputBorder()),
+                    items: [
+                      DropdownMenuItem(value: null, child: Text(l10n.allGenres)),
+                      const DropdownMenuItem(value: 'Action', child: Text('Action')),
+                      const DropdownMenuItem(value: 'Romance', child: Text('Romance')),
+                      const DropdownMenuItem(value: 'Comedy', child: Text('Comedy')),
+                      const DropdownMenuItem(value: 'Fantasy', child: Text('Fantasy')),
+                      const DropdownMenuItem(value: 'Sci-Fi', child: Text('Sci-Fi')),
                     ],
                     onChanged: (val) => setState(() => tempGenre = val),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
                     initialValue: tempTahun,
-                    decoration: const InputDecoration(labelText: 'Tahun Rilis', border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: l10n.allYears, border: const OutlineInputBorder()),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('Semua Tahun')),
+                      DropdownMenuItem(value: null, child: Text(l10n.allYears)),
                       ...List.generate(10, (i) => DateTime.now().year - i).map((thn) {
                         return DropdownMenuItem(value: thn, child: Text(thn.toString()));
                       }),
@@ -100,7 +101,7 @@ class _CatalogPageState extends State<CatalogPage> {
                             catalog.clearFilters();
                             Navigator.pop(sheetCtx);
                           },
-                          child: const Text('Reset'),
+                          child: Text(l10n.reset),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -110,7 +111,7 @@ class _CatalogPageState extends State<CatalogPage> {
                             catalog.setFilters(genre: tempGenre, tahun: tempTahun);
                             Navigator.pop(sheetCtx);
                           },
-                          child: const Text('Terapkan'),
+                          child: Text(l10n.apply),
                         ),
                       ),
                     ],
@@ -127,16 +128,17 @@ class _CatalogPageState extends State<CatalogPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final catalog = context.watch<CatalogProvider>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Katalog'),
+        title: Text(l10n.navCatalog),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filter',
-            onPressed: () => _showFilterSheet(context),
+            onPressed: () => _showFilterSheet(context, l10n),
           ),
         ],
       ),
@@ -154,7 +156,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Cari judul...',
+                hintText: l10n.searchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
@@ -182,7 +184,7 @@ class _CatalogPageState extends State<CatalogPage> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: ChoiceChip(
-                      label: Text(jenis.label),
+                      label: Text(jenis.label(l10n)),
                       selected: catalog.selectedJenis == jenis,
                       onSelected: (selected) {
                         if (selected) catalog.setJenis(jenis);
@@ -195,7 +197,7 @@ class _CatalogPageState extends State<CatalogPage> {
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Chip(
                       avatar: const Icon(Icons.filter_alt, size: 16),
-                      label: const Text('Filter Aktif'),
+                      label: Text(l10n.activeFilter),
                       onDeleted: () => catalog.clearFilters(),
                     ),
                   ),
@@ -210,20 +212,20 @@ class _CatalogPageState extends State<CatalogPage> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Menampilkan ${catalog.items.length} hasil',
+                  '${catalog.items.length} results',
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
           Expanded(
-            child: _buildContent(context, catalog),
+            child: _buildContent(context, catalog, l10n),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, CatalogProvider catalog) {
+  Widget _buildContent(BuildContext context, CatalogProvider catalog, AppLocalizations l10n) {
     if (catalog.isLoading) {
       return GridView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -247,10 +249,10 @@ class _CatalogPageState extends State<CatalogPage> {
 
     if (catalog.items.isEmpty) {
       return EmptyView(
-        title: 'Tidak Ditemukan',
-        subtitle: 'Coba kata kunci lain, ubah jenis media, atau reset filter.',
+        title: l10n.noResults,
+        subtitle: l10n.noResultsDesc,
         icon: Icons.search_off,
-        actionLabel: 'Reset Filter',
+        actionLabel: l10n.resetFilter,
         onAction: () => catalog.clearFilters(),
       );
     }

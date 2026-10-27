@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/catalog_item.dart';
@@ -11,8 +12,8 @@ class CatalogDetailPage extends StatelessWidget {
 
   const CatalogDetailPage({super.key, required this.item});
 
-  String _bersihkanSinopsis(String? raw) {
-    if (raw == null || raw.isEmpty) return 'Tidak ada sinopsis.';
+  String _bersihkanSinopsis(String? raw, AppLocalizations l10n) {
+    if (raw == null || raw.isEmpty) return l10n.noSynopsis;
     var text = raw
         .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
         .replaceAll(RegExp(r'<[^>]+>'), '')
@@ -23,28 +24,24 @@ class CatalogDetailPage extends StatelessWidget {
         .replaceAll('&gt;', '>')
         .replaceAll(RegExp(r'\n{3,}'), '\n\n')
         .trim();
-    return text.isEmpty ? 'Tidak ada sinopsis.' : text;
+    return text.isEmpty ? l10n.noSynopsis : text;
   }
 
   Color _getColorForType(String label) {
     switch (label) {
-      case 'Anime':
-        return AppColors.typeAnime;
-      case 'Manga':
-        return AppColors.typeManga;
-      case 'Manhwa':
-        return AppColors.typeManhwa;
-      case 'Manhua':
-        return AppColors.typeManhua;
-      default:
-        return AppColors.typeLainnya;
+      case 'Anime': return AppColors.typeAnime;
+      case 'Manga': return AppColors.typeManga;
+      case 'Manhwa': return AppColors.typeManhwa;
+      case 'Manhua': return AppColors.typeManhua;
+      default: return AppColors.typeLainnya;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final sinopsis = _bersihkanSinopsis(item.sinopsis);
+    final sinopsis = _bersihkanSinopsis(item.sinopsis, l10n);
 
     return Scaffold(
       appBar: AppBar(
@@ -89,8 +86,8 @@ class CatalogDetailPage extends StatelessWidget {
                         top: AppSizes.spacingS,
                         left: AppSizes.spacingS,
                         child: MediaTypeChip(
-                          label: item.jenis.label,
-                          dotColor: _getColorForType(item.jenis.label),
+                          label: item.jenis.label(l10n),
+                          dotColor: _getColorForType(item.jenis.label(l10n)),
                         ),
                       ),
                     ],
@@ -143,7 +140,7 @@ class CatalogDetailPage extends StatelessWidget {
                   _infoChip(
                     context,
                     icon: Icons.menu_book_outlined,
-                    label: '${item.total} ${item.jenis.satuanProgres}',
+                    label: '${item.total} ${item.jenis.satuanProgres(l10n)}',
                     color: AppColors.typeAnime,
                   ),
               ],
@@ -158,7 +155,7 @@ class CatalogDetailPage extends StatelessWidget {
             ],
             const SizedBox(height: AppSizes.spacingL),
             Text(
-              'Sinopsis',
+              l10n.synopsis,
               style: theme.textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -179,7 +176,6 @@ class CatalogDetailPage extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: AppSizes.spacingXl),
             SizedBox(
               width: double.infinity,
@@ -193,7 +189,7 @@ class CatalogDetailPage extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('Tambah ke Koleksi'),
+                label: Text(l10n.addToCollection),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen,
                   foregroundColor: Colors.black,

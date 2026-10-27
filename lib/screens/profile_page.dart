@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../providers/settings_provider.dart';
 
@@ -9,10 +10,11 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: Text(l10n.profile)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -38,7 +40,7 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'NIM: 2415051068',
+              '${l10n.nimLabel}: 2415051068',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -46,47 +48,44 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Kelas: PTI 5A',
+              '${l10n.classLabel}: PTI 5A',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
-
             const Divider(height: 48),
-            const ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('Sumber Data Katalog'),
-              subtitle: Text('Data anime & manga disediakan oleh AniList API (GraphQL).'),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(l10n.sourceData),
+              subtitle: Text(l10n.sourceDataDesc),
             ),
-            const ListTile(
-              leading: Icon(Icons.cloud_outlined),
-              title: Text('Penyimpanan Data'),
-              subtitle: Text('Koleksi pribadi disimpan dengan aman di Supabase (PostgreSQL).'),
+            ListTile(
+              leading: const Icon(Icons.cloud_outlined),
+              title: Text(l10n.storageData),
+              subtitle: Text(l10n.storageDataDesc),
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.fingerprint),
-              title: const Text('ID Perangkat'),
-              subtitle: Text(settings.deviceId ?? 'Memuat ID...'),
+              title: Text(l10n.deviceId),
+              subtitle: Text(settings.deviceId ?? l10n.loadingId),
               trailing: IconButton(
                 icon: const Icon(Icons.copy),
                 onPressed: () async {
                   final id = settings.deviceId;
                   if (id == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ID Perangkat belum tersedia.')),
+                      SnackBar(content: Text(l10n.deviceIdNotAvailable)),
                     );
                     return;
                   }
                   await Clipboard.setData(ClipboardData(text: id));
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('ID disalin: $id')),
+                    SnackBar(content: Text(l10n.idCopied(id))),
                   );
                 },
               ),
             ),
-            
-
             const SizedBox(height: 48),
           ],
         ),

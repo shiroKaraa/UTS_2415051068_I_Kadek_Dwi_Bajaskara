@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/screen_breakpoints.dart';
 import 'home_page.dart';
 import 'catalog_page.dart';
@@ -24,46 +25,46 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     ProfilePage(),
   ];
 
-  static const List<NavigationDestination> _destinations = [
-    NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: 'Home',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.search_outlined),
-      selectedIcon: Icon(Icons.search),
-      label: 'Katalog',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.collections_bookmark_outlined),
-      selectedIcon: Icon(Icons.collections_bookmark),
-      label: 'Koleksi',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard),
-      label: 'Lainnya',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: 'Profil',
-    ),
-  ];
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    final destinations = [
+      NavigationDestination(
+        icon: const Icon(Icons.home_outlined),
+        selectedIcon: const Icon(Icons.home),
+        label: l10n.navHome,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.search_outlined),
+        selectedIcon: const Icon(Icons.search),
+        label: l10n.navCatalog,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.collections_bookmark_outlined),
+        selectedIcon: const Icon(Icons.collections_bookmark),
+        label: l10n.navCollection,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.dashboard_outlined),
+        selectedIcon: const Icon(Icons.dashboard),
+        label: l10n.navOther,
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.person_outline),
+        selectedIcon: const Icon(Icons.person),
+        label: l10n.navProfile,
+      ),
+    ];
 
-  List<NavigationRailDestination> get _railDestinations {
-    return _destinations.map((dest) {
+    List<NavigationRailDestination> railDestinations = destinations.map((dest) {
       return NavigationRailDestination(
         icon: dest.icon,
         selectedIcon: dest.selectedIcon,
         label: Text(dest.label),
       );
     }).toList();
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
@@ -71,21 +72,26 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         if (width >= ScreenBreakpoints.medium) {
           return _buildRailLayout(
             labelType: NavigationRailLabelType.all,
+            destinations: railDestinations,
           );
         }
 
         if (width >= ScreenBreakpoints.compact) {
           return _buildRailLayout(
             labelType: NavigationRailLabelType.none,
+            destinations: railDestinations,
           );
         }
 
-        return _buildBottomNavLayout();
+        return _buildBottomNavLayout(destinations);
       },
     );
   }
 
-  Widget _buildRailLayout({required NavigationRailLabelType labelType}) {
+  Widget _buildRailLayout({
+    required NavigationRailLabelType labelType,
+    required List<NavigationRailDestination> destinations,
+  }) {
     return Scaffold(
       body: Row(
         children: [
@@ -103,7 +109,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
-              destinations: _railDestinations,
+              destinations: destinations,
             ),
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -118,7 +124,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     );
   }
 
-  Widget _buildBottomNavLayout() {
+  Widget _buildBottomNavLayout(List<NavigationDestination> destinations) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -129,7 +135,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
         },
-        destinations: _destinations,
+        destinations: destinations,
       ),
     );
   }

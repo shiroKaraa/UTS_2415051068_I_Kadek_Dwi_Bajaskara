@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+
 enum JenisMedia {
   anime,
   manga,
@@ -5,10 +7,10 @@ enum JenisMedia {
   manhua,
   lainnya;
 
-  String get label {
+  String label([AppLocalizations? l10n]) {
     switch (this) {
       case JenisMedia.anime:
-        return 'Anime';
+        return l10n?.anime ?? 'Anime';
       case JenisMedia.manga:
         return 'Manga';
       case JenisMedia.manhwa:
@@ -16,12 +18,12 @@ enum JenisMedia {
       case JenisMedia.manhua:
         return 'Manhua';
       case JenisMedia.lainnya:
-        return 'Lainnya';
+        return l10n?.about ?? 'Lainnya'; 
     }
   }
 
-  String get satuanProgres {
-    if (this == JenisMedia.anime) return 'Episode';
-    return 'Chapter';
+  String satuanProgres([AppLocalizations? l10n]) {
+    if (this == JenisMedia.anime) return l10n?.episodes ?? 'Episode';
+    return l10n?.chapters ?? 'Chapter';
   }
 }

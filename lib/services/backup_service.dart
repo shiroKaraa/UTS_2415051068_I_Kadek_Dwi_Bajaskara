@@ -14,7 +14,7 @@ class BackupException implements Exception {
 class BackupService {
   Future<String> exportToJson(List<EntriKoleksi> entries) async {
     if (entries.isEmpty) {
-      throw BackupException('Koleksi kosong, tidak ada yang bisa diekspor.');
+      throw BackupException('Collection is empty, nothing to export.');
     }
 
     final List<Map<String, dynamic>> jsonList =
@@ -36,10 +36,10 @@ class BackupService {
 
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'application/json')],
-      subject: 'Backup Koleksi Tsuzuki',
+      subject: 'Tsuzuki Collection Backup',
       text:
-          'File cadangan koleksi Tsuzuki (${entries.length} item, ~$sizeKb KB). '
-          'Simpan file ini di tempat aman (Google Drive, Files, dll).',
+          'Tsuzuki collection backup file (${entries.length} items, ~$sizeKb KB). '
+          'Store this file in a safe place (Google Drive, Files, etc).',
     );
 
     return file.path;
@@ -50,12 +50,12 @@ class BackupService {
     try {
       decoded = jsonDecode(jsonString);
     } on FormatException {
-      throw BackupException('File bukan JSON yang valid.');
+      throw BackupException('File is not valid JSON.');
     }
 
     if (decoded is! List) {
       throw BackupException(
-        'Format file tidak valid. Harus berupa array JSON.',
+        'Invalid file format. Must be a JSON array.',
       );
     }
 
@@ -63,31 +63,31 @@ class BackupService {
     for (int i = 0; i < decoded.length; i++) {
       final raw = decoded[i];
       if (raw is! Map<String, dynamic>) {
-        throw BackupException('Entri #${i + 1}: format tidak valid.');
+        throw BackupException('Entry #${i + 1}: invalid format.');
       }
 
       final judul = raw['judul'];
       if (judul == null || (judul is String && judul.trim().isEmpty)) {
-        throw BackupException('Entri #${i + 1}: "judul" wajib diisi.');
+        throw BackupException('Entry #${i + 1}: "judul" is required.');
       }
       if (raw['jenis'] == null) {
-        throw BackupException('Entri #${i + 1}: "jenis" wajib diisi.');
+        throw BackupException('Entry #${i + 1}: "jenis" is required.');
       }
       if (raw['status'] == null) {
-        throw BackupException('Entri #${i + 1}: "status" wajib diisi.');
+        throw BackupException('Entry #${i + 1}: "status" is required.');
       }
 
       try {
         entries.add(EntriKoleksi.fromJson(raw));
       } catch (e) {
         throw BackupException(
-          'Entri #${i + 1}: gagal dibaca (${e.toString()}).',
+          'Entry #${i + 1}: failed to read (${e.toString()}).',
         );
       }
     }
 
     if (entries.isEmpty) {
-      throw BackupException('File kosong, tidak ada data untuk diimpor.');
+      throw BackupException('File is empty, no data to import.');
     }
 
     return entries;

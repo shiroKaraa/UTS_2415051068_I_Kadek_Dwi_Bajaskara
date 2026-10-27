@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
@@ -30,7 +31,7 @@ class _CollectionPageState extends State<CollectionPage> {
     super.dispose();
   }
 
-  void _showFilterSheet(BuildContext context) {
+  void _showFilterSheet(BuildContext context, AppLocalizations l10n) {
     final collection = context.read<CollectionProvider>();
     JenisMedia? tempJenis = collection.filterJenis;
     int? tempRating = collection.filterRating;
@@ -53,14 +54,14 @@ class _CollectionPageState extends State<CollectionPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Filter Koleksi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(l10n.activeFilter, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<JenisMedia>(
                     initialValue: tempJenis,
-                    decoration: const InputDecoration(labelText: 'Jenis Media', border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: l10n.navCatalog, border: const OutlineInputBorder()),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('Semua Jenis')),
-                      ...JenisMedia.values.map((j) => DropdownMenuItem(value: j, child: Text(j.label))),
+                      DropdownMenuItem(value: null, child: Text(l10n.allGenres)),
+                      ...JenisMedia.values.map((j) => DropdownMenuItem(value: j, child: Text(j.label(l10n)))), // <-- Perbaikan
                     ],
                     onChanged: (val) => setState(() => tempJenis = val),
                   ),
@@ -69,7 +70,7 @@ class _CollectionPageState extends State<CollectionPage> {
                     initialValue: tempRating,
                     decoration: const InputDecoration(labelText: 'Rating', border: OutlineInputBorder()),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('Semua Rating')),
+                      const DropdownMenuItem(value: null, child: Text('All Ratings')),
                       ...List.generate(5, (i) => i + 1).map((val) {
                         return DropdownMenuItem(value: val, child: Text('⭐' * val));
                       }),
@@ -79,16 +80,16 @@ class _CollectionPageState extends State<CollectionPage> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<StatusKoleksi>(
                     initialValue: tempStatus,
-                    decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: l10n.completed, border: const OutlineInputBorder()),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('Semua Status')),
-                      ...StatusKoleksi.values.map((s) => DropdownMenuItem(value: s, child: Text(s.netralLabel))),
+                      DropdownMenuItem(value: null, child: Text(l10n.clearAll)),
+                      ...StatusKoleksi.values.map((s) => DropdownMenuItem(value: s, child: Text(s.netralLabel(l10n)))), // <-- Perbaikan
                     ],
                     onChanged: (val) => setState(() => tempStatus = val),
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('Hanya Tampilkan Favorit'),
+                    title: Text(l10n.supportUs),
                     secondary: const Icon(Icons.star, color: AppColors.goldPrimary),
                     value: collection.filterFavorit,
                     onChanged: (val) {
@@ -97,7 +98,6 @@ class _CollectionPageState extends State<CollectionPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   Row(
                     children: [
                       Expanded(
@@ -107,7 +107,7 @@ class _CollectionPageState extends State<CollectionPage> {
                             collection.clearFilters();
                             Navigator.pop(sheetCtx);
                           },
-                          child: const Text('Reset'),
+                          child: Text(l10n.reset),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -117,7 +117,7 @@ class _CollectionPageState extends State<CollectionPage> {
                             collection.setFilters(jenis: tempJenis, rating: tempRating, status: tempStatus);
                             Navigator.pop(sheetCtx);
                           },
-                          child: const Text('Terapkan'),
+                          child: Text(l10n.apply),
                         ),
                       ),
                     ],
@@ -134,31 +134,32 @@ class _CollectionPageState extends State<CollectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Koleksi'),
+        title: Text(l10n.navCollection),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filter',
-            onPressed: () => _showFilterSheet(context),
+            onPressed: () => _showFilterSheet(context, l10n),
           ),
           IconButton(
             icon: Icon(collection.isListView ? Icons.grid_view : Icons.view_list),
-            tooltip: collection.isListView ? 'Tampilan Grid' : 'Tampilan List',
+            tooltip: collection.isListView ? 'Grid View' : 'List View',
             onPressed: () => collection.toggleView(),
           ),
           PopupMenuButton<UrutanKoleksi>(
             icon: const Icon(Icons.sort),
-            tooltip: 'Urutkan',
+            tooltip: 'Sort',
             onSelected: (value) => collection.setUrutan(value),
             itemBuilder: (context) => [
-              _buildSortItem('Terbaru', UrutanKoleksi.terbaru, collection.urutan),
-              _buildSortItem('Judul A-Z', UrutanKoleksi.judul, collection.urutan),
-              _buildSortItem('Progres Tertinggi', UrutanKoleksi.progres, collection.urutan),
-              _buildSortItem('Rating Tertinggi', UrutanKoleksi.rating, collection.urutan),
+              _buildSortItem('Newest', UrutanKoleksi.terbaru, collection.urutan),
+              _buildSortItem('Title A-Z', UrutanKoleksi.judul, collection.urutan),
+              _buildSortItem('Highest Progress', UrutanKoleksi.progres, collection.urutan),
+              _buildSortItem('Highest Rating', UrutanKoleksi.rating, collection.urutan),
             ],
           ),
         ],
@@ -171,7 +172,7 @@ class _CollectionPageState extends State<CollectionPage> {
               controller: _searchController,
               onChanged: (val) => collection.setQuery(val),
               decoration: InputDecoration(
-                hintText: 'Cari di koleksimu...',
+                hintText: l10n.searchInCollection,
                 prefixIcon: const Icon(Icons.search),
                 isDense: true,
                 suffixIcon: _searchController.text.isNotEmpty
@@ -194,14 +195,14 @@ class _CollectionPageState extends State<CollectionPage> {
                 children: [
                   const Icon(Icons.filter_alt, size: 16, color: AppColors.primaryGreen),
                   const SizedBox(width: 8),
-                  const Text('Filter Aktif', style: TextStyle(fontSize: 12, color: AppColors.primaryGreen)),
+                  Text(l10n.activeFilter, style: const TextStyle(fontSize: 12, color: AppColors.primaryGreen)),
                   const Spacer(),
                   TextButton(
                     onPressed: () {
                       _searchController.clear();
                       collection.clearFilters();
                     },
-                    child: const Text('Hapus Semua', style: TextStyle(fontSize: 12)),
+                    child: Text(l10n.clearAll, style: const TextStyle(fontSize: 12)),
                   ),
                 ],
               ),
@@ -216,17 +217,16 @@ class _CollectionPageState extends State<CollectionPage> {
                   const Icon(Icons.wifi_off, size: 16, color: AppColors.goldPrimary),
                   const SizedBox(width: 8),
                   Text(
-                    'Mode Offline: Menampilkan data tersimpan.',
+                    l10n.offlineMode,
                     style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
                   ),
                 ],
               ),
             ),
-
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => collection.refresh(),
-              child: _buildContent(context, collection),
+              child: _buildContent(context, collection, l10n),
             ),
           ),
         ],
@@ -247,7 +247,7 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, CollectionProvider collection) {
+  Widget _buildContent(BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
     if (collection.isLoading && collection.allEntries.isEmpty) {
       if (collection.isListView) {
         return ListView.builder(
@@ -279,18 +279,16 @@ class _CollectionPageState extends State<CollectionPage> {
     if (collection.entries.isEmpty) {
       final isFiltered = collection.hasActiveFilters;
       return EmptyView(
-        title: isFiltered ? 'Tidak Ada Hasil' : 'Koleksi Kosong',
-        subtitle: isFiltered 
-            ? 'Coba ubah kata kunci atau filter pencarianmu.' 
-            : 'Cari judul di Katalog dan tambahkan yang pertama.',
+        title: isFiltered ? l10n.noResults : l10n.emptyCollection,
+        subtitle: isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
         icon: isFiltered ? Icons.search_off : Icons.collections_bookmark_outlined,
-        actionLabel: isFiltered ? 'Reset Filter' : null,
+        actionLabel: isFiltered ? l10n.resetFilter : null,
         onAction: isFiltered ? () => collection.clearFilters() : null,
       );
     }
 
     if (collection.isListView) {
-      return _buildListView(context, collection);
+      return _buildListView(context, collection, l10n);
     } else {
       return _buildGridView(context, collection);
     }
@@ -327,7 +325,7 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildListView(BuildContext context, CollectionProvider collection) {
+  Widget _buildListView(BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       physics: const AlwaysScrollableScrollPhysics(),
@@ -358,7 +356,7 @@ class _CollectionPageState extends State<CollectionPage> {
               children: [
                 const SizedBox(height: 4),
                 Text(
-                  '${entri.status.netralLabel} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres}',
+                  '${entri.status.netralLabel(l10n)} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres(l10n)}',
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -366,13 +364,13 @@ class _CollectionPageState extends State<CollectionPage> {
             trailing: !isSelesai && entri.total != null
                 ? IconButton(
                     icon: const Icon(Icons.add),
-                    tooltip: 'Tambah progres',
+                    tooltip: 'Add progress',
                     style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
                     onPressed: () async {
                       final provider = context.read<CollectionProvider>();
                       if (provider.isOffline) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Tidak dapat menambah progres saat offline.')),
+                          const SnackBar(content: Text('Cannot add progress while offline.')),
                         );
                         return;
                       }
@@ -384,11 +382,11 @@ class _CollectionPageState extends State<CollectionPage> {
                       );
                       if (updated.status == StatusKoleksi.selesai) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Selamat! Kamu telah menamatkan judul ini.')),
+                          const SnackBar(content: Text('Congratulations! You completed this title.')),
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Progres +1 berhasil.')),
+                          const SnackBar(content: Text('Progress +1 successful.')),
                         );
                       }
                     },
@@ -412,6 +410,7 @@ class _CollectionPageState extends State<CollectionPage> {
   }
 
   void _showQuickMenu(BuildContext context, EntriKoleksi entri) {
+    final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final collection = context.read<CollectionProvider>();
@@ -424,7 +423,7 @@ class _CollectionPageState extends State<CollectionPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('Edit'),
+              title: Text(l10n.edit),
               onTap: () {
                 Navigator.pop(sheetCtx);
                 navigator.push(
@@ -436,24 +435,24 @@ class _CollectionPageState extends State<CollectionPage> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.redAccent),
-              title: const Text('Hapus', style: TextStyle(color: Colors.redAccent)),
+              title: Text(l10n.delete, style: const TextStyle(color: Colors.redAccent)),
               onTap: () async {
                 Navigator.pop(sheetCtx);
 
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (dialogCtx) => AlertDialog(
-                    title: const Text('Hapus Koleksi?'),
-                    content: Text('Apakah kamu yakin ingin menghapus "${entri.judul}"?'),
+                    title: Text(l10n.delete),
+                    content: Text('${l10n.delete} "${entri.judul}"?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, false),
-                        child: const Text('Batal'),
+                        child: Text(l10n.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, true),
                         style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-                        child: const Text('Hapus'),
+                        child: Text(l10n.delete),
                       ),
                     ],
                   ),
@@ -466,9 +465,9 @@ class _CollectionPageState extends State<CollectionPage> {
                 if (berhasil) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: const Text('Koleksi berhasil dihapus.'),
+                      content: const Text('Deleted successfully.'),
                       action: SnackBarAction(
-                        label: 'Urungkan',
+                        label: l10n.undo,
                         onPressed: () {
                           collection.createEntry(entri);
                         },
@@ -477,7 +476,7 @@ class _CollectionPageState extends State<CollectionPage> {
                   );
                 } else {
                   messenger.showSnackBar(
-                    SnackBar(content: Text(collection.errorMessage ?? 'Gagal menghapus.')),
+                    SnackBar(content: Text(collection.errorMessage ?? 'Failed to delete.')),
                   );
                 }
               },

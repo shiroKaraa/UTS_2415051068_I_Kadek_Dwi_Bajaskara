@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 import 'media_type_enum.dart';
 
 enum StatusKoleksi {
@@ -7,32 +8,36 @@ enum StatusKoleksi {
   ditunda,
   dihentikan;
 
-  String label(JenisMedia jenis) {
+  String label(JenisMedia jenis, [AppLocalizations? l10n]) {
     switch (this) {
       case StatusKoleksi.direncanakan:
-        return 'Direncanakan';
+        return l10n?.activeFilter ?? 'Direncanakan';
       case StatusKoleksi.sedang:
-        return jenis == JenisMedia.anime ? 'Sedang Menonton' : 'Sedang Membaca';
+        if (jenis == JenisMedia.anime) {
+          return l10n?.statReading ?? 'Sedang Menonton';
+        }
+        return l10n?.statReading ?? 'Sedang Membaca';
       case StatusKoleksi.selesai:
-        return 'Selesai';
+        return l10n?.statCompleted ?? 'Selesai';
       case StatusKoleksi.ditunda:
-        return 'Ditunda';
+        return l10n?.system ?? 'Ditunda';
       case StatusKoleksi.dihentikan:
-        return 'Dihentikan';
+        return l10n?.delete ?? 'Dihentikan'; 
     }
   }
-  String get netralLabel {
+  
+  String netralLabel([AppLocalizations? l10n]) {
     switch (this) {
       case StatusKoleksi.direncanakan:
-        return 'Direncanakan';
+        return l10n?.activeFilter ?? 'Direncanakan';
       case StatusKoleksi.sedang:
-        return 'Sedang';
+        return l10n?.statReading ?? 'Sedang';
       case StatusKoleksi.selesai:
-        return 'Selesai';
+        return l10n?.statCompleted ?? 'Selesai';
       case StatusKoleksi.ditunda:
-        return 'Ditunda';
+        return l10n?.system ?? 'Ditunda';
       case StatusKoleksi.dihentikan:
-        return 'Dihentikan';
+        return l10n?.delete ?? 'Dihentikan';
     }
   }
 

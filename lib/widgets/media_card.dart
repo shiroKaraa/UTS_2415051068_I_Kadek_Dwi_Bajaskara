@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/catalog_item.dart';
@@ -23,6 +24,9 @@ class MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final satuan = item.jenis.satuanProgres(l10n);
+
     return SizedBox(
       width: width,
       child: InkWell(
@@ -41,7 +45,6 @@ class MediaCard extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       CoverImage(url: item.coverUrl), 
-                      
                       Positioned(
                         bottom: 0,
                         left: 0,
@@ -60,7 +63,6 @@ class MediaCard extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       if (onAddProgress != null)
                         Positioned(
                           bottom: AppSizes.spacingS,
@@ -78,13 +80,12 @@ class MediaCard extends StatelessWidget {
                             ),
                           ),
                         ),
-
                       Positioned(
                         top: AppSizes.spacingS,
                         left: AppSizes.spacingS,
                         child: MediaTypeChip(
-                          label: item.jenis.label,
-                          dotColor: _getColorForType(item.jenis.label),
+                          label: item.jenis.label(l10n),
+                          dotColor: _getColorForType(item.jenis.label(l10n)),
                         ),
                       ),
                     ],
@@ -100,7 +101,7 @@ class MediaCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             Text(
-              '${item.total ?? "?"} ${item.jenis.satuanProgres}',
+              '${item.total ?? "?"} $satuan',
               style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
             ),
           ],

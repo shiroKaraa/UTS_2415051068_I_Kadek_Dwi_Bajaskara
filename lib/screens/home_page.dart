@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/catalog_item.dart';
@@ -58,6 +59,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
     final catalog = context.watch<CatalogProvider>();
 
@@ -65,7 +67,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tsuzuki'),
+        title: Text(l10n.appTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -87,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Halo, Selamat Datang!',
+                    l10n.welcome,
                     style: Theme.of(context)
                         .textTheme
                         .titleLarge
@@ -95,15 +97,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: AppSizes.spacingXs),
                   Text(
-                    'Terus lacak progres tontonan dan bacaanmu.',
+                    l10n.subWelcome,
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: AppSizes.spacingL),
 
-                  _buildLanjutkanSection(context, collection),
+                  _buildLanjutkanSection(context, collection, l10n),
                   const SizedBox(height: AppSizes.spacingL),
-                  _buildStatistikSection(context, collection),
+                  _buildStatistikSection(context, collection, l10n),
                   const SizedBox(height: AppSizes.spacingL),
 
                   if (catalogGagal)
@@ -115,14 +117,16 @@ class _HomePageState extends State<HomePage> {
                   else ...[
                     _buildPopulerSection(
                       context,
-                      title: 'Anime Populer',
+                      l10n,
+                      title: l10n.popularAnime,
                       items: catalog.topAnime,
                       isLoading: catalog.isLoading && catalog.items.isEmpty,
                     ),
                     const SizedBox(height: AppSizes.spacingL),
                     _buildPopulerSection(
                       context,
-                      title: 'Komik Populer',
+                      l10n,
+                      title: l10n.popularManga,
                       items: catalog.topManga,
                       isLoading: catalog.isLoading && catalog.items.isEmpty,
                     ),
@@ -138,7 +142,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildStatistikSection(
-      BuildContext context, CollectionProvider collection) {
+      BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
     if (collection.isLoading && collection.allEntries.isEmpty) {
       return const Row(
         children: [
@@ -160,11 +164,11 @@ class _HomePageState extends State<HomePage> {
         .length;
 
     final cards = [
-      _statCard(context, 'Total', total.toString(),
+      _statCard(context, l10n.statTotal, total.toString(),
           Icons.collections_bookmark, AppColors.infoBlue),
-      _statCard(context, 'Sedang', sedang.toString(),
+      _statCard(context, l10n.statReading, sedang.toString(),
           Icons.play_circle_outline, AppColors.primaryGreen),
-      _statCard(context, 'Selesai', selesai.toString(),
+      _statCard(context, l10n.statCompleted, selesai.toString(),
           Icons.check_circle_outline, AppColors.goldPrimary),
     ];
 
@@ -220,7 +224,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildLanjutkanSection(
-      BuildContext context, CollectionProvider collection) {
+      BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
     final lanjutkan = collection.allEntries
         .where((e) => e.status == StatusKoleksi.sedang)
         .take(3)
@@ -236,11 +240,11 @@ class _HomePageState extends State<HomePage> {
               const Icon(Icons.play_circle_outline,
                   size: 48, color: Colors.grey),
               const SizedBox(height: AppSizes.spacingM),
-              const Text('Belum ada yang dilacak.',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(l10n.noTrackedYet,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: AppSizes.spacingS),
               Text(
-                'Cari anime atau komik pertamamu.',
+                l10n.searchFirst,
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
@@ -248,7 +252,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: AppSizes.spacingM),
               ElevatedButton(
                 onPressed: widget.onLihatKatalog,
-                child: const Text('Cari Sekarang'),
+                child: Text(l10n.searchNow),
               ),
             ],
           ),
@@ -259,8 +263,8 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Lanjutkan',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(l10n.continueWatching,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: AppSizes.spacingS),
         ...lanjutkan.map((terbaru) {
           final progress = (terbaru.total != null && terbaru.total! > 0)
@@ -285,7 +289,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${terbaru.progres} / ${terbaru.total ?? "?"} ${terbaru.jenis.satuanProgres}'),
+                      '${terbaru.progres} / ${terbaru.total ?? "?"} ${terbaru.jenis.satuanProgres(l10n)}'), // <-- Perbaikan
                   const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: progress,
@@ -354,7 +358,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPopulerSection(
-    BuildContext context, {
+    BuildContext context,
+    AppLocalizations l10n, {
     required String title,
     required List<ItemKatalog> items,
     required bool isLoading,
@@ -370,7 +375,7 @@ class _HomePageState extends State<HomePage> {
                     fontSize: 18, fontWeight: FontWeight.bold)),
             TextButton(
               onPressed: widget.onLihatKatalog,
-              child: const Text('Lihat Semua'),
+              child: Text(l10n.seeAll),
             ),
           ],
         ),

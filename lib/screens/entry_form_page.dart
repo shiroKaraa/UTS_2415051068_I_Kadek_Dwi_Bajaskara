@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_sizes.dart';
 import '../models/catalog_item.dart';
 import '../models/collection_entry.dart';
@@ -44,12 +45,13 @@ class _EntryFormPageState extends State<EntryFormPage> {
   Future<void> _simpan() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!; // <-- Tambahan
     final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
 
     if (settings.deviceId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ID Perangkat tidak tersedia.')),
+        SnackBar(content: Text(l10n.deviceIdNotAvailable)), // <-- Menggunakan l10n
       );
       return;
     }
@@ -73,23 +75,24 @@ class _EntryFormPageState extends State<EntryFormPage> {
 
     if (berhasil) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil ditambahkan ke koleksi!')),
+        SnackBar(content: Text(l10n.categoryAdded)), // <-- Menggunakan l10n
       );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(collection.errorMessage ?? 'Gagal menyimpan.')),
+        SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)), // <-- Menggunakan l10n
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
     final isSaving = collection.isSaving;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah ke Koleksi')),
+      appBar: AppBar(title: Text(l10n.addToCollection)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSizes.spacingM),
         child: Column(
@@ -101,7 +104,7 @@ class _EntryFormPageState extends State<EntryFormPage> {
                     ? Image.network(widget.item.coverUrl!, width: 40, height: 60, fit: BoxFit.cover)
                     : const Icon(Icons.image),
                 title: Text(widget.item.displayTitle),
-                subtitle: Text('${widget.item.jenis.label} • ${widget.item.total ?? "?"} ${widget.item.jenis.satuanProgres}'),
+                subtitle: Text('${widget.item.jenis.label(l10n)} • ${widget.item.total ?? "?"} ${widget.item.jenis.satuanProgres(l10n)}'), // <-- Perbaikan
               ),
             ),
             const SizedBox(height: AppSizes.spacingM),
@@ -118,7 +121,7 @@ class _EntryFormPageState extends State<EntryFormPage> {
               catatanController: _catatanController,
               isSaving: isSaving,
               onSimpan: _simpan,
-              buttonText: 'Simpan ke Koleksi',
+              buttonText: l10n.save,
             ),
           ],
         ),

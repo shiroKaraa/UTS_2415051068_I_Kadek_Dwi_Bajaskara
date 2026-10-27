@@ -6,12 +6,14 @@ class SettingsProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark; 
   String? _deviceId;
   bool _isLoading = true;
-  bool _hasSeenOnboarding = false; // <-- State Baru
+  bool _hasSeenOnboarding = false;
+  Locale _locale = const Locale('id'); 
 
   ThemeMode get themeMode => _themeMode;
   String? get deviceId => _deviceId;
   bool get isLoading => _isLoading;
   bool get hasSeenOnboarding => _hasSeenOnboarding;
+  Locale get locale => _locale;
 
   SettingsProvider() {
     _loadSettings();
@@ -29,8 +31,11 @@ class SettingsProvider extends ChangeNotifier {
         _themeMode = ThemeMode.dark;
       }
 
-      // Baca status onboarding
       _hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+      final savedLang = prefs.getString('language_code');
+      if (savedLang != null) {
+        _locale = Locale(savedLang);
+      }
 
       final persistentId = await PersistentDeviceId.getDeviceId();
       if (persistentId != null && persistentId.isNotEmpty) {
@@ -50,7 +55,6 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
     notifyListeners();
-
     final prefs = await SharedPreferences.getInstance();
     String modeString = 'dark';
     if (mode == ThemeMode.light) modeString = 'light';
@@ -61,8 +65,15 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setHasSeenOnboarding(bool value) async {
     _hasSeenOnboarding = value;
     notifyListeners();
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_seen_onboarding', value);
+  }
+
+  Future<void> setLocale(Locale locale) async {
+    if (_locale == locale) return;
+    _locale = locale;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language_code', locale.languageCode);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/custom_category.dart';
@@ -8,7 +9,7 @@ import '../providers/category_provider.dart';
 class CategoryPage extends StatelessWidget {
   const CategoryPage({super.key});
 
-  void _showFormDialog(BuildContext context, [KategoriKustom? category]) {
+  void _showFormDialog(BuildContext context, AppLocalizations l10n, [KategoriKustom? category]) {
     final namaController = TextEditingController(text: category?.nama ?? '');
     final satuanController = TextEditingController(text: category?.satuanProgres ?? 'Bagian');
     final provider = context.read<CategoryProvider>();
@@ -16,27 +17,25 @@ class CategoryPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(category == null ? 'Tambah Kategori' : 'Edit Kategori'),
+        title: Text(category == null ? l10n.addCategory : l10n.editCategory),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: namaController,
-              decoration: const InputDecoration(labelText: 'Nama Kategori'),
+              decoration: InputDecoration(labelText: l10n.categoryName),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: satuanController,
-              decoration: const InputDecoration(
-                labelText: 'Satuan Progres (misal: Bagian, Halaman, Tugas)',
-              ),
+              decoration: InputDecoration(labelText: l10n.progressUnit),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -61,7 +60,7 @@ class CategoryPage extends StatelessWidget {
               if (success) {
                 Navigator.pop(dialogCtx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(category == null ? 'Kategori ditambahkan.' : 'Kategori diperbarui.')),
+                  SnackBar(content: Text(category == null ? l10n.categoryAdded : l10n.categoryUpdated)),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -69,31 +68,29 @@ class CategoryPage extends StatelessWidget {
                 );
               }
             },
-            child: const Text('Simpan'),
+            child: Text(l10n.save),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _konfirmasiHapus(BuildContext context, KategoriKustom category) async {
+  Future<void> _konfirmasiHapus(BuildContext context, AppLocalizations l10n, KategoriKustom category) async {
     final provider = context.read<CategoryProvider>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Hapus Kategori?'),
-        content: Text(
-          'Menghapus kategori "${category.nama}" akan menghapus semua entri di dalamnya. Lanjutkan?',
-        ),
+        title: Text(l10n.deleteCategory),
+        content: Text(l10n.deleteCategoryDesc(category.nama)), // Perbaikan typo 10n -> l10n
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: const Text('Hapus'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -104,7 +101,7 @@ class CategoryPage extends StatelessWidget {
     if (!context.mounted) return;
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori dihapus.')),
+        SnackBar(content: Text(l10n.categoryDeleted)),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,14 +112,15 @@ class CategoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<CategoryProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Kelola Kategori')),
+      appBar: AppBar(title: Text(l10n.manageCategories)),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.categories.isEmpty
-              ? const Center(child: Text('Belum ada kategori kustom.'))
+              ? Center(child: Text(l10n.noCategory))
               : ListView.builder(
                   padding: const EdgeInsets.all(AppSizes.spacingM),
                   itemCount: provider.categories.length,
@@ -139,11 +137,11 @@ class CategoryPage extends StatelessWidget {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit, color: AppColors.infoBlue),
-                              onPressed: () => _showFormDialog(context, category),
+                              onPressed: () => _showFormDialog(context, l10n, category),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.redAccent),
-                              onPressed: () => _konfirmasiHapus(context, category),
+                              onPressed: () => _konfirmasiHapus(context, l10n, category),
                             ),
                           ],
                         ),
@@ -152,7 +150,7 @@ class CategoryPage extends StatelessWidget {
                   },
                 ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showFormDialog(context),
+        onPressed: () => _showFormDialog(context, l10n),
         backgroundColor: AppColors.primaryGreen,
         child: const Icon(Icons.add, color: Colors.black),
       ),

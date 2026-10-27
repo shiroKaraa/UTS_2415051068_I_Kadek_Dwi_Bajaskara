@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
-      appBar: AppBar(title: const Text('Tentang Aplikasi')),
+      appBar: AppBar(title: Text(l10n.aboutApp)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -39,34 +42,34 @@ class AboutPage extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 8),
-            const Text('Versi 1.0.0', style: TextStyle(color: Colors.grey)),
+            Text('${l10n.version} 1.0.0', style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
-            const Text(
-              'Aplikasi pelacak progres tontonan Anime dan bacaan Komik (Manga, Manhwa, Manhua).',
+            Text(
+              l10n.appDescription,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 32),
             const Divider(),
-            const ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Developer'),
-              subtitle: Text('I Kadek Dwi Bajaskara (2415051068)'),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: Text(l10n.developer),
+              subtitle: const Text('I Kadek Dwi Bajaskara (2415051068)'),
             ),
-            const ListTile(
-              leading: Icon(Icons.school),
-              title: Text('Mata Kuliah'),
-              subtitle: Text('Pemrograman Mobile - PTI 5A'),
+            ListTile(
+              leading: const Icon(Icons.school),
+              title: Text(l10n.course),
+              subtitle: const Text('Pemrograman Mobile - PTI 5A'),
             ),
-            const ListTile(
-              leading: Icon(Icons.api),
-              title: Text('Sumber Data'),
-              subtitle: Text('AniList GraphQL API & Supabase'),
+            ListTile(
+              leading: const Icon(Icons.api),
+              title: Text(l10n.dataSource),
+              subtitle: const Text('AniList GraphQL API & Supabase'),
             ),
             const SizedBox(height: 24),
-            const Text(
-              '© 2026 Tsuzuki App',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            Text(
+              l10n.copyright,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),

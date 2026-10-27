@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../models/collection_entry.dart';
 import '../models/status_collection_enum.dart';
@@ -20,11 +21,13 @@ class CollectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final progress = (entri.total != null && entri.total! > 0)
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
         : 0.0;
     final isSelesai = entri.status == StatusKoleksi.selesai;
+    
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -59,16 +62,16 @@ class CollectionCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                      if (entri.isFavorite)
-                        const Positioned(
-                          top: 8,
-                          left: 8,
-                          child: Icon(
-                            Icons.star,
-                            color: AppColors.goldPrimary,
-                            size: 20,
-                          ),
-                        ),
+                  if (entri.isFavorite)
+                    const Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Icon(
+                        Icons.star,
+                        color: AppColors.goldPrimary,
+                        size: 20,
+                      ),
+                    ),
                   if (!isSelesai && entri.total != null)
                     Positioned(
                       bottom: 4,
@@ -142,7 +145,7 @@ class CollectionCard extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
-            entri.status.netralLabel,
+            entri.status.netralLabel(l10n), // <-- Perbaikan
             style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
           ),
           Semantics(
