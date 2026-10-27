@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
+import 'backup_restore_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -36,6 +37,19 @@ class SettingsPage extends StatelessWidget {
                 DropdownMenuItem(value: ThemeMode.system, child: Text('Sistem')),
               ],
             ),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.backup_outlined),
+            title: const Text('Backup & Restore'),
+            subtitle: const Text('Ekspor atau impor koleksi Anda'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BackupRestorePage()),
+              );
+            },
           ),
         ],
       ),

@@ -30,6 +30,21 @@ class SupabaseCollectionService implements CollectionDataSource {
   }
 
   @override
+  Future<List<EntriKoleksi>> createEntries(List<EntriKoleksi> entries) async {
+    if (entries.isEmpty) return [];
+
+    final payload = entries.map((e) => e.toJson()).toList();
+    final response = await _supabase
+        .from('koleksi')
+        .insert(payload)
+        .select();
+
+    return (response as List)
+        .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri) async {
     final response = await _supabase
         .from('koleksi')
@@ -45,5 +60,4 @@ class SupabaseCollectionService implements CollectionDataSource {
   Future<void> deleteEntry(int id) async {
     await _supabase.from('koleksi').delete().eq('id', id);
   }
-  
 }

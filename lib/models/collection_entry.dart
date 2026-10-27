@@ -39,7 +39,7 @@ class EntriKoleksi {
   factory EntriKoleksi.fromJson(Map<String, dynamic> json) {
     return EntriKoleksi(
       id: json['id'] as int?,
-      deviceId: json['device_id'] as String,
+      deviceId: json['device_id'] as String? ?? '',
       jenis: JenisMedia.values.firstWhere(
         (e) => e.name == json['jenis'],
         orElse: () => JenisMedia.lainnya,
@@ -78,6 +78,25 @@ class EntriKoleksi {
       'catatan': catatan,
       'is_favorite': isFavorite,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toBackupJson() {
+    return {
+      'device_id': deviceId,
+      'jenis': jenis.name,
+      'kategori_id': kategoriId,
+      'external_id': externalId,
+      'judul': judul,
+      'cover_url': coverUrl,
+      'status': status.name,
+      'progres': progres,
+      'total': total,
+      'rating': rating,
+      'catatan': catatan,
+      'is_favorite': isFavorite,
+      'created_at': createdAt?.toUtc().toIso8601String(),
+      'updated_at': updatedAt?.toUtc().toIso8601String(),
     };
   }
 

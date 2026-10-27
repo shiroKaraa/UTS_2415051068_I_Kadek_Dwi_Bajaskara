@@ -14,6 +14,10 @@ class CollectionRepository {
     return _dataSource.createEntry(entri);
   }
 
+  Future<List<EntriKoleksi>> createEntries(List<EntriKoleksi> entries) {
+    return _dataSource.createEntries(entries);
+  }
+
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri) {
     return _dataSource.updateEntry(entri);
   }
@@ -21,5 +25,4 @@ class CollectionRepository {
   Future<void> deleteEntry(int id) {
     return _dataSource.deleteEntry(id);
   }
-  
 }

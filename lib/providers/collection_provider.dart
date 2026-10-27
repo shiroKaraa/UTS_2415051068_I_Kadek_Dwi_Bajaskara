@@ -161,6 +161,65 @@ class CollectionProvider extends ChangeNotifier {
     }
   }
 
+  Future<int> createEntries(List<EntriKoleksi> entries) async {
+    if (_deviceId == null || _isOffline) {
+      _errorMessage = _isOffline
+          ? 'Tidak dapat mengimpor saat offline.'
+          : 'ID Perangkat tidak valid.';
+      notifyListeners();
+      return 0;
+    }
+    if (entries.isEmpty) return 0;
+
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final newEntries = await _repository.createEntries(entries);
+      _entries.insertAll(0, newEntries);
+      return newEntries.length;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return 0;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+  
+  Future<int> deleteAll() async {
+    if (_deviceId == null || _isOffline) {
+      _errorMessage = _isOffline
+          ? 'Tidak dapat menghapus saat offline.'
+          : 'ID Perangkat tidak valid.';
+      notifyListeners();
+      return 0;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    int deleted = 0;
+    try {
+      final snapshot = List<EntriKoleksi>.from(_entries);
+      for (final e in snapshot) {
+        if (e.id == null) continue;
+        await _repository.deleteEntry(e.id!);
+        deleted++;
+      }
+      _entries.clear();
+      return deleted;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return deleted;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> updateEntry(EntriKoleksi entri) async {
     if (_deviceId == null || _isOffline) {
       _errorMessage = _isOffline ? 'Tidak dapat mengubah data saat offline.' : 'ID Perangkat tidak valid.';
