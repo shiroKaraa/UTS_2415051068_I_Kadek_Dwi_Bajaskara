@@ -207,8 +207,22 @@ class CollectionPage extends StatelessWidget {
                             color: AppColors.primaryGreen,
                             shape: const CircleBorder(),
                             child: InkWell(
-                              onTap: () {
-                                context.read<CollectionProvider>().incrementProgress(entri);
+                              onTap: () async {
+                                final provider = context.read<CollectionProvider>();
+                                await provider.incrementProgress(entri);
+                                
+                                if (!context.mounted) return;
+                                final updated = provider.entries.firstWhere((e) => e.id == entri.id);
+                                
+                                if (updated.status == StatusKoleksi.selesai) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Selamat! Kamu telah menamatkan judul ini.')),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Progres +1 berhasil.')),
+                                  );
+                                }
                               },
                               customBorder: const CircleBorder(),
                               child: const Padding(

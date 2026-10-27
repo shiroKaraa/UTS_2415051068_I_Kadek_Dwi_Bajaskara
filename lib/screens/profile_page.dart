@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../providers/settings_provider.dart';
-import '../widgets/media_type_chip.dart';
-import '../widgets/status_chip.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -53,6 +51,17 @@ class ProfilePage extends StatelessWidget {
 
             const Divider(height: 48),
 
+            // Tambahan Informasi Atribusi API (Sesuai Blueprint)
+            const ListTile(
+              leading: Icon(Icons.info_outline),
+              title: Text('Sumber Data Katalog'),
+              subtitle: Text('Data anime & manga disediakan oleh AniList API (GraphQL).'),
+            ),
+            const ListTile(
+              leading: Icon(Icons.cloud_outlined),
+              title: Text('Penyimpanan Data'),
+              subtitle: Text('Koleksi pribadi disimpan dengan aman di Supabase (PostgreSQL).'),
+            ),
             ListTile(
               leading: const Icon(Icons.dark_mode_outlined),
               title: const Text('Tema Aplikasi'),
@@ -85,7 +94,7 @@ class ProfilePage extends StatelessWidget {
               subtitle: Text(settings.deviceId),
               trailing: IconButton(
                 icon: const Icon(Icons.copy),
-                 onPressed: () async {
+                onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: settings.deviceId));
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -94,26 +103,9 @@ class ProfilePage extends StatelessWidget {
                 },
               ),
             ),
-
-            const Divider(height: 48),
-            const Text('Uji Coba Reusable Chip', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: const [
-                MediaTypeChip(label: 'Anime', dotColor: AppColors.typeAnime),
-                MediaTypeChip(label: 'Manga', dotColor: AppColors.typeManga),
-                MediaTypeChip(label: 'Manhwa', dotColor: AppColors.typeManhwa),
-                MediaTypeChip(label: 'Manhua', dotColor: AppColors.typeManhua),
-                MediaTypeChip(label: 'Lainnya', dotColor: AppColors.typeLainnya),
-                SizedBox(width: 20),
-                StatusChip(label: 'Sedang', backgroundColor: Color(0x336FA8E8), textColor: AppColors.infoBlue),
-                StatusChip(label: 'Selesai', backgroundColor: Color(0x33E3B964), textColor: AppColors.goldPrimary),
-                StatusChip(label: 'Ditunda', backgroundColor: Color(0x33FF5252), textColor: Colors.redAccent),
-              ],
-            ),
+            
+            // Space kosong di bagian paling bawah agar tidak terlalu mepet
+            const SizedBox(height: 48),
           ],
         ),
       ),

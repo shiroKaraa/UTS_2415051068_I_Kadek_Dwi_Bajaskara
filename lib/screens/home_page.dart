@@ -9,6 +9,7 @@ import '../providers/catalog_provider.dart';
 import '../widgets/cover_image.dart';
 import '../widgets/error_view.dart';
 import '../widgets/media_card.dart';
+import '../widgets/shimmer_loading.dart';
 import 'catalog_detail_page.dart';
 import 'collection_detail_page.dart';
 
@@ -145,7 +146,15 @@ class _HomePageState extends State<HomePage> {
   Widget _buildStatistikSection(
       BuildContext context, CollectionProvider collection) {
     if (collection.isLoading && collection.entries.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Row(
+        children: [
+          Expanded(child: ShimmerLoading(height: 100)),
+          SizedBox(width: AppSizes.spacingM),
+          Expanded(child: ShimmerLoading(height: 100)),
+          SizedBox(width: AppSizes.spacingM),
+          Expanded(child: ShimmerLoading(height: 100)),
+        ],
+      );
     }
 
     final total = collection.entries.length;
@@ -357,7 +366,17 @@ class _HomePageState extends State<HomePage> {
         ),
         const SizedBox(height: AppSizes.spacingS),
         if (isLoading)
-          const Center(child: CircularProgressIndicator())
+          SizedBox(
+            height: 250,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 3,
+              itemBuilder: (context, index) => const Padding(
+                padding: EdgeInsets.only(right: AppSizes.spacingM),
+                child: ShimmerLoading(width: 140),
+              ),
+            ),
+          )
         else if (items.isEmpty)
           const Center(child: Text('Belum ada data populer.'))
         else
