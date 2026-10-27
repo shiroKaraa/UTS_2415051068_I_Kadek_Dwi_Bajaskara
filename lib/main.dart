@@ -7,6 +7,7 @@ import 'core/app_config.dart';
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'providers/collection_provider.dart'; 
+import 'providers/category_provider.dart'; 
 import 'repositories/collection_repository.dart'; 
 import 'services/supabase_collection_service.dart'; 
 import 'screens/responsive_shell.dart';
@@ -34,12 +35,19 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => CatalogProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProxyProvider<SettingsProvider, CollectionProvider>(
           create: (context) => CollectionProvider(
             CollectionRepository(SupabaseCollectionService()),
           ),
           update: (context, settings, previous) {
-            // Panggil bindDevice pada instance yang sudah ada
+            previous?.bindDevice(settings.deviceId);
+            return previous!;
+          },
+        ),
+        ChangeNotifierProxyProvider<SettingsProvider, CategoryProvider>(
+          create: (_) => CategoryProvider(),
+          update: (_, settings, previous) {
             previous?.bindDevice(settings.deviceId);
             return previous!;
           },

@@ -6,7 +6,6 @@ import '../providers/catalog_provider.dart';
 import '../widgets/media_card.dart';
 import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
-import '../widgets/shimmer_loading.dart';
 import '../widgets/skeleton/skeleton_grid_card.dart';
 import 'catalog_detail_page.dart';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'about_page.dart';
+import 'category_page.dart';
 import 'help_page.dart';
 import 'settings_page.dart';
 import 'statistics_page.dart';
@@ -43,6 +44,16 @@ class _OtherPageState extends State<OtherPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const StatisticsPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.label_outline, color: iconColor),
+            title: const Text('Kategori'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CategoryPage()),
               );
             },
           ),

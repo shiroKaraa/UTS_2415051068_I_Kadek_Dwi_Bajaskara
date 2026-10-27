@@ -9,7 +9,6 @@ import '../widgets/skeleton/skeleton_grid_card.dart';
 import '../widgets/skeleton/skeleton_list_card.dart';
 import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
-import '../widgets/shimmer_loading.dart';
 import '../widgets/collection_card.dart';
 import '../widgets/cover_image.dart';
 import 'collection_detail_page.dart';

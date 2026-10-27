@@ -9,8 +9,6 @@ class ItemKatalog {
   final double? skor;
   final int? total;
   final JenisMedia jenis;
-  
-  // Field Baru
   final List<String> genres;
   final int? tahunRilis;
   final String? statusTayang;
@@ -54,7 +52,6 @@ class ItemKatalog {
       skor = (json['averageScore'] as num).toDouble() / 10.0;
     }
 
-    // Parsing field baru
     final genresList = (json['genres'] as List<dynamic>?)?.cast<String>() ?? [];
 
     return ItemKatalog(

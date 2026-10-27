@@ -55,8 +55,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
   Future<void> _imporData() async {
     final collection = context.read<CollectionProvider>();
-
-    // 1. Pilih file
     const typeGroup = XTypeGroup(label: 'JSON', extensions: ['json']);
     final XFile? pickedFile;
     try {
@@ -67,7 +65,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     }
     if (pickedFile == null) return;
 
-    // 2. Baca & validasi
     setState(() {
       _isProcessing = true;
       _progressText = 'Membaca file...';
@@ -101,11 +98,9 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       _progressText = null;
     });
 
-    // 3. Pilih mode (Merge / Replace)
     final mode = await _pilihMode(parsed.length);
     if (mode == null) return;
 
-    // 4. Deduplikasi (hanya untuk mode Merge)
     List<EntriKoleksi> toImport = parsed;
     int skipped = 0;
     if (mode == _ImportMode.merge) {
@@ -125,13 +120,11 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       return;
     }
 
-    // 5. Konfirmasi Replace (hapus semua data lama)
     if (mode == _ImportMode.replace) {
       final yakin = await _konfirmasiReplace(parsed.length);
       if (yakin != true) return;
     }
 
-    // 6. Proses impor
     setState(() {
       _isProcessing = true;
       _progressText = mode == _ImportMode.replace
@@ -140,7 +133,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     });
 
     try {
-      // 6a. Replace: hapus semua dulu
       if (mode == _ImportMode.replace) {
         final deleted = await collection.deleteAll();
         if (collection.errorMessage != null) {
@@ -153,7 +145,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
         });
       }
 
-      // 6b. Batch insert
       final inserted = await collection.createEntries(toImport);
 
       if (!mounted) return;
@@ -163,7 +154,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
         return;
       }
 
-      // 6c. Refresh untuk memastikan sinkron
       await collection.refresh();
 
       if (!mounted) return;
@@ -255,7 +245,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       body: ListView(
         padding: const EdgeInsets.all(AppSizes.spacingM),
         children: [
-          // ===== EKSPOR =====
           Card(
             elevation: 0,
             color: theme.cardColor,
@@ -300,8 +289,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
           ),
 
           const SizedBox(height: AppSizes.spacingL),
-
-          // ===== IMPOR =====
           Card(
             elevation: 0,
             color: theme.cardColor,
@@ -344,8 +331,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
           ),
 
           const SizedBox(height: AppSizes.spacingL),
-
-          // ===== PROGRESS =====
           if (_isProcessing)
             Center(
               child: Column(
@@ -367,8 +352,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
             ),
 
           const SizedBox(height: AppSizes.spacingL),
-
-          // ===== INFO =====
           Container(
             padding: const EdgeInsets.all(AppSizes.spacingM),
             decoration: BoxDecoration(
