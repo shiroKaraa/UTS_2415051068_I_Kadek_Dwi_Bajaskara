@@ -20,14 +20,15 @@ class CollectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final progress = (entri.total != null && entri.total! > 0)
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
         : 0.0;
     final isSelesai = entri.status == StatusKoleksi.selesai;
-
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -37,7 +38,9 @@ class CollectionCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CoverImage(url: entri.coverUrl),
+                  ExcludeSemantics(
+                    child: CoverImage(url: entri.coverUrl),
+                  ),
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -58,58 +61,61 @@ class CollectionCard extends StatelessWidget {
                   ),
                   if (!isSelesai && entri.total != null)
                     Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Material(
-                        color: AppColors.primaryGreen,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          onTap: () async {
-                            final provider = context.read<CollectionProvider>();
-                            if (provider.isOffline) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Tidak dapat menambah progres saat offline.')),
-                              );
-                              return;
-                            }
+                      bottom: 4,
+                      right: 4,
+                      child: Semantics(
+                        button: true,
+                        label: 'Tambah progres ${entri.judul}',
+                        child: Material(
+                          color: AppColors.primaryGreen,
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            onTap: () async {
+                              final provider = context.read<CollectionProvider>();
+                              if (provider.isOffline) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Tidak dapat menambah progres saat offline.')),
+                                );
+                                return;
+                              }
 
-                            await provider.incrementProgress(entri);
+                              await provider.incrementProgress(entri);
 
-                            if (!context.mounted) return;
-                            if (provider.errorMessage != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(provider.errorMessage!)),
-                              );
-                              return;
-                            }
+                              if (!context.mounted) return;
+                              if (provider.errorMessage != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(provider.errorMessage!)),
+                                );
+                                return;
+                              }
 
-                            final updated = provider.allEntries.firstWhere(
-                              (e) => e.id == entri.id,
-                              orElse: () => entri,
-                            );
+                              final updated = provider.allEntries.firstWhere(
+                                (e) => e.id == entri.id,
+                                orElse: () => entri,
+                              );
 
-                            if (updated.status == StatusKoleksi.selesai) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Selamat! Kamu telah menamatkan judul ini.')),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Progres +1 berhasil.')),
-                              );
-                            }
-                          },
-                          customBorder: const CircleBorder(),
-                          // Padding diperbesar agar tap target mencapai 48px (Aksesibilitas)
-                          child: const Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: Icon(Icons.add,
-                                color: Colors.black, size: 24),
+                              if (updated.status == StatusKoleksi.selesai) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Selamat! Kamu telah menamatkan judul ini.')),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Progres +1 berhasil.')),
+                                );
+                              }
+                            },
+                            customBorder: const CircleBorder(),
+                            child: const Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Icon(Icons.add,
+                                  color: Colors.black, size: 24),
+                            ),
                           ),
                         ),
                       ),
@@ -121,22 +127,25 @@ class CollectionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             entri.judul,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
             entri.status.netralLabel,
-            style: TextStyle(fontSize: 11, color: AppColors.infoBlue),
+            style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
           ),
-          Text(
-            '${entri.progres}/${entri.total ?? "?"}',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          Semantics(
+            label: 'Progres ${entri.progres} dari ${entri.total ?? "tidak diketahui"}',
+            child: Text(
+              '${entri.progres}/${entri.total ?? "?"}',
+              style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+            ),
           ),
           const SizedBox(height: 4),
           LinearProgressIndicator(
             value: progress,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
             color: AppColors.primaryGreen,
             minHeight: 3,
           ),

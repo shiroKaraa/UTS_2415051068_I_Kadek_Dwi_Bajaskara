@@ -59,6 +59,7 @@ class CollectionPage extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Muat Ulang',
             onPressed: () => collection.refresh(),
           ),
         ],
@@ -70,13 +71,16 @@ class CollectionPage extends StatelessWidget {
               width: double.infinity,
               color: AppColors.goldPrimary.withValues(alpha: 0.2),
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.wifi_off, size: 16, color: AppColors.goldPrimary),
-                  SizedBox(width: 8),
+                  const Icon(Icons.wifi_off, size: 16, color: AppColors.goldPrimary),
+                  const SizedBox(width: 8),
                   Text(
                     'Mode Offline: Menampilkan data tersimpan.',
-                    style: TextStyle(fontSize: 12, color: AppColors.goldPrimary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -220,13 +224,19 @@ class CollectionPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
-                Text('${entri.status.netralLabel} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres}'),
+                Text(
+                  '${entri.status.netralLabel} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres}',
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
               ],
             ),
             trailing: !isSelesai && entri.total != null
-                ? IconButton.filledTonal(
+                ? IconButton(
                     icon: const Icon(Icons.add),
                     tooltip: 'Tambah progres',
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                    ),
                     onPressed: () async {
                       final provider = context.read<CollectionProvider>();
                       if (provider.isOffline) {
