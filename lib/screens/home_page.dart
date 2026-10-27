@@ -145,7 +145,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildStatistikSection(
       BuildContext context, CollectionProvider collection) {
-    if (collection.isLoading && collection.entries.isEmpty) {
+    if (collection.isLoading && collection.allEntries.isEmpty) {
       return const Row(
         children: [
           Expanded(child: ShimmerLoading(height: 100)),
@@ -157,11 +157,11 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    final total = collection.entries.length;
-    final sedang = collection.entries
+    final total = collection.allEntries.length;
+    final sedang = collection.allEntries
         .where((e) => e.status == StatusKoleksi.sedang)
         .length;
-    final selesai = collection.entries
+    final selesai = collection.allEntries
         .where((e) => e.status == StatusKoleksi.selesai)
         .length;
 
@@ -227,7 +227,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildLanjutkanSection(
       BuildContext context, CollectionProvider collection) {
-    final lanjutkan = collection.entries
+    final lanjutkan = collection.allEntries
         .where((e) => e.status == StatusKoleksi.sedang)
         .take(3)
         .toList();
@@ -315,8 +315,10 @@ class _HomePageState extends State<HomePage> {
                             await provider.incrementProgress(terbaru);
 
                             if (!context.mounted) return;
-                            final updated = provider.entries
-                                .firstWhere((e) => e.id == terbaru.id);
+                            final updated = provider.allEntries.firstWhere(
+                              (e) => e.id == terbaru.id,
+                              orElse: () => terbaru,
+                            );
                             if (updated.status == StatusKoleksi.selesai) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(

@@ -21,8 +21,9 @@ class CollectionProvider extends ChangeNotifier {
 
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
   StatusKoleksi? _filterStatus;
+  List<EntriKoleksi> get allEntries => _entries;
   List<EntriKoleksi> get entries {
-    var filtered = _entries;
+    var filtered = List<EntriKoleksi>.from(_entries); 
     if (_filterStatus != null) {
       filtered = filtered.where((e) => e.status == _filterStatus).toList();
     }

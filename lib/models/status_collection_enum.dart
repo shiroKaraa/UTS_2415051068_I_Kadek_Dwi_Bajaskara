@@ -21,6 +21,20 @@ enum StatusKoleksi {
         return 'Dihentikan';
     }
   }
+  String get netralLabel {
+    switch (this) {
+      case StatusKoleksi.direncanakan:
+        return 'Direncanakan';
+      case StatusKoleksi.sedang:
+        return 'Sedang';
+      case StatusKoleksi.selesai:
+        return 'Selesai';
+      case StatusKoleksi.ditunda:
+        return 'Ditunda';
+      case StatusKoleksi.dihentikan:
+        return 'Dihentikan';
+    }
+  }
 
   String get value {
     return name;

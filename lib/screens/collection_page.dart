@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../models/collection_entry.dart';
-import '../models/media_type_enum.dart'; 
 import '../models/status_collection_enum.dart';
 import '../providers/collection_provider.dart';
 import '../widgets/error_view.dart';
@@ -92,7 +91,7 @@ class CollectionPage extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: ChoiceChip(
-                      label: Text(status.label(JenisMedia.anime)),
+                      label: Text(status.netralLabel),
                       selected: collection.filterStatus == status,
                       onSelected: (selected) {
                         if (selected) collection.setFilterStatus(status);
@@ -115,7 +114,7 @@ class CollectionPage extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, CollectionProvider collection) {
-    if (collection.isLoading) {
+    if (collection.isLoading && collection.allEntries.isEmpty) {
       return GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -129,7 +128,7 @@ class CollectionPage extends StatelessWidget {
       );
     }
 
-    if (collection.errorMessage != null) {
+    if (collection.errorMessage != null && collection.allEntries.isEmpty) {
       return ErrorView(
         message: collection.errorMessage!,
         onRetry: () => collection.refresh(),
@@ -241,7 +240,10 @@ class CollectionPage extends StatelessWidget {
                                   );
                                   return;
                                 }
-                                final updated = provider.entries.firstWhere((e) => e.id == entri.id);
+                                final updated = provider.allEntries.firstWhere(
+                                  (e) => e.id == entri.id,
+                                  orElse: () => entri,
+                                );
                                 if (updated.status == StatusKoleksi.selesai) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Selamat! Kamu telah menamatkan judul ini.')),
@@ -290,9 +292,13 @@ class CollectionPage extends StatelessWidget {
   }
 
   void _showQuickMenu(BuildContext context, EntriKoleksi entri) {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final collection = context.read<CollectionProvider>();
+
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetCtx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -300,9 +306,8 @@ class CollectionPage extends StatelessWidget {
               leading: const Icon(Icons.edit),
               title: const Text('Edit'),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
+                Navigator.pop(sheetCtx);
+                navigator.push(
                   MaterialPageRoute(
                     builder: (context) => EditEntryPage(entri: entri),
                   ),
@@ -311,35 +316,42 @@ class CollectionPage extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.redAccent),
-              title: const Text('Hapus', style: TextStyle(color: Colors.redAccent)),
+              title: const Text(
+                'Hapus',
+                style: TextStyle(color: Colors.redAccent),
+              ),
               onTap: () async {
-                Navigator.pop(context);
-                final collection = context.read<CollectionProvider>();
+                Navigator.pop(sheetCtx);
+
                 final confirmed = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
+                  builder: (dialogCtx) => AlertDialog(
                     title: const Text('Hapus Koleksi?'),
-                    content: Text('Apakah kamu yakin ingin menghapus "${entri.judul}"?'),
+                    content: Text(
+                      'Apakah kamu yakin ingin menghapus "${entri.judul}"?',
+                    ),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.pop(context, false),
+                        onPressed: () => Navigator.pop(dialogCtx, false),
                         child: const Text('Batal'),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                        onPressed: () => Navigator.pop(dialogCtx, true),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.redAccent,
+                        ),
                         child: const Text('Hapus'),
                       ),
                     ],
                   ),
                 );
-                if (confirmed == true) {
-                  await collection.deleteEntry(entri);
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Berhasil dihapus.')),
-                  );
-                }
+
+                if (confirmed != true) return;
+
+                await collection.deleteEntry(entri);
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Berhasil dihapus.')),
+                );
               },
             ),
           ],
