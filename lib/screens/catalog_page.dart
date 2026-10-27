@@ -7,6 +7,7 @@ import '../widgets/media_card.dart';
 import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/shimmer_loading.dart';
+import '../widgets/skeleton/skeleton_grid_card.dart';
 import 'catalog_detail_page.dart';
 
 class CatalogPage extends StatefulWidget {
@@ -215,7 +216,6 @@ class _CatalogPageState extends State<CatalogPage> {
                 ),
               ),
             ),
-
           Expanded(
             child: _buildContent(context, catalog),
           ),
@@ -235,7 +235,7 @@ class _CatalogPageState extends State<CatalogPage> {
           crossAxisSpacing: 16,
         ),
         itemCount: 6,
-        itemBuilder: (context, index) => const ShimmerLoading(),
+        itemBuilder: (context, index) => const SkeletonGridCard(),
       );
     }
 
@@ -247,10 +247,12 @@ class _CatalogPageState extends State<CatalogPage> {
     }
 
     if (catalog.items.isEmpty) {
-      return const EmptyView(
+      return EmptyView(
         title: 'Tidak Ditemukan',
         subtitle: 'Coba kata kunci lain, ubah jenis media, atau reset filter.',
         icon: Icons.search_off,
+        actionLabel: 'Reset Filter',
+        onAction: () => catalog.clearFilters(),
       );
     }
 

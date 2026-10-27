@@ -5,6 +5,8 @@ import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
 import '../models/status_collection_enum.dart';
 import '../providers/collection_provider.dart';
+import '../widgets/skeleton/skeleton_grid_card.dart';
+import '../widgets/skeleton/skeleton_list_card.dart';
 import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/shimmer_loading.dart';
@@ -248,6 +250,13 @@ class _CollectionPageState extends State<CollectionPage> {
 
   Widget _buildContent(BuildContext context, CollectionProvider collection) {
     if (collection.isLoading && collection.allEntries.isEmpty) {
+      if (collection.isListView) {
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: 6,
+          itemBuilder: (context, index) => const SkeletonListCard(),
+        );
+      }
       return GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -257,7 +266,7 @@ class _CollectionPageState extends State<CollectionPage> {
           crossAxisSpacing: 16,
         ),
         itemCount: 6,
-        itemBuilder: (context, index) => const ShimmerLoading(),
+        itemBuilder: (context, index) => const SkeletonGridCard(),
       );
     }
 
@@ -276,6 +285,8 @@ class _CollectionPageState extends State<CollectionPage> {
             ? 'Coba ubah kata kunci atau filter pencarianmu.' 
             : 'Cari judul di Katalog dan tambahkan yang pertama.',
         icon: isFiltered ? Icons.search_off : Icons.collections_bookmark_outlined,
+        actionLabel: isFiltered ? 'Reset Filter' : null,
+        onAction: isFiltered ? () => collection.clearFilters() : null,
       );
     }
 
