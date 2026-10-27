@@ -1,19 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 
-class StoragePage extends StatelessWidget {
+class StoragePage extends StatefulWidget {
   const StoragePage({super.key});
 
-  Future<void> _hapusCache(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    
+  @override
+  State<StoragePage> createState() => _StoragePageState();
+}
+
+class _StoragePageState extends State<StoragePage> {
+  bool _isLoading = true;
+  int _imageCacheSize = 0;
+  int _dataCacheSize = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _hitungUkuran();
+  }
+
+  Future<void> _hitungUkuran() async {
+    setState(() => _isLoading = true);
+    final imageCache = PaintingBinding.instance.imageCache;
+    final imgSize = imageCache.currentSizeBytes;
+
+    int dataSize = 0;
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys().where((k) => k.startsWith('cache_koleksi_'));
+    for (final key in keys) {
+      final value = prefs.getString(key);
+      if (value != null) {
+        dataSize += value.length; 
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _imageCacheSize = imgSize;
+      _dataCacheSize = dataSize;
+      _isLoading = false;
+    });
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+  }
+
+  Future<void> _hapusCacheGambar() async {
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+    await _hitungUkuran();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Cache gambar berhasil dihapus.')),
+    );
+  }
+
+  Future<void> _hapusCacheData() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Hapus Cache Lokal?'),
+        title: const Text('Hapus Cache Data?'),
         content: const Text(
-          'Data koleksi yang tersimpan di perangkat akan dihapus. '
+          'Data koleksi yang tersimpan offline akan dihapus. '
           'Data utama di server tetap aman dan akan dimuat ulang saat online.',
         ),
         actions: [
@@ -32,58 +85,104 @@ class StoragePage extends StatelessWidget {
 
     if (confirmed != true) return;
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final keys = prefs.getKeys().where((k) => k.startsWith('cache_koleksi_'));
-      for (final key in keys.toList()) {
-        await prefs.remove(key);
-      }
-
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Cache lokal berhasil dihapus.')),
-      );
-    } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Gagal menghapus cache: $e')),
-      );
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys().where((k) => k.startsWith('cache_koleksi_'));
+    for (final key in keys.toList()) {
+      await prefs.remove(key);
     }
+
+    await _hitungUkuran();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Cache data berhasil dihapus.')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final totalSize = _imageCacheSize + _dataCacheSize;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Data dan Penyimpanan')),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSizes.spacingM),
-        children: [
-          Card(
-            elevation: 0,
-            color: Theme.of(context).cardColor,
-            child: Column(
+      appBar: AppBar(
+        title: const Text('Data dan Penyimpanan'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Hitung Ulang',
+            onPressed: _hitungUkuran,
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(AppSizes.spacingM),
               children: [
-                ListTile(
-                  leading: const Icon(Icons.storage),
-                  title: const Text('Cache Koleksi Offline'),
-                  subtitle: const Text('Data lokal yang digunakan saat tidak ada internet.'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                    tooltip: 'Hapus Cache',
-                    onPressed: () => _hapusCache(context),
+                Card(
+                  elevation: 0,
+                  color: theme.cardColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSizes.spacingM),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.pie_chart_outline, size: 48, color: AppColors.primaryGreen),
+                        const SizedBox(height: AppSizes.spacingS),
+                        const Text('Total Penggunaan', style: TextStyle(fontSize: 14)),
+                        const SizedBox(height: AppSizes.spacingXs),
+                        Text(
+                          _formatBytes(totalSize),
+                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSizes.spacingL),
+                Text(
+                  'Rincian Penyimpanan',
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: AppSizes.spacingS),
+                Card(
+                  elevation: 0,
+                  color: theme.cardColor,
+                  child: ListTile(
+                    leading: const Icon(Icons.image_outlined, color: AppColors.infoBlue),
+                    title: const Text('Cache Gambar'),
+                    subtitle: Text(_formatBytes(_imageCacheSize)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      tooltip: 'Hapus Cache Gambar',
+                      onPressed: _imageCacheSize > 0 ? _hapusCacheGambar : null,
+                    ),
+                  ),
+                ),
+                Card(
+                  elevation: 0,
+                  color: theme.cardColor,
+                  child: ListTile(
+                    leading: const Icon(Icons.storage_outlined, color: AppColors.goldPrimary),
+                    title: const Text('Cache Data Koleksi'),
+                    subtitle: Text(_formatBytes(_dataCacheSize)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      tooltip: 'Hapus Cache Data',
+                      onPressed: _dataCacheSize > 0 ? _hapusCacheData : null,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: AppSizes.spacingL),
+                const Center(
+                  child: Text(
+                    'Menghapus cache tidak akan menghapus data dari server (Supabase).',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: AppSizes.spacingL),
-          const Center(
-            child: Text(
-              'Hapus cache tidak akan menghapus data dari server (Supabase).',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
