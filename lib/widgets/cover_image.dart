@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CoverImage extends StatelessWidget {
   final String? url;
@@ -17,7 +18,7 @@ class CoverImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    
+
     Widget placeholder(IconData icon) => Container(
           width: width,
           height: height,
@@ -31,18 +32,16 @@ class CoverImage extends StatelessWidget {
 
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final canResize = width != null && width!.isFinite;
-    
-    return Image.network(
-      url!,
+
+    return CachedNetworkImage(
+      imageUrl: url!,
       width: width,
       height: height,
       fit: fit,
-      cacheWidth: canResize ? (width! * dpr).round() : null,
-      loadingBuilder: (_, child, progress) {
-        if (progress == null) return child;
-        return placeholder(Icons.image_outlined);
-      },
-      errorBuilder: (context, error, stackTrace) => placeholder(Icons.broken_image_outlined),
+      memCacheWidth: canResize ? (width! * dpr).round() : null,
+      placeholder: (context, url) => placeholder(Icons.image_outlined),
+      errorWidget: (context, url, error) =>
+          placeholder(Icons.broken_image_outlined),
     );
   }
 }
