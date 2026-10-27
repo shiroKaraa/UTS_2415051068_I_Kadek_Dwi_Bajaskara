@@ -5,18 +5,20 @@ import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
 import '../models/status_collection_enum.dart';
 import '../repositories/collection_repository.dart';
+import '../services/auth_service.dart';
 
 enum UrutanKoleksi { terbaru, judul, progres, rating }
 
 class CollectionProvider extends ChangeNotifier {
   final CollectionRepository _repository;
+  final AuthService _authService;
 
   List<EntriKoleksi> _entries = [];
   bool _isLoading = false;
   bool _isSaving = false;
   bool _isOffline = false;
   String? _errorMessage;
-  String? _deviceId;
+  String? _userId;
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
   StatusKoleksi? _filterStatus;
   bool _isListView = false;
@@ -33,7 +35,7 @@ class CollectionProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   UrutanKoleksi get urutan => _urutan;
   StatusKoleksi? get filterStatus => _filterStatus;
-  String? get deviceId => _deviceId;
+  String? get userId => _userId;
   String get query => _query;
   JenisMedia? get filterJenis => _filterJenis;
   int? get filterRating => _filterRating;
@@ -56,19 +58,15 @@ class CollectionProvider extends ChangeNotifier {
         return matchJudul || matchCatatan;
       }).toList();
     }
-
     if (_filterStatus != null) {
       filtered = filtered.where((e) => e.status == _filterStatus).toList();
     }
-
     if (_filterJenis != null) {
       filtered = filtered.where((e) => e.jenis == _filterJenis).toList();
     }
-
     if (_filterRating != null) {
       filtered = filtered.where((e) => e.rating == _filterRating).toList();
     }
-
     if (_filterFavorit) {
       filtered = filtered.where((e) => e.isFavorite).toList();
     }
@@ -84,46 +82,51 @@ class CollectionProvider extends ChangeNotifier {
     } else if (_urutan == UrutanKoleksi.rating) {
       filtered.sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
     }
-
     return filtered;
   }
 
-  CollectionProvider(this._repository);
+  CollectionProvider(this._repository, {AuthService? authService})
+      : _authService = authService ?? AuthService();
 
-  void bindDevice(String? id) {
-    if (_deviceId == id) return;
-    _deviceId = id;
+  void bindUser(String? userId) {
+    if (_userId == userId) return;
+    _userId = userId;
     _entries = [];
     _errorMessage = null;
+    _isOffline = false;
 
-    if (id != null) {
+    if (userId != null) {
       Future.microtask(() => fetchCollection());
     } else {
-      _errorMessage =
-          'ID Perangkat tidak tersedia. Tidak dapat memuat koleksi.';
       notifyListeners();
     }
   }
 
+  String _cacheKeyFor(String userId) => 'cache_koleksi_$userId';
+
   Future<void> fetchCollection() async {
-    if (_deviceId == null) return;
+    final userId = _userId;
+    if (userId == null) return;
 
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final data = await _repository.getCollection(_deviceId!);
+      final data = await _repository.getCollection(userId);
+      if (_userId != userId) return;
+
       _entries = data;
       _isOffline = false;
 
       final prefs = await SharedPreferences.getInstance();
       final jsonString = jsonEncode(data.map((e) => e.toJson()).toList());
-      await prefs.setString('cache_koleksi_$_deviceId', jsonString);
+      await prefs.setString(_cacheKeyFor(userId), jsonString);
     } catch (e) {
-      final prefs = await SharedPreferences.getInstance();
-      final cachedData = prefs.getString('cache_koleksi_$_deviceId');
+      if (_userId != userId) return;
 
+      final prefs = await SharedPreferences.getInstance();
+      final cachedData = prefs.getString(_cacheKeyFor(userId));
       if (cachedData != null && cachedData.isNotEmpty) {
         try {
           final List<dynamic> decoded = jsonDecode(cachedData);
@@ -142,16 +145,21 @@ class CollectionProvider extends ChangeNotifier {
             'Gagal memuat koleksi. Periksa koneksi internet Anda.';
       }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_userId == userId) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<bool> createEntry(EntriKoleksi entri) async {
-    if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline
-          ? 'Tidak dapat menambah data saat offline.'
-          : 'ID Perangkat tidak valid.';
+    if (_userId == null) {
+      _errorMessage = 'Silakan login terlebih dahulu.';
+      notifyListeners();
+      return false;
+    }
+    if (_isOffline) {
+      _errorMessage = 'Tidak dapat menambah data saat offline.';
       notifyListeners();
       return false;
     }
@@ -173,10 +181,13 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   Future<int> createEntries(List<EntriKoleksi> entries) async {
-    if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline
-          ? 'Tidak dapat mengimpor saat offline.'
-          : 'ID Perangkat tidak valid.';
+    if (_userId == null) {
+      _errorMessage = 'Silakan login terlebih dahulu.';
+      notifyListeners();
+      return 0;
+    }
+    if (_isOffline) {
+      _errorMessage = 'Tidak dapat mengimpor saat offline.';
       notifyListeners();
       return 0;
     }
@@ -200,10 +211,13 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   Future<int> deleteAll() async {
-    if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline
-          ? 'Tidak dapat menghapus saat offline.'
-          : 'ID Perangkat tidak valid.';
+    if (_userId == null) {
+      _errorMessage = 'Silakan login terlebih dahulu.';
+      notifyListeners();
+      return 0;
+    }
+    if (_isOffline) {
+      _errorMessage = 'Tidak dapat menghapus saat offline.';
       notifyListeners();
       return 0;
     }
@@ -234,10 +248,13 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   Future<bool> updateEntry(EntriKoleksi entri) async {
-    if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline
-          ? 'Tidak dapat mengubah data saat offline.'
-          : 'ID Perangkat tidak valid.';
+    if (_userId == null) {
+      _errorMessage = 'Silakan login terlebih dahulu.';
+      notifyListeners();
+      return false;
+    }
+    if (_isOffline) {
+      _errorMessage = 'Tidak dapat mengubah data saat offline.';
       notifyListeners();
       return false;
     }
@@ -262,10 +279,13 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   Future<bool> deleteEntry(EntriKoleksi entri) async {
-    if (_deviceId == null || _isOffline) {
-      _errorMessage = _isOffline
-          ? 'Tidak dapat menghapus data saat offline.'
-          : 'ID Perangkat tidak valid.';
+    if (_userId == null) {
+      _errorMessage = 'Silakan login terlebih dahulu.';
+      notifyListeners();
+      return false;
+    }
+    if (_isOffline) {
+      _errorMessage = 'Tidak dapat menghapus data saat offline.';
       notifyListeners();
       return false;
     }
@@ -286,8 +306,6 @@ class CollectionProvider extends ChangeNotifier {
     }
   }
 
-  /// Mengembalikan `true` jika progres berhasil ditambah.
-  /// `false` jika diblokir (offline/sedang simpan/sudah selesai/tanpa total).
   Future<bool> incrementProgress(EntriKoleksi entri) async {
     if (_isOffline) {
       _errorMessage = 'Tidak dapat menambah progres saat offline.';
@@ -307,7 +325,6 @@ class CollectionProvider extends ChangeNotifier {
       status: isSelesai ? StatusKoleksi.selesai : entri.status,
       updatedAt: DateTime.now(),
     );
-
     return updateEntry(updated);
   }
 
@@ -317,6 +334,24 @@ class CollectionProvider extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
     return updateEntry(updated);
+  }
+
+  Future<int> claimDeviceCollections(String deviceId) async {
+    final userIdAtStart = _userId;
+    if (userIdAtStart == null) return 0;
+    try {
+      final claimed = await _authService.claimDeviceCollections(deviceId);
+      if (claimed > 0 && _userId == userIdAtStart) {
+        await fetchCollection();
+      }
+      return claimed;
+    } catch (e) {
+      if (_userId == userIdAtStart) {
+        _errorMessage = 'Gagal memindahkan data lama: $e';
+        notifyListeners();
+      }
+      return 0;
+    }
   }
 
   void setFilterFavorit(bool value) {

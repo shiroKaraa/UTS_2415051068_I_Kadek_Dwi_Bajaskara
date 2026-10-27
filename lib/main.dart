@@ -3,17 +3,18 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'core/app_theme.dart';
 import 'core/app_config.dart';
 import 'l10n/app_localizations.dart';
+import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'providers/collection_provider.dart';
 import 'providers/category_provider.dart';
 import 'repositories/collection_repository.dart';
 import 'services/supabase_collection_service.dart';
-import 'screens/responsive_shell.dart';
-import 'screens/onboarding_page.dart';
+import 'screens/auth/auth_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,20 +38,23 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CatalogProvider()),
-        ChangeNotifierProxyProvider<SettingsProvider, CollectionProvider>(
+        ChangeNotifierProxyProvider2<AuthProvider, SettingsProvider,
+            CollectionProvider>(
           create: (_) => CollectionProvider(
             CollectionRepository(SupabaseCollectionService()),
           ),
-          update: (context, settings, previous) {
+          update: (context, auth, settings, previous) {
             final provider = previous ??
                 CollectionProvider(
                   CollectionRepository(SupabaseCollectionService()),
                 );
-            provider.bindDevice(settings.deviceId);
+            provider.bindUser(auth.userId);
             return provider;
           },
         ),
+
         ChangeNotifierProxyProvider<SettingsProvider, CategoryProvider>(
           create: (_) => CategoryProvider(),
           update: (_, settings, previous) {
@@ -87,9 +91,7 @@ class MyApp extends StatelessWidget {
               Locale('en'),
             ],
             locale: settings.locale,
-            home: settings.hasSeenOnboarding
-                ? const ResponsiveShell()
-                : const OnboardingPage(),
+            home: const AuthGate(),
           );
         },
       ),

@@ -6,8 +6,8 @@ class CollectionRepository {
 
   CollectionRepository(this._dataSource);
 
-  Future<List<EntriKoleksi>> getCollection(String deviceId) {
-    return _dataSource.getCollection(deviceId);
+  Future<List<EntriKoleksi>> getCollection(String userId) {
+    return _dataSource.getCollection(userId);
   }
 
   Future<EntriKoleksi> createEntry(EntriKoleksi entri) {

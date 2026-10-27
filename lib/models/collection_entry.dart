@@ -2,11 +2,12 @@ import 'media_type_enum.dart';
 import 'status_collection_enum.dart';
 
 class EntriKoleksi {
-  final int? id; 
-  final String deviceId;
+  final int? id;
+  final String? userId;
+  final String? deviceId;
   final JenisMedia jenis;
-  final int? kategoriId; 
-  final String? externalId; 
+  final int? kategoriId;
+  final String? externalId;
   final String judul;
   final String? coverUrl;
   final StatusKoleksi status;
@@ -19,11 +20,12 @@ class EntriKoleksi {
   final DateTime? updatedAt;
 
   EntriKoleksi({
-    this.id, 
-    required this.deviceId,
+    this.id,
+    this.userId,
+    this.deviceId,
     required this.jenis,
-    this.kategoriId, 
-    this.externalId, 
+    this.kategoriId,
+    this.externalId,
     required this.judul,
     this.coverUrl,
     required this.status,
@@ -39,7 +41,8 @@ class EntriKoleksi {
   factory EntriKoleksi.fromJson(Map<String, dynamic> json) {
     return EntriKoleksi(
       id: json['id'] as int?,
-      deviceId: json['device_id'] as String? ?? '',
+      userId: json['user_id'] as String?,
+      deviceId: json['device_id'] as String?,
       jenis: JenisMedia.values.firstWhere(
         (e) => e.name == json['jenis'],
         orElse: () => JenisMedia.lainnya,
@@ -83,6 +86,7 @@ class EntriKoleksi {
 
   Map<String, dynamic> toBackupJson() {
     return {
+      'user_id': userId,
       'device_id': deviceId,
       'jenis': jenis.name,
       'kategori_id': kategoriId,
@@ -102,6 +106,7 @@ class EntriKoleksi {
 
   EntriKoleksi copyWith({
     int? id,
+    String? userId,
     String? deviceId,
     JenisMedia? jenis,
     int? kategoriId,
@@ -119,6 +124,7 @@ class EntriKoleksi {
   }) {
     return EntriKoleksi(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       deviceId: deviceId ?? this.deviceId,
       jenis: jenis ?? this.jenis,
       kategoriId: kategoriId ?? this.kategoriId,
