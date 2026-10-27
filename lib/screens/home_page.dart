@@ -315,6 +315,14 @@ class _HomePageState extends State<HomePage> {
                             await provider.incrementProgress(terbaru);
 
                             if (!context.mounted) return;
+                            
+                            if (provider.errorMessage != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(provider.errorMessage!)),
+                              );
+                              return;
+                            }
+
                             final updated = provider.allEntries.firstWhere(
                               (e) => e.id == terbaru.id,
                               orElse: () => terbaru,
@@ -324,6 +332,12 @@ class _HomePageState extends State<HomePage> {
                                 const SnackBar(
                                   content: Text(
                                       'Selamat! Kamu telah menamatkan judul ini.'),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Progres +1 berhasil.'),
                                 ),
                               );
                             }

@@ -11,6 +11,8 @@ class CollectionDetailPage extends StatelessWidget {
 
   Future<void> _konfirmasiHapus(BuildContext context) async {
     final collection = context.read<CollectionProvider>();
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     
     final confirmed = await showDialog<bool>(
       context: context,
@@ -38,12 +40,20 @@ class CollectionDetailPage extends StatelessWidget {
     if (!context.mounted) return;
 
     if (berhasil) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil dihapus dari koleksi.')),
+      navigator.pop(); // Tutup halaman detail
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Berhasil dihapus dari koleksi.'),
+          action: SnackBarAction(
+            label: 'Urungkan',
+            onPressed: () {
+              collection.createEntry(entri);
+            },
+          ),
+        ),
       );
-      Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text(collection.errorMessage ?? 'Gagal menghapus.')),
       );
     }

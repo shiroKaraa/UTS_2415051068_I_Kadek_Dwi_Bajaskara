@@ -236,10 +236,26 @@ class CollectionPage extends StatelessWidget {
 
                 if (confirmed != true) return;
 
-                await collection.deleteEntry(entri);
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('Berhasil dihapus.')),
-                );
+                final berhasil = await collection.deleteEntry(entri);
+                
+                if (berhasil) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Koleksi berhasil dihapus.'),
+                      action: SnackBarAction(
+                        label: 'Urungkan',
+                        onPressed: () {
+                          // Logika Undo: Panggil createEntry kembali
+                          collection.createEntry(entri);
+                        },
+                      ),
+                    ),
+                  );
+                } else {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(collection.errorMessage ?? 'Gagal menghapus.')),
+                  );
+                }
               },
             ),
           ],

@@ -68,40 +68,48 @@ class CollectionCard extends StatelessWidget {
                             final provider = context.read<CollectionProvider>();
                             if (provider.isOffline) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Tidak dapat menambah progres saat offline.')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Tidak dapat menambah progres saat offline.')),
                               );
                               return;
                             }
 
                             await provider.incrementProgress(entri);
-                            
+
                             if (!context.mounted) return;
                             if (provider.errorMessage != null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(provider.errorMessage!)),
+                                SnackBar(
+                                    content: Text(provider.errorMessage!)),
                               );
                               return;
                             }
-                            
+
                             final updated = provider.allEntries.firstWhere(
                               (e) => e.id == entri.id,
                               orElse: () => entri,
                             );
-                            
+
                             if (updated.status == StatusKoleksi.selesai) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Selamat! Kamu telah menamatkan judul ini.')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Selamat! Kamu telah menamatkan judul ini.')),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Progres +1 berhasil.')),
+                                const SnackBar(
+                                    content: Text('Progres +1 berhasil.')),
                               );
                             }
                           },
                           customBorder: const CircleBorder(),
+                          // Padding diperbesar agar tap target mencapai 48px (Aksesibilitas)
                           child: const Padding(
-                            padding: EdgeInsets.all(6.0),
-                            child: Icon(Icons.add, color: Colors.black, size: 18),
+                            padding: EdgeInsets.all(12.0),
+                            child: Icon(Icons.add,
+                                color: Colors.black, size: 24),
                           ),
                         ),
                       ),
