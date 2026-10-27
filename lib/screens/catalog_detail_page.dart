@@ -3,17 +3,60 @@ import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_sizes.dart';
 import '../models/catalog_item.dart';
+import '../services/translation_service.dart';
 import '../widgets/cover_image.dart';
 import '../widgets/media_type_chip.dart';
 import 'entry_form_page.dart';
 
-class CatalogDetailPage extends StatelessWidget {
+class CatalogDetailPage extends StatefulWidget {
   final ItemKatalog item;
 
   const CatalogDetailPage({super.key, required this.item});
 
-  String _bersihkanSinopsis(String? raw, AppLocalizations l10n) {
-    if (raw == null || raw.isEmpty) return l10n.noSynopsis;
+  @override
+  State<CatalogDetailPage> createState() => _CatalogDetailPageState();
+}
+
+class _CatalogDetailPageState extends State<CatalogDetailPage> {
+  final TranslationService _translation = TranslationService();
+
+  String? _sinopsisTerjemahan;
+  bool _isTranslating = false;
+  String _rawSinopsis = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _rawSinopsis = _bersihkanSinopsis(widget.item.sinopsis);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final l10n = AppLocalizations.of(context)!;
+    if (l10n.localeName.startsWith('id')) {
+      _mulaiTerjemahan();
+    }
+  }
+
+  Future<void> _mulaiTerjemahan() async {
+    if (_isTranslating) return;
+    if (_sinopsisTerjemahan != null) return;
+    if (_rawSinopsis.isEmpty) return;
+
+    setState(() => _isTranslating = true);
+
+    final hasil = await _translation.translateToId(_rawSinopsis);
+
+    if (!mounted) return;
+    setState(() {
+      _sinopsisTerjemahan = hasil;
+      _isTranslating = false;
+    });
+  }
+
+  String _bersihkanSinopsis(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
     var text = raw
         .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
         .replaceAll(RegExp(r'<[^>]+>'), '')
@@ -24,16 +67,21 @@ class CatalogDetailPage extends StatelessWidget {
         .replaceAll('&gt;', '>')
         .replaceAll(RegExp(r'\n{3,}'), '\n\n')
         .trim();
-    return text.isEmpty ? l10n.noSynopsis : text;
+    return text;
   }
 
   Color _getColorForType(String label) {
     switch (label) {
-      case 'Anime': return AppColors.typeAnime;
-      case 'Manga': return AppColors.typeManga;
-      case 'Manhwa': return AppColors.typeManhwa;
-      case 'Manhua': return AppColors.typeManhua;
-      default: return AppColors.typeLainnya;
+      case 'Anime':
+        return AppColors.typeAnime;
+      case 'Manga':
+        return AppColors.typeManga;
+      case 'Manhwa':
+        return AppColors.typeManhwa;
+      case 'Manhua':
+        return AppColors.typeManhua;
+      default:
+        return AppColors.typeLainnya;
     }
   }
 
@@ -41,11 +89,17 @@ class CatalogDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final sinopsis = _bersihkanSinopsis(item.sinopsis, l10n);
+    final isId = l10n.localeName.startsWith('id');
+    final sinopsisTampil = !isId
+        ? _rawSinopsis
+        : (_sinopsisTerjemahan ?? _rawSinopsis);
+
+    final sinopsisKosong = _rawSinopsis.isEmpty;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(item.displayTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(widget.item.displayTitle,
+            maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSizes.spacingM),
@@ -54,13 +108,13 @@ class CatalogDetailPage extends StatelessWidget {
           children: [
             Center(
               child: Hero(
-                tag: 'poster_${item.malId}',
+                tag: 'poster_${widget.item.malId}',
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.radiusL),
                   child: Stack(
                     children: [
                       CoverImage(
-                        url: item.coverUrl,
+                        url: widget.item.coverUrl,
                         width: 180,
                         height: 270,
                       ),
@@ -86,8 +140,9 @@ class CatalogDetailPage extends StatelessWidget {
                         top: AppSizes.spacingS,
                         left: AppSizes.spacingS,
                         child: MediaTypeChip(
-                          label: item.jenis.label(l10n),
-                          dotColor: _getColorForType(item.jenis.label(l10n)),
+                          label: widget.item.jenis.label(l10n),
+                          dotColor: _getColorForType(
+                              widget.item.jenis.label(l10n)),
                         ),
                       ),
                     ],
@@ -97,13 +152,14 @@ class CatalogDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.spacingL),
             Text(
-              item.displayTitle,
+              widget.item.displayTitle,
               style: theme.textTheme.titleLarge?.copyWith(fontSize: 22),
             ),
-            if (item.judul.isNotEmpty && item.judul != item.displayTitle) ...[
+            if (widget.item.judul.isNotEmpty &&
+                widget.item.judul != widget.item.displayTitle) ...[
               const SizedBox(height: AppSizes.spacingXs),
               Text(
-                item.judul,
+                widget.item.judul,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -115,49 +171,69 @@ class CatalogDetailPage extends StatelessWidget {
               spacing: AppSizes.spacingS,
               runSpacing: AppSizes.spacingS,
               children: [
-                if (item.skor != null)
+                if (widget.item.skor != null)
                   _infoChip(
                     context,
                     icon: Icons.star_rounded,
-                    label: item.skor!.toStringAsFixed(1),
+                    label: widget.item.skor!.toStringAsFixed(1),
                     color: AppColors.goldPrimary,
                   ),
-                if (item.tahunRilis != null)
+                if (widget.item.tahunRilis != null)
                   _infoChip(
                     context,
                     icon: Icons.calendar_today,
-                    label: item.tahunRilis.toString(),
+                    label: widget.item.tahunRilis.toString(),
                     color: AppColors.infoBlue,
                   ),
-                if (item.statusTayang != null)
+                if (widget.item.statusTayang != null)
                   _infoChip(
                     context,
                     icon: Icons.play_circle_outline,
-                    label: item.statusTayang!,
+                    label: widget.item.statusTayang!,
                     color: AppColors.primaryGreen,
                   ),
-                if (item.total != null)
+                if (widget.item.total != null)
                   _infoChip(
                     context,
                     icon: Icons.menu_book_outlined,
-                    label: '${item.total} ${item.jenis.satuanProgres(l10n)}',
+                    label:
+                        '${widget.item.total} ${widget.item.jenis.satuanProgres(l10n)}',
                     color: AppColors.typeAnime,
                   ),
               ],
             ),
-            if (item.genres.isNotEmpty) ...[
+            if (widget.item.genres.isNotEmpty) ...[
               const SizedBox(height: AppSizes.spacingM),
               Wrap(
                 spacing: AppSizes.spacingS,
                 runSpacing: AppSizes.spacingS,
-                children: item.genres.map((g) => Chip(label: Text(g))).toList(),
+                children: widget.item.genres
+                    .map((g) => Chip(label: Text(g)))
+                    .toList(),
               ),
             ],
             const SizedBox(height: AppSizes.spacingL),
-            Text(
-              l10n.synopsis,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Text(
+                  l10n.synopsis,
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                if (isId && _isTranslating) ...[
+                  const SizedBox(width: AppSizes.spacingS),
+                  const SizedBox(
+                    height: 14,
+                    width: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ],
+                if (isId && !_isTranslating && _sinopsisTerjemahan != null) ...[
+                  const SizedBox(width: AppSizes.spacingS),
+                  Icon(Icons.translate,
+                      size: 16, color: theme.colorScheme.onSurfaceVariant),
+                ],
+              ],
             ),
             const SizedBox(height: AppSizes.spacingS),
             Container(
@@ -169,9 +245,11 @@ class CatalogDetailPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppSizes.radiusM),
               ),
               child: Text(
-                sinopsis,
+                sinopsisKosong ? l10n.noSynopsis : sinopsisTampil,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
+                  fontStyle:
+                      sinopsisKosong ? FontStyle.italic : FontStyle.normal,
                   height: 1.5,
                 ),
               ),
@@ -184,7 +262,8 @@ class CatalogDetailPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EntryFormPage(item: item),
+                      builder: (context) =>
+                          EntryFormPage(item: widget.item),
                     ),
                   );
                 },

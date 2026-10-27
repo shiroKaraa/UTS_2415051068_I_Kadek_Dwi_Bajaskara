@@ -36,8 +36,8 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         label: l10n.navHome,
       ),
       NavigationDestination(
-        icon: const Icon(Icons.search_outlined),
-        selectedIcon: const Icon(Icons.search),
+        icon: const Icon(Icons.explore_outlined),
+        selectedIcon: const Icon(Icons.explore),
         label: l10n.navCatalog,
       ),
       NavigationDestination(
