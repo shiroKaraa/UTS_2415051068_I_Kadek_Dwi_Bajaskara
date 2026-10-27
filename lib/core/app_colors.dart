@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  // Palet Mode Gelap
   static const Color darkBackground = Color(0xFF0F1613); 
   static const Color darkCard = Color(0xFF17221D);       
   static const Color primaryGreen = Color(0xFF5FCB97);   
@@ -27,4 +28,9 @@ class AppColors {
   // Warna untuk efek Shimmer
   static const Color shimmerBase = Color(0xFF2C3A33);
   static const Color shimmerHighlight = Color(0xFF3D4F46);
+
+  // --- Token Warna Semantik ---
+  static const Color danger = Color(0xFFE57373); 
+  static const Color success = Color(0xFF81C784); 
+  static const Color textMuted = Color(0xFF9E9E9E); 
 }

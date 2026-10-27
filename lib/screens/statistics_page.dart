@@ -13,17 +13,13 @@ class StatisticsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final collection = context.watch<CollectionProvider>();
     final entries = collection.allEntries;
-
-    // --- PERHITUNGAN DATA ---
     int totalAnime = 0;
     int totalManga = 0;
     int totalEpisodesWatch = 0;
     int totalChaptersRead = 0;
     int totalSelesai = 0;
-    int totalProgres = 0;
 
     for (var e in entries) {
-      totalProgres += e.progres;
       if (e.status == StatusKoleksi.selesai) totalSelesai++;
 
       if (e.jenis == JenisMedia.anime) {
@@ -35,11 +31,8 @@ class StatisticsPage extends StatelessWidget {
       }
     }
 
-    // Estimasi Days Watch (Asumsi 1 episode = 24 menit)
     final double totalMenitAnime = totalEpisodesWatch * 24.0;
-    final double daysWatch = totalMenitAnime / (60 * 24); // Konversi ke hari
-
-    // Estimasi Volumes Read (Asumsi 1 volume = 9 chapter)
+    final double daysWatch = totalMenitAnime / (60 * 24);
     final int volumesRead = (totalChaptersRead / 9).ceil();
 
     return Scaffold(
@@ -49,7 +42,6 @@ class StatisticsPage extends StatelessWidget {
           : ListView(
               padding: const EdgeInsets.all(AppSizes.spacingM),
               children: [
-                // --- KARTU RINGKASAN UTAMA ---
                 Row(
                   children: [
                     Expanded(
@@ -74,8 +66,6 @@ class StatisticsPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSizes.spacingM),
-                
-                // --- KARTU WAKTU (DAYS WATCH) ---
                 _buildWideSummaryCard(
                   context,
                   'Estimasi Waktu Menonton',
@@ -90,8 +80,6 @@ class StatisticsPage extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: AppSizes.spacingS),
-
-                // --- RINCIAN ANIME ---
                 Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
@@ -108,8 +96,6 @@ class StatisticsPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // --- RINCIAN MANGA ---
                 Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
@@ -126,8 +112,6 @@ class StatisticsPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // --- RINCIAN VOLUME ---
                 Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
