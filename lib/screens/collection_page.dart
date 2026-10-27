@@ -7,6 +7,7 @@ import '../models/status_collection_enum.dart';
 import '../providers/collection_provider.dart';
 import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
+import '../widgets/shimmer_loading.dart';
 import 'collection_detail_page.dart';
 import 'edit_entry_page.dart';
 
@@ -99,7 +100,17 @@ class CollectionPage extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, CollectionProvider collection) {
     if (collection.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 180,
+          childAspectRatio: 0.6,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) => const ShimmerLoading(),
+      );
     }
 
     if (collection.errorMessage != null) {

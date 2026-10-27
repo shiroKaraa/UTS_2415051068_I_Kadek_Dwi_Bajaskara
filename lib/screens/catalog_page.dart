@@ -6,6 +6,7 @@ import '../providers/catalog_provider.dart';
 import '../widgets/media_card.dart';
 import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
+import '../widgets/shimmer_loading.dart';
 import 'catalog_detail_page.dart';
 
 class CatalogPage extends StatefulWidget {
@@ -119,7 +120,17 @@ class _CatalogPageState extends State<CatalogPage> {
 
   Widget _buildContent(BuildContext context, CatalogProvider catalog) {
     if (catalog.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return GridView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 180,
+          childAspectRatio: 0.55,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) => const ShimmerLoading(),
+      );
     }
 
     if (catalog.errorMessage != null) {
