@@ -4,11 +4,11 @@ import 'package:persistent_device_id/persistent_device_id.dart';
 
 class SettingsProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark; 
-  String _deviceId = 'Memuat ID...';
+  String? _deviceId;
   bool _isLoading = true;
 
   ThemeMode get themeMode => _themeMode;
-  String get deviceId => _deviceId;
+  String? get deviceId => _deviceId;
   bool get isLoading => _isLoading;
 
   SettingsProvider() {
@@ -31,11 +31,11 @@ class SettingsProvider extends ChangeNotifier {
       if (persistentId != null && persistentId.isNotEmpty) {
         _deviceId = persistentId;
       } else {
-        _deviceId = 'ID tidak tersedia';
+        _deviceId = null;
       }
     } catch (e) {
       debugPrint('Gagal memuat settings: $e');
-      _deviceId = 'Gagal memuat ID';
+      _deviceId = null;
     } finally {
       _isLoading = false;
       notifyListeners();

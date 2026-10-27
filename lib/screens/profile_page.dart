@@ -64,14 +64,21 @@ class ProfilePage extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.fingerprint),
               title: const Text('ID Perangkat'),
-              subtitle: Text(settings.deviceId),
+              subtitle: Text(settings.deviceId ?? 'Memuat ID...'),
               trailing: IconButton(
                 icon: const Icon(Icons.copy),
                 onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: settings.deviceId));
+                  final id = settings.deviceId;
+                  if (id == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('ID Perangkat belum tersedia.')),
+                    );
+                    return;
+                  }
+                  await Clipboard.setData(ClipboardData(text: id));
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('ID: ${settings.deviceId}')),
+                    SnackBar(content: Text('ID disalin: $id')),
                   );
                 },
               ),

@@ -31,15 +31,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final collection = context.read<CollectionProvider>();
       final catalog = context.read<CatalogProvider>();
-
-      if (collection.entries.isEmpty && !collection.isLoading) {
-        collection.fetchCollection();
-      }
-      if (catalog.items.isEmpty && !catalog.isLoading) {
-        catalog.fetchCatalog();
-      }
+      catalog.fetchPopularHome();
     });
   }
 

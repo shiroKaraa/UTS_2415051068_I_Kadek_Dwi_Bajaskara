@@ -37,12 +37,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<SettingsProvider, CollectionProvider>(
           create: (context) => CollectionProvider(
             CollectionRepository(SupabaseCollectionService()),
-            context.read<SettingsProvider>(),
           ),
-          update: (context, settings, previous) => previous ?? CollectionProvider(
-            CollectionRepository(SupabaseCollectionService()),
-            settings,
-          ),
+          update: (context, settings, previous) {
+            // Panggil bindDevice pada instance yang sudah ada
+            previous?.bindDevice(settings.deviceId);
+            return previous!;
+          },
         ),
       ],
       child: Consumer<SettingsProvider>(

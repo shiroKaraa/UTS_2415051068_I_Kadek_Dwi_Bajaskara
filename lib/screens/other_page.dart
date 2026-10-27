@@ -13,9 +13,6 @@ class OtherPage extends StatefulWidget {
 }
 
 class _OtherPageState extends State<OtherPage> {
-  bool _hanyaDiunduh = false;
-  bool _modePenyamaran = false;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

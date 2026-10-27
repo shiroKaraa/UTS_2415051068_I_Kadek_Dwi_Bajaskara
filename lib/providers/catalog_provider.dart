@@ -7,16 +7,20 @@ import '../services/anilist_service.dart';
 
 class CatalogProvider extends ChangeNotifier {
   final AniListService _aniListService = AniListService();
-
   List<ItemKatalog> _items = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _hasNextPage = true;
   int _currentPage = 1;
-
   String? _errorMessage;
   JenisMedia _selectedJenis = JenisMedia.anime;
   String _query = '';
+  int _requestGeneration = 0;
+
+  List<ItemKatalog> _popularAnime = [];
+  List<ItemKatalog> _popularManga = [];
+  bool _isLoadingPopular = false;
+  bool _hasFetchedPopular = false;
 
   List<ItemKatalog> get items => _items;
   bool get isLoading => _isLoading;
@@ -26,8 +30,9 @@ class CatalogProvider extends ChangeNotifier {
   JenisMedia get selectedJenis => _selectedJenis;
   String get query => _query;
 
-  List<ItemKatalog> get topAnime => _items.where((i) => i.jenis == JenisMedia.anime).take(10).toList();
-  List<ItemKatalog> get topManga => _items.where((i) => i.jenis != JenisMedia.anime).take(10).toList();
+  List<ItemKatalog> get topAnime => _popularAnime;
+  List<ItemKatalog> get topManga => _popularManga;
+  bool get isLoadingPopular => _isLoadingPopular;
 
   CatalogProvider() {
     fetchCatalog();
@@ -44,6 +49,7 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   Future<void> fetchCatalog() async {
+    final gen = ++_requestGeneration;
     _isLoading = true;
     _errorMessage = null;
     _currentPage = 1;
@@ -52,35 +58,69 @@ class CatalogProvider extends ChangeNotifier {
 
     try {
       final rawData = await _fetchData(_currentPage);
+      if (gen != _requestGeneration) return;
+      
       _items = rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
       if (rawData.length < 20) _hasNextPage = false;
     } catch (e) {
+      if (gen != _requestGeneration) return;
       _errorMessage = _pesanError(e);
       _items = [];
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (gen == _requestGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> loadMore() async {
     if (_isLoadingMore || !_hasNextPage || _isLoading) return;
+    final gen = _requestGeneration;
     _isLoadingMore = true;
     notifyListeners();
+    
     try {
       final nextPage = _currentPage + 1;
       final rawData = await _fetchData(nextPage);
+      if (gen != _requestGeneration) return;
+
       if (rawData.isEmpty) {
         _hasNextPage = false;
       } else {
         _currentPage = nextPage;
-        _items.addAll(rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)));
+        final newItems = rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
+        final existingIds = _items.map((e) => e.malId).toSet();
+        _items.addAll(newItems.where((e) => !existingIds.contains(e.malId)));
+        
         if (rawData.length < 20) _hasNextPage = false;
       }
     } catch (e) {
       debugPrint('Gagal memuat halaman berikutnya: $e');
     } finally {
-      _isLoadingMore = false;
+      if (gen == _requestGeneration) {
+        _isLoadingMore = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> fetchPopularHome() async {
+    if (_hasFetchedPopular) return;
+    _isLoadingPopular = true;
+    notifyListeners();
+
+    try {
+      final animeData = await _aniListService.getTop(jenis: JenisMedia.anime, page: 1);
+      final mangaData = await _aniListService.getTop(jenis: JenisMedia.manga, page: 1);
+      
+      _popularAnime = animeData.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
+      _popularManga = mangaData.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
+      _hasFetchedPopular = true;
+    } catch (e) {
+      debugPrint('Gagal memuat data populer: $e');
+    } finally {
+      _isLoadingPopular = false;
       notifyListeners();
     }
   }

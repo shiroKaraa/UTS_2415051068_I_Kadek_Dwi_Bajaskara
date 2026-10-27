@@ -48,8 +48,15 @@ class _EntryFormPageState extends State<EntryFormPage> {
     final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
 
+    if (settings.deviceId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID Perangkat tidak tersedia. Tidak dapat menyimpan.')),
+      );
+      return;
+    }
+
     final entriBaru = EntriKoleksi(
-      deviceId: settings.deviceId,
+      deviceId: settings.deviceId!,
       jenis: widget.item.jenis,
       externalId: widget.item.malId.toString(),
       judul: widget.item.displayTitle,
