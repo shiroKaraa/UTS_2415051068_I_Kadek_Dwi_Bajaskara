@@ -57,6 +57,22 @@ class CollectionPage extends StatelessWidget {
       ),
       body: Column(
         children: [
+          if (collection.isOffline)
+            Container(
+              width: double.infinity,
+              color: AppColors.goldPrimary.withValues(alpha: 0.2),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: const Row(
+                children: [
+                  Icon(Icons.wifi_off, size: 16, color: AppColors.goldPrimary),
+                  SizedBox(width: 8),
+                  Text(
+                    'Mode Offline: Menampilkan data tersimpan.',
+                    style: TextStyle(fontSize: 12, color: AppColors.goldPrimary),
+                  ),
+                ],
+              ),
+            ),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -209,11 +225,23 @@ class CollectionPage extends StatelessWidget {
                             child: InkWell(
                               onTap: () async {
                                 final provider = context.read<CollectionProvider>();
+                                if (provider.isOffline) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Tidak dapat menambah progres saat offline.')),
+                                  );
+                                  return;
+                                }
+
                                 await provider.incrementProgress(entri);
                                 
                                 if (!context.mounted) return;
+                                if (provider.errorMessage != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(provider.errorMessage!)),
+                                  );
+                                  return;
+                                }
                                 final updated = provider.entries.firstWhere((e) => e.id == entri.id);
-                                
                                 if (updated.status == StatusKoleksi.selesai) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Selamat! Kamu telah menamatkan judul ini.')),

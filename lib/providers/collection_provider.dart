@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/collection_entry.dart';
 import '../models/status_collection_enum.dart'; 
 import '../repositories/collection_repository.dart';
@@ -13,6 +15,8 @@ class CollectionProvider extends ChangeNotifier {
   List<EntriKoleksi> _entries = [];
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _isOffline = false;
+  bool get isOffline => _isOffline;
   String? _errorMessage;
 
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
@@ -52,9 +56,26 @@ class CollectionProvider extends ChangeNotifier {
     try {
       final data = await _repository.getCollection(_settingsProvider.deviceId);
       _entries = data;
+      _isOffline = false;
+      
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = jsonEncode(data.map((e) => e.toJson()).toList());
+      await prefs.setString('cache_koleksi_${_settingsProvider.deviceId}', jsonString);
+
     } catch (e) {
-      _errorMessage = 'Gagal memuat koleksi. Periksa koneksi internet Anda.';
-      _entries = [];
+      final prefs = await SharedPreferences.getInstance();
+      final cachedData = prefs.getString('cache_koleksi_${_settingsProvider.deviceId}');
+      
+      if (cachedData != null && cachedData.isNotEmpty) {
+        final List<dynamic> decoded = jsonDecode(cachedData);
+        _entries = decoded.map((json) => EntriKoleksi.fromJson(json)).toList();
+        _isOffline = true; 
+        _errorMessage = null;
+      } else {
+        _entries = [];
+        _isOffline = false;
+        _errorMessage = 'Gagal memuat koleksi. Periksa koneksi internet Anda.';
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -62,6 +83,11 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   Future<bool> createEntry(EntriKoleksi entri) async {
+    if (_isOffline) {
+      _errorMessage = 'Tidak dapat menambah data saat offline.';
+      notifyListeners();
+      return false;
+    }
     _isSaving = true;
     _errorMessage = null;
     notifyListeners();
@@ -119,6 +145,11 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   Future<void> incrementProgress(EntriKoleksi entri) async {
+    if (_isOffline) {
+      _errorMessage = 'Tidak dapat menambah progres saat offline.';
+      notifyListeners();
+      return;
+    }
     if (_isSaving) return;
     if (entri.status == StatusKoleksi.selesai) return;
     if (entri.total == null) return;
