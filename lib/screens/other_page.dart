@@ -1,55 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'about_page.dart';
 import 'help_page.dart';
 import 'settings_page.dart';
+import 'statistics_page.dart';
+import 'storage_page.dart';
 
-class OtherPage extends StatelessWidget {
+class OtherPage extends StatefulWidget {
   const OtherPage({super.key});
 
-  Future<void> _hapusCache(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Cache Lokal?'),
-        content: const Text(
-          'Data koleksi yang tersimpan di perangkat akan dihapus. '
-          'Data utama di server tetap aman dan akan dimuat ulang saat online.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
+  @override
+  State<OtherPage> createState() => _OtherPageState();
+}
 
-    if (confirmed != true) return;
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final keys = prefs.getKeys().where((k) => k.startsWith('cache_koleksi_'));
-      for (final key in keys.toList()) {
-        await prefs.remove(key);
-      }
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cache lokal berhasil dihapus.')),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menghapus cache: $e')),
-      );
-    }
-  }
+class _OtherPageState extends State<OtherPage> {
+  bool _hanyaDiunduh = false;
+  bool _modePenyamaran = false;
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +25,31 @@ class OtherPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Lainnya')),
       body: ListView(
         children: [
+          const Divider(),
+          ListTile(
+            leading: Icon(Icons.insights_outlined, color: iconColor),
+            title: const Text('Statistik'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StatisticsPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.storage_outlined, color: iconColor),
+            title: const Text('Data dan penyimpanan'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StoragePage()),
+              );
+            },
+          ),
+          const Divider(),
           ListTile(
             leading: Icon(Icons.settings_outlined, color: iconColor),
             title: const Text('Pengaturan'),
-            subtitle: const Text('Tema aplikasi'),
             onTap: () {
               Navigator.push(
                 context,
@@ -72,31 +58,31 @@ class OtherPage extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.cleaning_services_outlined, color: iconColor),
-            title: const Text('Hapus Cache Lokal'),
-            subtitle: const Text('Bersihkan data koleksi yang tersimpan offline'),
-            onTap: () => _hapusCache(context),
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(Icons.help_outline, color: iconColor),
-            title: const Text('Bantuan'),
-            subtitle: const Text('FAQ & panduan penggunaan'),
+            leading: Icon(Icons.favorite_border, color: iconColor),
+            title: const Text('Dukung Kami'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HelpPage()),
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Terima kasih atas dukungan Anda!')),
               );
             },
           ),
           ListTile(
             leading: Icon(Icons.info_outline, color: iconColor),
             title: const Text('Tentang'),
-            subtitle: const Text('Info aplikasi & developer'),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AboutPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.help_outline, color: iconColor),
+            title: const Text('Bantuan'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpPage()),
               );
             },
           ),
