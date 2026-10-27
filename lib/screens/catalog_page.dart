@@ -25,6 +25,8 @@ class _CatalogPageState extends State<CatalogPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(() {
+      if (!_scrollController.hasClients) return;
+      
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
         context.read<CatalogProvider>().loadMore();
@@ -63,14 +65,15 @@ class _CatalogPageState extends State<CatalogPage> {
                 hintText: 'Cari judul...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          context.read<CatalogProvider>().setQuery('');
-                          setState(() {});
-                        },
-                      )
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _debounceTimer?.cancel();
+                        _searchController.clear();
+                        context.read<CatalogProvider>().setQuery('');
+                        setState(() {});
+                      },
+                    )
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
