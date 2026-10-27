@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../providers/auth_provider.dart';
@@ -52,14 +50,11 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    // PERBAIKAN: Tutup semua halaman di atas root (termasuk LoginPage)
-    // agar AuthGate langsung merender ResponsiveShell.
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final auth = context.watch<AuthProvider>();
     final isLoading = auth.isLoading;

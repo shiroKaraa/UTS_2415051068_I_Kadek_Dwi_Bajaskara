@@ -18,15 +18,21 @@ class AuthProvider extends ChangeNotifier {
   String? _username;
   bool _isLoading = false;
   String? _error;
+  String? _displayName;
+  String? _avatarEmoji;
   StreamSubscription<AuthState>? _sub;
 
   AuthStatus get status => _status;
   User? get user => _user;
-  String? get username => _username;
+  String? get username => _username
+  ;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get userId => _user?.id;
+  String? get displayName => _displayName;
+  String? get avatarEmoji => _avatarEmoji;
+
 
   void _init() {
     _sub = _service.onAuthStateChange.listen((state) async {
@@ -66,10 +72,15 @@ class AuthProvider extends ChangeNotifier {
     try {
       final profile = await _service.getMyProfile();
       if (_user?.id != userIdAtStart) return;
+      
       _username = profile?['username'] as String?;
+      _displayName = profile?['display_name'] as String?;
+      _avatarEmoji = profile?['avatar_emoji'] as String?;
     } catch (_) {
       if (_user?.id != userIdAtStart) return;
       _username = null;
+      _displayName = null;
+      _avatarEmoji = null;
     }
   }
 
@@ -134,6 +145,54 @@ class AuthProvider extends ChangeNotifier {
       _error = e.message;
     } catch (e) {
       _error = 'Logout gagal: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> updateProfile({
+    required String displayName,
+    required String avatarEmoji,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _service.updateProfile(
+        displayName: displayName,
+        avatarEmoji: avatarEmoji,
+      );
+      _displayName = displayName;
+      _avatarEmoji = avatarEmoji;
+      return true;
+    } on AuthServiceException catch (e) {
+      _error = e.message;
+      return false;
+    } catch (e) {
+      _error = 'Gagal update profil: $e';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> updatePassword(String newPassword) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _service.updatePassword(newPassword);
+      return true;
+    } on AuthServiceException catch (e) {
+      _error = e.message;
+      return false;
+    } catch (e) {
+      _error = 'Gagal update password: $e';
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -37,7 +37,7 @@ class ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              l10n.errorLoadData, // <-- Terjemahan
+              l10n.errorLoadData,
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -54,7 +54,7 @@ class ErrorView extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: Text(l10n.tryAgain), // <-- Terjemahan
+                label: Text(l10n.tryAgain),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen,
                   foregroundColor: Colors.black,

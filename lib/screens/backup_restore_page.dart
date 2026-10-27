@@ -132,7 +132,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
     try {
       if (mode == _ImportMode.replace) {
-        final deleted = await collection.deleteAll();
+        await collection.deleteAll();
         if (collection.errorMessage != null) {
           _snack(collection.errorMessage!);
           return;

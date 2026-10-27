@@ -189,6 +189,38 @@ class AuthService {
     }
   }
 
+  Future<void> updateProfile({
+    required String displayName,
+    required String avatarEmoji,
+  }) async {
+    final user = currentUser;
+    if (user == null) throw AuthServiceException('Pengguna belum login.');
+    
+    try {
+      await _supabase.from('profiles').update({
+        'display_name': displayName.trim(),
+        'avatar_emoji': avatarEmoji,
+      }).eq('id', user.id);
+    } catch (e) {
+      throw AuthServiceException('Gagal update profil: $e');
+    }
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } on AuthApiException catch (e) {
+      if (e.message.toLowerCase().contains('password should be')) {
+        throw AuthServiceException('Password terlalu lemah (minimal 6 karakter).');
+      }
+      throw AuthServiceException(e.message);
+    } catch (e) {
+      throw AuthServiceException('Gagal update password: $e');
+    }
+  }
+
   Future<int> claimDeviceCollections(String deviceId) async {
     if (currentUser == null) return 0;
     try {

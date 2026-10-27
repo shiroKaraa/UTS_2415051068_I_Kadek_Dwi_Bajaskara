@@ -22,7 +22,6 @@ class BackupService {
     final String jsonString =
         const JsonEncoder.withIndent('  ').convert(jsonList);
 
-    // Gunakan temporary directory agar tidak menumpuk permanen.
     final directory = await getTemporaryDirectory();
     final timestamp = DateTime.now()
         .toIso8601String()

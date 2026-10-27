@@ -86,7 +86,7 @@ class StatisticsPage extends StatelessWidget {
                   child: ListTile(
                     leading: const Icon(Icons.play_circle_outline, color: AppColors.typeAnime),
                     title: Text(l10n.anime),
-                    subtitle: Text(l10n.trackedTitles(totalAnime)), // <-- PERBAIKAN
+                    subtitle: Text(l10n.trackedTitles(totalAnime)),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -102,7 +102,7 @@ class StatisticsPage extends StatelessWidget {
                   child: ListTile(
                     leading: const Icon(Icons.menu_book_outlined, color: AppColors.typeManga),
                     title: Text(l10n.manga),
-                    subtitle: Text(l10n.trackedTitles(totalManga)), // <-- PERBAIKAN
+                    subtitle: Text(l10n.trackedTitles(totalManga)),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,

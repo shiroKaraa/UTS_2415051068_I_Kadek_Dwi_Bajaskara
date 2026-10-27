@@ -81,7 +81,7 @@ class CategoryPage extends StatelessWidget {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: Text(l10n.deleteCategory),
-        content: Text(l10n.deleteCategoryDesc(category.nama)), // Perbaikan typo 10n -> l10n
+        content: Text(l10n.deleteCategoryDesc(category.nama)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
