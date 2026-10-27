@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/collection_entry.dart';
 import '../repositories/collection_repository.dart';
+import '../models/status_collection_enum.dart';
 import '../providers/settings_provider.dart';
 
 class CollectionProvider extends ChangeNotifier {
@@ -81,6 +82,23 @@ class CollectionProvider extends ChangeNotifier {
       _isSaving = false;
       notifyListeners();
     }
+  }
+
+  Future<void> incrementProgress(EntriKoleksi entri) async {
+    if (entri.status == StatusKoleksi.selesai) return;
+    if (entri.total == null) return;
+    if (entri.progres >= entri.total!) return;
+
+    final newProgres = entri.progres + 1;
+    final isSelesai = newProgres >= entri.total!;
+
+    final updated = entri.copyWith(
+      progres: newProgres,
+      status: isSelesai ? StatusKoleksi.selesai : entri.status,
+      updatedAt: DateTime.now(),
+    );
+
+    await updateEntry(updated);
   }
 
   Future<void> refresh() async {

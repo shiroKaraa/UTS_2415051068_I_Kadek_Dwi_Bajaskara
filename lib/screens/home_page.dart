@@ -8,12 +8,12 @@ import '../providers/collection_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../widgets/cover_image.dart';
 import '../widgets/error_view.dart';
-import '../widgets/media_card.dart'; 
+import '../widgets/media_card.dart';
 import 'catalog_detail_page.dart';
 import 'collection_detail_page.dart';
 
 class HomePage extends StatefulWidget {
-  final VoidCallback? onLihatKatalog; 
+  final VoidCallback? onLihatKatalog;
 
   const HomePage({super.key, this.onLihatKatalog});
 
@@ -22,7 +22,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+  final GlobalKey<RefreshIndicatorState> _refreshKey =
+      GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
@@ -92,12 +93,16 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     'Halo, Selamat Datang!',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontSize: 24),
                   ),
                   const SizedBox(height: AppSizes.spacingXs),
                   Text(
                     'Terus lacak progres tontonan dan bacaanmu.',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: AppSizes.spacingL),
 
@@ -109,7 +114,8 @@ class _HomePageState extends State<HomePage> {
                   if (catalogGagal)
                     ErrorView(
                       message: catalog.errorMessage!,
-                      onRetry: () => context.read<CatalogProvider>().refresh(),
+                      onRetry: () =>
+                          context.read<CatalogProvider>().refresh(),
                     )
                   else ...[
                     _buildPopulerSection(
@@ -136,19 +142,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildStatistikSection(BuildContext context, CollectionProvider collection) {
+  Widget _buildStatistikSection(
+      BuildContext context, CollectionProvider collection) {
     if (collection.isLoading && collection.entries.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
     final total = collection.entries.length;
-    final sedang = collection.entries.where((e) => e.status == StatusKoleksi.sedang).length;
-    final selesai = collection.entries.where((e) => e.status == StatusKoleksi.selesai).length;
+    final sedang = collection.entries
+        .where((e) => e.status == StatusKoleksi.sedang)
+        .length;
+    final selesai = collection.entries
+        .where((e) => e.status == StatusKoleksi.selesai)
+        .length;
 
     final cards = [
-      _statCard(context, 'Total', total.toString(), Icons.collections_bookmark, AppColors.infoBlue),
-      _statCard(context, 'Sedang', sedang.toString(), Icons.play_circle_outline, AppColors.primaryGreen),
-      _statCard(context, 'Selesai', selesai.toString(), Icons.check_circle_outline, AppColors.goldPrimary),
+      _statCard(context, 'Total', total.toString(),
+          Icons.collections_bookmark, AppColors.infoBlue),
+      _statCard(context, 'Sedang', sedang.toString(),
+          Icons.play_circle_outline, AppColors.primaryGreen),
+      _statCard(context, 'Selesai', selesai.toString(),
+          Icons.check_circle_outline, AppColors.goldPrimary),
     ];
 
     final textScale = MediaQuery.textScalerOf(context).scale(1);
@@ -156,8 +170,10 @@ class _HomePageState extends State<HomePage> {
     if (textScale > 1.3) {
       return Column(
         children: [
-          for (final card in cards) 
-            Padding(padding: const EdgeInsets.only(bottom: AppSizes.spacingS), child: card),
+          for (final card in cards)
+            Padding(
+                padding: const EdgeInsets.only(bottom: AppSizes.spacingS),
+                child: card),
         ],
       );
     }
@@ -172,7 +188,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _statCard(BuildContext context, String title, String value, IconData icon, Color color) {
+  Widget _statCard(BuildContext context, String title, String value,
+      IconData icon, Color color) {
     return Card(
       elevation: 0,
       color: Theme.of(context).cardColor,
@@ -186,15 +203,21 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(icon, color: color, size: 28),
             const SizedBox(height: AppSizes.spacingS),
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(title, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLanjutkanSection(BuildContext context, CollectionProvider collection) {
+  Widget _buildLanjutkanSection(
+      BuildContext context, CollectionProvider collection) {
     final lanjutkan = collection.entries
         .where((e) => e.status == StatusKoleksi.sedang)
         .take(3)
@@ -207,13 +230,16 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(AppSizes.spacingL),
           child: Column(
             children: [
-              const Icon(Icons.play_circle_outline, size: 48, color: Colors.grey),
+              const Icon(Icons.play_circle_outline,
+                  size: 48, color: Colors.grey),
               const SizedBox(height: AppSizes.spacingM),
-              const Text('Belum ada yang dilacak.', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Belum ada yang dilacak.',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: AppSizes.spacingS),
               Text(
                 'Cari anime atau komik pertamamu.',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSizes.spacingM),
@@ -230,7 +256,8 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Lanjutkan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Lanjutkan',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: AppSizes.spacingS),
         ...lanjutkan.map((terbaru) {
           final progress = (terbaru.total != null && terbaru.total! > 0)
@@ -249,15 +276,19 @@ class _HomePageState extends State<HomePage> {
                   height: 70,
                 ),
               ),
-              title: Text(terbaru.judul, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(terbaru.judul,
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${terbaru.progres} / ${terbaru.total ?? "?"} ${terbaru.jenis.satuanProgres}'),
+                  Text(
+                      '${terbaru.progres} / ${terbaru.total ?? "?"} ${terbaru.jenis.satuanProgres}'),
                   const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    backgroundColor: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
                     color: AppColors.primaryGreen,
                     minHeight: 4,
                   ),
@@ -266,19 +297,33 @@ class _HomePageState extends State<HomePage> {
               trailing: IconButton.filledTonal(
                 icon: const Icon(Icons.add),
                 tooltip: 'Tambah progres',
-                onPressed: (terbaru.total != null && terbaru.progres >= terbaru.total!)
-                    ? null
-                    : () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Fitur +1 akan diimplementasikan di Tahap 21')),
-                        );
-                      },
+                onPressed:
+                    (terbaru.total != null && terbaru.progres >= terbaru.total!)
+                        ? null
+                        : () async {
+                            final provider =
+                                context.read<CollectionProvider>();
+                            await provider.incrementProgress(terbaru);
+
+                            if (!context.mounted) return;
+                            final updated = provider.entries
+                                .firstWhere((e) => e.id == terbaru.id);
+                            if (updated.status == StatusKoleksi.selesai) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Selamat! Kamu telah menamatkan judul ini.'),
+                                ),
+                              );
+                            }
+                          },
               ),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CollectionDetailPage(entri: terbaru),
+                    builder: (context) =>
+                        CollectionDetailPage(entri: terbaru),
                   ),
                 );
               },
@@ -301,7 +346,9 @@ class _HomePageState extends State<HomePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
             TextButton(
               onPressed: widget.onLihatKatalog,
               child: const Text('Lihat Semua'),
@@ -316,9 +363,13 @@ class _HomePageState extends State<HomePage> {
         else
           LayoutBuilder(
             builder: (context, constraints) {
-              final cardWidth = (constraints.maxWidth / 2.4).clamp(130.0, 180.0).toDouble();
-              final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5);
-              final listHeight = (cardWidth * 1.5) + AppSizes.spacingS + (40 * textScale);
+              final cardWidth = (constraints.maxWidth / 2.4)
+                  .clamp(130.0, 180.0)
+                  .toDouble();
+              final textScale =
+                  MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5);
+              final listHeight =
+                  (cardWidth * 1.5) + AppSizes.spacingS + (40 * textScale);
 
               return SizedBox(
                 height: listHeight,
@@ -337,7 +388,8 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => CatalogDetailPage(item: item),
+                              builder: (context) =>
+                                  CatalogDetailPage(item: item),
                             ),
                           );
                         },
