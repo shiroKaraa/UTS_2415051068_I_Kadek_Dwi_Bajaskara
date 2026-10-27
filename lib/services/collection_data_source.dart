@@ -4,5 +4,6 @@ abstract class CollectionDataSource {
   Future<List<EntriKoleksi>> getCollection(String deviceId);
   Future<EntriKoleksi> createEntry(EntriKoleksi entri);
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri);
+  Future<void> deleteEntry(int id);
 
 }

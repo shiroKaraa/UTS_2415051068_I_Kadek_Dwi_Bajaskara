@@ -1,11 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/collection_entry.dart';
+import '../providers/collection_provider.dart';
 import 'edit_entry_page.dart';
 
 class CollectionDetailPage extends StatelessWidget {
   final EntriKoleksi entri;
 
   const CollectionDetailPage({super.key, required this.entri});
+
+  Future<void> _konfirmasiHapus(BuildContext context) async {
+    final collection = context.read<CollectionProvider>();
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Koleksi?'),
+        content: Text('Apakah kamu yakin ingin menghapus "${entri.judul}" dari koleksi?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final berhasil = await collection.deleteEntry(entri);
+
+    if (!context.mounted) return;
+
+    if (berhasil) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Berhasil dihapus dari koleksi.')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(collection.errorMessage ?? 'Gagal menghapus.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +68,7 @@ class CollectionDetailPage extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur hapus akan dibuat di Tahap 22')),
-              );
-            },
+            onPressed: () => _konfirmasiHapus(context),
           ),
         ],
       ),
@@ -49,6 +87,19 @@ class CollectionDetailPage extends StatelessWidget {
             Text(entri.catatan ?? 'Tidak ada catatan.'),
             const SizedBox(height: 24),
             
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _konfirmasiHapus(context),
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Hapus dari Koleksi'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+                  foregroundColor: Colors.redAccent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

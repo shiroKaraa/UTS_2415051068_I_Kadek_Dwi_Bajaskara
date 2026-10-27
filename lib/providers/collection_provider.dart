@@ -101,6 +101,24 @@ class CollectionProvider extends ChangeNotifier {
     await updateEntry(updated);
   }
 
+  Future<bool> deleteEntry(EntriKoleksi entri) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.deleteEntry(entri.id!);
+      _entries.removeWhere((e) => e.id == entri.id);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> refresh() async {
     await fetchCollection();
   }

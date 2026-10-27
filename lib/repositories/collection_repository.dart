@@ -17,5 +17,9 @@ class CollectionRepository {
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri) {
     return _dataSource.updateEntry(entri);
   }
+
+  Future<void> deleteEntry(int id) {
+    return _dataSource.deleteEntry(id);
+  }
   
 }

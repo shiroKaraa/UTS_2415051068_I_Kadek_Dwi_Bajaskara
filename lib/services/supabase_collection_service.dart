@@ -40,5 +40,10 @@ class SupabaseCollectionService implements CollectionDataSource {
 
     return EntriKoleksi.fromJson(response);
   }
+
+  @override
+  Future<void> deleteEntry(int id) async {
+    await _supabase.from('koleksi').delete().eq('id', id);
+  }
   
 }
