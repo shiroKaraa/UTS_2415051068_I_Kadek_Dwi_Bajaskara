@@ -59,6 +59,16 @@ class CollectionCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                      if (entri.isFavorite)
+                        const Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Icon(
+                            Icons.star,
+                            color: AppColors.goldPrimary,
+                            size: 20,
+                          ),
+                        ),
                   if (!isSelesai && entri.total != null)
                     Positioned(
                       bottom: 4,

@@ -85,7 +85,17 @@ class _CollectionPageState extends State<CollectionPage> {
                     ],
                     onChanged: (val) => setState(() => tempStatus = val),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Hanya Tampilkan Favorit'),
+                    secondary: const Icon(Icons.star, color: AppColors.goldPrimary),
+                    value: collection.filterFavorit,
+                    onChanged: (val) {
+                      collection.setFilterFavorit(val);
+                      Navigator.pop(sheetCtx);
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
                   Row(
                     children: [

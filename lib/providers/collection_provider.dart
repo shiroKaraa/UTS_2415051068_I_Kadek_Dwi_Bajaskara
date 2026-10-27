@@ -17,38 +17,32 @@ class CollectionProvider extends ChangeNotifier {
   bool _isOffline = false;
   String? _errorMessage;
   String? _deviceId;
-
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
   StatusKoleksi? _filterStatus;
   bool _isListView = false;
-  
-  // State Filter Baru
+  bool _filterFavorit = false;
   String _query = '';
   JenisMedia? _filterJenis;
   int? _filterRating;
-
   bool get isOffline => _isOffline;
   bool get isListView => _isListView;
+  bool get filterFavorit => _filterFavorit;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   String? get errorMessage => _errorMessage;
   UrutanKoleksi get urutan => _urutan;
   StatusKoleksi? get filterStatus => _filterStatus;
-  String? get deviceId => _deviceId;
-  
+  String? get deviceId => _deviceId; 
   String get query => _query;
   JenisMedia? get filterJenis => _filterJenis;
   int? get filterRating => _filterRating;
-
   bool get hasActiveFilters =>
-      _filterStatus != null || _filterJenis != null || _filterRating != null || _query.isNotEmpty;
+      _filterStatus != null || _filterJenis != null || _filterRating != null || _query.isNotEmpty || _filterFavorit;
 
   List<EntriKoleksi> get allEntries => _entries;
 
   List<EntriKoleksi> get entries {
     var filtered = List<EntriKoleksi>.from(_entries);
-
-    // 1. Filter Pencarian (Judul / Catatan)
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
       filtered = filtered.where((e) {
@@ -58,22 +52,22 @@ class CollectionProvider extends ChangeNotifier {
       }).toList();
     }
 
-    // 2. Filter Status
     if (_filterStatus != null) {
       filtered = filtered.where((e) => e.status == _filterStatus).toList();
     }
 
-    // 3. Filter Jenis Media
     if (_filterJenis != null) {
       filtered = filtered.where((e) => e.jenis == _filterJenis).toList();
     }
 
-    // 4. Filter Rating
     if (_filterRating != null) {
       filtered = filtered.where((e) => e.rating == _filterRating).toList();
     }
 
-    // 5. Urutan
+    if (_filterFavorit) {
+      filtered = filtered.where((e) => e.isFavorite).toList();
+    }
+
     if (_urutan == UrutanKoleksi.terbaru) {
       filtered.sort((a, b) => (b.updatedAt ?? DateTime.now()).compareTo(a.updatedAt ?? DateTime.now()));
     } else if (_urutan == UrutanKoleksi.judul) {
@@ -239,6 +233,20 @@ class CollectionProvider extends ChangeNotifier {
     await updateEntry(updated);
   }
 
+  Future<bool> toggleFavorite(EntriKoleksi entri) async {
+    final updated = entri.copyWith(
+      isFavorite: !entri.isFavorite,
+      updatedAt: DateTime.now(),
+    );
+    return await updateEntry(updated);
+  }
+
+  void setFilterFavorit(bool value) {
+    if (_filterFavorit == value) return;
+    _filterFavorit = value;
+    notifyListeners();
+  }
+
   void setUrutan(UrutanKoleksi urutan) {
     if (_urutan == urutan) return;
     _urutan = urutan;
@@ -269,6 +277,7 @@ class CollectionProvider extends ChangeNotifier {
     _filterRating = null;
     _filterStatus = null;
     _query = '';
+    _filterFavorit = false;
     notifyListeners();
   }
 

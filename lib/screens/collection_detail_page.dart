@@ -115,6 +115,24 @@ class CollectionDetailPage extends StatelessWidget {
         title: Text(entri.judul, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
           IconButton(
+            icon: Icon(
+              entri.isFavorite ? Icons.star : Icons.star_border,
+              color: entri.isFavorite ? AppColors.goldPrimary : null,
+            ),
+            tooltip: entri.isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
+            onPressed: () async {
+              final collection = context.read<CollectionProvider>();
+              final berhasil = await collection.toggleFavorite(entri);
+              if (!context.mounted) return;
+              if (berhasil) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(entri.isFavorite ? 'Dihapus dari favorit.' : 'Ditambahkan ke favorit!')),
+                );
+                Navigator.pop(context);
+              }
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Edit',
             onPressed: () {

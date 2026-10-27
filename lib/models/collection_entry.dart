@@ -14,15 +14,16 @@ class EntriKoleksi {
   final int? total;
   final int? rating;
   final String? catatan;
+  final bool isFavorite;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   EntriKoleksi({
-    this.id,
+    this.id, 
     required this.deviceId,
     required this.jenis,
-    this.kategoriId,
-    this.externalId,
+    this.kategoriId, 
+    this.externalId, 
     required this.judul,
     this.coverUrl,
     required this.status,
@@ -30,6 +31,7 @@ class EntriKoleksi {
     this.total,
     this.rating,
     this.catatan,
+    this.isFavorite = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -51,6 +53,7 @@ class EntriKoleksi {
       total: json['total'] as int?,
       rating: json['rating'] as int?,
       catatan: json['catatan'] as String?,
+      isFavorite: json['is_favorite'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -73,6 +76,7 @@ class EntriKoleksi {
       'total': total,
       'rating': rating,
       'catatan': catatan,
+      'is_favorite': isFavorite,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
   }
@@ -90,6 +94,7 @@ class EntriKoleksi {
     int? total,
     int? rating,
     String? catatan,
+    bool? isFavorite,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -106,6 +111,7 @@ class EntriKoleksi {
       total: total ?? this.total,
       rating: rating ?? this.rating,
       catatan: catatan ?? this.catatan,
+      isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
