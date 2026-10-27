@@ -8,6 +8,7 @@ import '../widgets/error_view.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/collection_card.dart';
+import '../widgets/cover_image.dart';
 import 'collection_detail_page.dart';
 import 'edit_entry_page.dart';
 
@@ -22,6 +23,11 @@ class CollectionPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Koleksi'),
         actions: [
+          IconButton(
+            icon: Icon(collection.isListView ? Icons.grid_view : Icons.view_list),
+            tooltip: collection.isListView ? 'Tampilan Grid' : 'Tampilan List',
+            onPressed: () => collection.toggleView(),
+          ),
           PopupMenuButton<UrutanKoleksi>(
             icon: const Icon(Icons.sort),
             tooltip: 'Urutkan',
@@ -70,10 +76,7 @@ class CollectionPage extends StatelessWidget {
                   SizedBox(width: 8),
                   Text(
                     'Mode Offline: Menampilkan data tersimpan.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.goldPrimary,
-                    ),
+                    style: TextStyle(fontSize: 12, color: AppColors.goldPrimary),
                   ),
                 ],
               ),
@@ -149,6 +152,14 @@ class CollectionPage extends StatelessWidget {
       );
     }
 
+    if (collection.isListView) {
+      return _buildListView(context, collection);
+    } else {
+      return _buildGridView(context, collection);
+    }
+  }
+
+  Widget _buildGridView(BuildContext context, CollectionProvider collection) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       physics: const AlwaysScrollableScrollPhysics(),
@@ -174,6 +185,86 @@ class CollectionPage extends StatelessWidget {
           onLongPress: () {
             _showQuickMenu(context, entri);
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildListView(BuildContext context, CollectionProvider collection) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: collection.entries.length,
+      itemBuilder: (context, index) {
+        final entri = collection.entries[index];
+        final isSelesai = entri.status == StatusKoleksi.selesai;
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CoverImage(
+                url: entri.coverUrl,
+                width: 50,
+                height: 70,
+              ),
+            ),
+            title: Text(
+              entri.judul,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                Text('${entri.status.netralLabel} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres}'),
+              ],
+            ),
+            trailing: !isSelesai && entri.total != null
+                ? IconButton.filledTonal(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Tambah progres',
+                    onPressed: () async {
+                      final provider = context.read<CollectionProvider>();
+                      if (provider.isOffline) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Tidak dapat menambah progres saat offline.')),
+                        );
+                        return;
+                      }
+                      await provider.incrementProgress(entri);
+                      if (!context.mounted) return;
+                      final updated = provider.allEntries.firstWhere(
+                        (e) => e.id == entri.id,
+                        orElse: () => entri,
+                      );
+                      if (updated.status == StatusKoleksi.selesai) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Selamat! Kamu telah menamatkan judul ini.')),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Progres +1 berhasil.')),
+                        );
+                      }
+                    },
+                  )
+                : null,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CollectionDetailPage(entri: entri),
+                ),
+              );
+            },
+            onLongPress: () {
+              _showQuickMenu(context, entri);
+            },
+          ),
         );
       },
     );
@@ -245,7 +336,6 @@ class CollectionPage extends StatelessWidget {
                       action: SnackBarAction(
                         label: 'Urungkan',
                         onPressed: () {
-                          // Logika Undo: Panggil createEntry kembali
                           collection.createEntry(entri);
                         },
                       ),

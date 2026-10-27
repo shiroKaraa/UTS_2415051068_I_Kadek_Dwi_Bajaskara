@@ -21,6 +21,9 @@ class CollectionProvider extends ChangeNotifier {
 
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
   StatusKoleksi? _filterStatus;
+  bool _isListView = false;
+
+  bool get isListView => _isListView;
   List<EntriKoleksi> get allEntries => _entries;
   List<EntriKoleksi> get entries {
     var filtered = List<EntriKoleksi>.from(_entries); 
@@ -177,6 +180,11 @@ class CollectionProvider extends ChangeNotifier {
   void setFilterStatus(StatusKoleksi? status) {
     if (_filterStatus == status) return;
     _filterStatus = status;
+    notifyListeners();
+  }
+
+  void toggleView() {
+    _isListView = !_isListView;
     notifyListeners();
   }
 

@@ -8,6 +8,7 @@ import '../providers/collection_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../widgets/cover_image.dart';
 import '../widgets/error_view.dart';
+import '../widgets/empty_view.dart';
 import '../widgets/media_card.dart';
 import '../widgets/shimmer_loading.dart';
 import 'catalog_detail_page.dart';
@@ -394,7 +395,11 @@ class _HomePageState extends State<HomePage> {
             ),
           )
         else if (items.isEmpty)
-          const Center(child: Text('Belum ada data populer.'))
+          const EmptyView(
+            title: 'Belum Ada Data',
+            subtitle: 'Data populer tidak dapat dimuat.',
+            icon: Icons.inbox_outlined,
+          )
         else
           LayoutBuilder(
             builder: (context, constraints) {
