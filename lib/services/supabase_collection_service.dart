@@ -7,9 +7,7 @@ class SupabaseCollectionService implements CollectionDataSource {
 
   String _requireUserId() {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Pengguna belum login.');
-    }
+    if (user == null) throw Exception('Pengguna belum login.');
     return user.id;
   }
 
@@ -20,10 +18,7 @@ class SupabaseCollectionService implements CollectionDataSource {
         .select()
         .eq('user_id', userId)
         .order('updated_at', ascending: false)
-        .timeout(
-          const Duration(seconds: 5),
-          onTimeout: () => throw Exception('Koneksi lambat / Offline'),
-        );
+        .timeout(const Duration(seconds: 5), onTimeout: () => throw Exception('Koneksi lambat / Offline'));
 
     return (response as List)
         .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
@@ -33,23 +28,13 @@ class SupabaseCollectionService implements CollectionDataSource {
   @override
   Future<EntriKoleksi> createEntry(EntriKoleksi entri) async {
     final userId = _requireUserId();
-    final payload = {
-      ...entri.toJson(),
-      'user_id': userId,
-    };
+    final payload = {...entri.toJson(), 'user_id': userId};
     
     try {
-      final response = await _supabase
-          .from('koleksi')
-          .insert(payload)
-          .select()
-          .single();
-
+      final response = await _supabase.from('koleksi').insert(payload).select().single();
       return EntriKoleksi.fromJson(response);
     } on PostgrestException catch (e) {
-      if (e.code == '23505') {
-        throw Exception('Anime/komik ini sudah ada di koleksimu.');
-      }
+      if (e.code == '23505') throw Exception('Anime/komik ini sudah ada di koleksimu.');
       rethrow;
     }
   }
@@ -58,19 +43,15 @@ class SupabaseCollectionService implements CollectionDataSource {
   Future<List<EntriKoleksi>> createEntries(List<EntriKoleksi> entries) async {
     if (entries.isEmpty) return [];
     final userId = _requireUserId();
-    final payload = entries
-        .map((e) => {
-              ...e.toJson(),
-              'user_id': userId,
-            })
-        .toList();
+    final payload = entries.map((e) => {...e.toJson(), 'user_id': userId}).toList();
 
-    final response =
-        await _supabase.from('koleksi').insert(payload).select();
-
-    return (response as List)
-        .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await _supabase.from('koleksi').insert(payload).select();
+      return (response as List).map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>)).toList();
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') throw Exception('Beberapa data sudah ada di koleksi dan dilewati.');
+      rethrow;
+    }
   }
 
   @override
@@ -91,10 +72,11 @@ class SupabaseCollectionService implements CollectionDataSource {
   @override
   Future<void> deleteEntry(int id) async {
     final userId = _requireUserId();
-    await _supabase
-        .from('koleksi')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
+    await _supabase.from('koleksi').delete().eq('id', id).eq('user_id', userId);
+  }
+
+  @override
+  Future<void> deleteAll(String userId) async {
+    await _supabase.from('koleksi').delete().eq('user_id', userId);
   }
 }

@@ -64,7 +64,7 @@ class _EntryFormPageState extends State<EntryFormPage> {
     final entriBaru = EntriKoleksi(
       deviceId: settings.deviceId!,
       jenis: widget.item.jenis,
-      externalId: widget.item.anilistId.toString(), // PERBAIKAN: Gunakan anilistId
+      externalId: widget.item.anilistId.toString(),
       judul: widget.item.displayTitle,
       coverUrl: widget.item.coverUrl,
       status: _status,

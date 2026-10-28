@@ -176,5 +176,14 @@
   "statusAiring": "Airing",
   "statusFinished": "Finished",
   "statusUpcoming": "Upcoming",
-  "all": "All"
+  "all": "All",
+  "filterType": "Type",
+  "onlyFavorites": "Only Favorites",
+  "sortProgress": "Highest Progress",
+  "sortRating": "Highest Rating",
+  "favoriteAdded": "Added to favorites.",
+  "favoriteRemoved": "Removed from favorites.",
+  "entryDeleted": "Deleted from collection.",
+  "inCollection": "In Collection",
+  "progressRemoved": "Progress -1 successful."
 }

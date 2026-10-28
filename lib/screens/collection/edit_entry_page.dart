@@ -31,12 +31,9 @@ class _EditEntryPageState extends State<EditEntryPage> {
     super.initState();
     _status = widget.entri.status;
     _progres = widget.entri.progres;
-    _progresController =
-        TextEditingController(text: widget.entri.progres.toString());
-    _totalController =
-        TextEditingController(text: widget.entri.total?.toString() ?? '');
-    _catatanController =
-        TextEditingController(text: widget.entri.catatan ?? '');
+    _progresController = TextEditingController(text: widget.entri.progres.toString());
+    _totalController = TextEditingController(text: widget.entri.total?.toString() ?? '');
+    _catatanController = TextEditingController(text: widget.entri.catatan ?? '');
     _rating = widget.entri.rating;
   }
 
@@ -54,14 +51,18 @@ class _EditEntryPageState extends State<EditEntryPage> {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.read<CollectionProvider>();
 
+    final totalBaru = int.tryParse(_totalController.text);
+    final catatanBaru = _catatanController.text.trim().isEmpty ? null : _catatanController.text.trim();
+
     final entriUpdate = widget.entri.copyWith(
       status: _status,
       progres: _progres,
-      total: int.tryParse(_totalController.text),
+      total: totalBaru,
+      clearTotal: totalBaru == null,
       rating: _rating,
-      catatan: _catatanController.text.trim().isEmpty
-          ? null
-          : _catatanController.text.trim(),
+      clearRating: _rating == null,
+      catatan: catatanBaru,
+      clearCatatan: catatanBaru == null,
       updatedAt: DateTime.now(),
     );
 
@@ -70,14 +71,10 @@ class _EditEntryPageState extends State<EditEntryPage> {
     if (!mounted) return;
 
     if (berhasil) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.categoryUpdated)),
-      );
-      Navigator.pop(context, true);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.categoryUpdated)));
+      Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)));
     }
   }
 
@@ -96,17 +93,9 @@ class _EditEntryPageState extends State<EditEntryPage> {
           children: [
             Card(
               child: ListTile(
-                leading: SizedBox(
-                  width: 40,
-                  height: 60,
-                  child: CoverImage(url: widget.entri.coverUrl),
-                ),
+                leading: SizedBox(width: 40, height: 60, child: CoverImage(url: widget.entri.coverUrl)),
                 title: Text(widget.entri.judul),
-                subtitle: Text(
-                  '${widget.entri.jenis.label(l10n)} • '
-                  '${widget.entri.total ?? "?"} '
-                  '${widget.entri.jenis.satuanProgres(l10n)}',
-                ),
+                subtitle: Text('${widget.entri.jenis.label(l10n)} • ${widget.entri.total ?? "?"} ${widget.entri.jenis.satuanProgres(l10n)}'),
               ),
             ),
             const SizedBox(height: AppSizes.spacingM),

@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -573,4 +572,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get all => 'All';
+
+  @override
+  String get filterType => 'Type';
+
+  @override
+  String get onlyFavorites => 'Only Favorites';
+
+  @override
+  String get sortProgress => 'Highest Progress';
+
+  @override
+  String get sortRating => 'Highest Rating';
+
+  @override
+  String get favoriteAdded => 'Added to favorites.';
+
+  @override
+  String get favoriteRemoved => 'Removed from favorites.';
+
+  @override
+  String get entryDeleted => 'Deleted from collection.';
+
+  @override
+  String get inCollection => 'In Collection';
+
+  @override
+  String get progressRemoved => 'Progress -1 successful.';
 }

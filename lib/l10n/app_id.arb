@@ -176,5 +176,14 @@
   "statusAiring": "Sedang Tayang",
   "statusFinished": "Tamat",
   "statusUpcoming": "Akan Datang",
-  "all": "Semua"
+  "all": "Semua",
+  "filterType": "Jenis",
+  "onlyFavorites": "Hanya Favorit",
+  "sortProgress": "Progres Tertinggi",
+  "sortRating": "Rating Tertinggi",
+  "favoriteAdded": "Ditambahkan ke favorit.",
+  "favoriteRemoved": "Dihapus dari favorit.",
+  "entryDeleted": "Dihapus dari koleksi.",
+  "inCollection": "Di Koleksi",
+  "progressRemoved": "Progres -1 berhasil."
 }

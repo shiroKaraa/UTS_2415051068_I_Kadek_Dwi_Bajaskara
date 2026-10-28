@@ -432,7 +432,7 @@ class _StatHighlightCard extends StatelessWidget {
               TweenAnimationBuilder<int>(
                 tween: IntTween(begin: 0, end: value),
                 duration: const Duration(milliseconds: 800),
-                builder: (_, val, _) => Text('$val', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                builder: (context, val, child) => Text('$val', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
               ),
               Text(title, style: Theme.of(context).textTheme.labelSmall),
             ],

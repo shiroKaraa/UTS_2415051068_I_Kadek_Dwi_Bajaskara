@@ -63,7 +63,7 @@ import 'app_localizations_id.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('id'),
+    Locale('id')
   ];
 
   /// No description provided for @appTitle.
@@ -1159,6 +1159,60 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Semua'**
   String get all;
+
+  /// No description provided for @filterType.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis'**
+  String get filterType;
+
+  /// No description provided for @onlyFavorites.
+  ///
+  /// In id, this message translates to:
+  /// **'Hanya Favorit'**
+  String get onlyFavorites;
+
+  /// No description provided for @sortProgress.
+  ///
+  /// In id, this message translates to:
+  /// **'Progres Tertinggi'**
+  String get sortProgress;
+
+  /// No description provided for @sortRating.
+  ///
+  /// In id, this message translates to:
+  /// **'Rating Tertinggi'**
+  String get sortRating;
+
+  /// No description provided for @favoriteAdded.
+  ///
+  /// In id, this message translates to:
+  /// **'Ditambahkan ke favorit.'**
+  String get favoriteAdded;
+
+  /// No description provided for @favoriteRemoved.
+  ///
+  /// In id, this message translates to:
+  /// **'Dihapus dari favorit.'**
+  String get favoriteRemoved;
+
+  /// No description provided for @entryDeleted.
+  ///
+  /// In id, this message translates to:
+  /// **'Dihapus dari koleksi.'**
+  String get entryDeleted;
+
+  /// No description provided for @inCollection.
+  ///
+  /// In id, this message translates to:
+  /// **'Di Koleksi'**
+  String get inCollection;
+
+  /// No description provided for @progressRemoved.
+  ///
+  /// In id, this message translates to:
+  /// **'Progres -1 berhasil.'**
+  String get progressRemoved;
 }
 
 class _AppLocalizationsDelegate
@@ -1188,9 +1242,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

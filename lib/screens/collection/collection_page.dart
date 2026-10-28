@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
 import '../../models/collection_entry.dart';
 import '../../models/media_type_enum.dart';
 import '../../models/status_collection_enum.dart';
@@ -26,6 +27,17 @@ class _CollectionPageState extends State<CollectionPage> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<CollectionProvider>();
+      if (_searchController.text != provider.query) {
+        _searchController.text = provider.query;
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -36,6 +48,7 @@ class _CollectionPageState extends State<CollectionPage> {
     JenisMedia? tempJenis = collection.filterJenis;
     int? tempRating = collection.filterRating;
     StatusKoleksi? tempStatus = collection.filterStatus;
+    bool tempFavorit = collection.filterFavorit;
 
     showModalBottomSheet(
       context: context,
@@ -43,110 +56,88 @@ class _CollectionPageState extends State<CollectionPage> {
       builder: (sheetCtx) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 16,
-                right: 16,
-                top: 16,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.activeFilter,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<JenisMedia>(
-                    initialValue: tempJenis,
-                    decoration: InputDecoration(
-                      labelText: l10n.anime,
-                      border: const OutlineInputBorder(),
+            return DraggableScrollableSheet(
+              initialChildSize: 0.6,
+              minChildSize: 0.5,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (_, scrollController) {
+                return ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(AppSizes.spacingM),
+                  children: [
+                    Text(l10n.activeFilter, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppSizes.spacingM),
+                    
+                    DropdownButtonFormField<JenisMedia>(
+                      initialValue: tempJenis,
+                      decoration: InputDecoration(labelText: l10n.filterType, border: const OutlineInputBorder(), isDense: true),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.all)),
+                        ...JenisMedia.values.map((j) => DropdownMenuItem(value: j, child: Text(j.label(l10n)))),
+                      ],
+                      onChanged: (val) => setState(() => tempJenis = val),
                     ),
-                    items: [
-                      DropdownMenuItem(
-                          value: null, child: Text(l10n.clearAll)),
-                      ...JenisMedia.values.map((j) => DropdownMenuItem(
-                          value: j, child: Text(j.label(l10n)))),
-                    ],
-                    onChanged: (val) => setState(() => tempJenis = val),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    initialValue: tempRating,
-                    decoration: const InputDecoration(
-                      labelText: 'Rating',
-                      border: OutlineInputBorder(),
+                    const SizedBox(height: AppSizes.spacingM),
+                    
+                    DropdownButtonFormField<int>(
+                      initialValue: tempRating,
+                      decoration: const InputDecoration(labelText: 'Rating', border: OutlineInputBorder(), isDense: true),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.all)),
+                        ...List.generate(5, (i) => i + 1).map((val) => DropdownMenuItem(value: val, child: Text('⭐' * val))),
+                      ],
+                      onChanged: (val) => setState(() => tempRating = val),
                     ),
-                    items: [
-                      DropdownMenuItem(
-                          value: null, child: Text(l10n.clearAll)),
-                      ...List.generate(5, (i) => i + 1).map((val) {
-                        return DropdownMenuItem(
-                            value: val, child: Text('⭐' * val));
-                      }),
-                    ],
-                    onChanged: (val) => setState(() => tempRating = val),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<StatusKoleksi>(
-                    initialValue: tempStatus,
-                    decoration: InputDecoration(
-                      labelText: l10n.completed,
-                      border: const OutlineInputBorder(),
+                    const SizedBox(height: AppSizes.spacingM),
+                    
+                    DropdownButtonFormField<StatusKoleksi>(
+                      initialValue: tempStatus,
+                      decoration: InputDecoration(labelText: l10n.filterStatus, border: const OutlineInputBorder(), isDense: true),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.all)),
+                        ...StatusKoleksi.values.map((s) => DropdownMenuItem(value: s, child: Text(s.netralLabel(l10n)))),
+                      ],
+                      onChanged: (val) => setState(() => tempStatus = val),
                     ),
-                    items: [
-                      DropdownMenuItem(
-                          value: null, child: Text(l10n.clearAll)),
-                      ...StatusKoleksi.values.map((s) => DropdownMenuItem(
-                          value: s, child: Text(s.netralLabel(l10n)))),
-                    ],
-                    onChanged: (val) => setState(() => tempStatus = val),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: Text(l10n.supportUs),
-                    secondary: const Icon(Icons.star,
-                        color: AppColors.goldPrimary),
-                    value: collection.filterFavorit,
-                    onChanged: (val) {
-                      collection.setFilterFavorit(val);
-                      Navigator.pop(sheetCtx);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            collection.clearFilters();
-                            Navigator.pop(sheetCtx);
-                          },
-                          child: Text(l10n.reset),
+                    const SizedBox(height: AppSizes.spacingM),
+                    
+                    SwitchListTile(
+                      title: Text(l10n.onlyFavorites),
+                      secondary: const Icon(Icons.favorite, color: Colors.redAccent),
+                      value: tempFavorit,
+                      onChanged: (val) => setState(() => tempFavorit = val),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
+                    
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              collection.clearFilters();
+                              Navigator.pop(sheetCtx);
+                            },
+                            child: Text(l10n.reset),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            collection.setFilters(
-                              jenis: tempJenis,
-                              rating: tempRating,
-                              status: tempStatus,
-                            );
-                            Navigator.pop(sheetCtx);
-                          },
-                          child: Text(l10n.apply),
+                        const SizedBox(width: AppSizes.spacingM),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              collection.setFilters(jenis: tempJenis, rating: tempRating, status: tempStatus);
+                              collection.setFilterFavorit(tempFavorit);
+                              Navigator.pop(sheetCtx);
+                            },
+                            child: Text(l10n.apply),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             );
           },
         );
@@ -158,6 +149,9 @@ class _CollectionPageState extends State<CollectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
+    if (collection.query.isEmpty && _searchController.text.isNotEmpty) {
+      _searchController.clear();
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -165,28 +159,23 @@ class _CollectionPageState extends State<CollectionPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
-            tooltip: 'Filter',
+            tooltip: l10n.activeFilter,
             onPressed: () => _showFilterSheet(context, l10n),
           ),
           IconButton(
-            icon: Icon(
-                collection.isListView ? Icons.grid_view : Icons.view_list),
+            icon: Icon(collection.isListView ? Icons.grid_view : Icons.view_list),
             tooltip: collection.isListView ? 'Grid View' : 'List View',
             onPressed: () => collection.toggleView(),
           ),
           PopupMenuButton<UrutanKoleksi>(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: l10n.sortBy,
             onSelected: (value) => collection.setUrutan(value),
             itemBuilder: (context) => [
-              _buildSortItem(
-                  l10n.seeAll, UrutanKoleksi.terbaru, collection.urutan),
-              _buildSortItem(
-                  l10n.navCollection, UrutanKoleksi.judul, collection.urutan),
-              _buildSortItem(
-                  l10n.progress, UrutanKoleksi.progres, collection.urutan),
-              _buildSortItem(
-                  'Rating', UrutanKoleksi.rating, collection.urutan),
+              _buildSortItem(l10n.sortNewest, UrutanKoleksi.terbaru, collection.urutan),
+              _buildSortItem(l10n.sortTitle, UrutanKoleksi.judul, collection.urutan),
+              _buildSortItem(l10n.sortProgress, UrutanKoleksi.progres, collection.urutan),
+              _buildSortItem(l10n.sortRating, UrutanKoleksi.rating, collection.urutan),
             ],
           ),
         ],
@@ -194,72 +183,69 @@ class _CollectionPageState extends State<CollectionPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.fromLTRB(AppSizes.spacingM, AppSizes.spacingS, AppSizes.spacingM, 0),
             child: TextField(
               controller: _searchController,
-              onChanged: (val) => collection.setQuery(val),
+              onChanged: (val) => collection.setQuery(val.trim()),
+              textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: l10n.searchInCollection,
                 prefixIcon: const Icon(Icons.search),
                 isDense: true,
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          collection.setQuery('');
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _searchController,
+                  builder: (context, value, child) {
+                    return value.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              collection.setQuery('');
+                            },
+                          )
+                        : const SizedBox.shrink();
+                  },
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
-          if (collection.hasActiveFilters)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM, vertical: AppSizes.spacingS),
+            child: Row(
+              children: [
+                _buildStatusChip(context, l10n.all, null, collection),
+                ...StatusKoleksi.values.map((status) => _buildStatusChip(context, status.netralLabel(l10n), status, collection)),
+              ],
+            ),
+          ),
+          if (!collection.isLoading && collection.errorMessage == null && collection.entries.isNotEmpty)
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  const Icon(Icons.filter_alt,
-                      size: 16, color: AppColors.primaryGreen),
-                  const SizedBox(width: 8),
-                  Text(l10n.activeFilter,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.primaryGreen)),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () {
-                      _searchController.clear();
-                      collection.clearFilters();
-                    },
-                    child: Text(l10n.clearAll,
-                        style: const TextStyle(fontSize: 12)),
-                  ),
-                ],
+              padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '${collection.entries.length} ${l10n.trackedTitles('').trim()}',
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
               ),
             ),
+
           if (collection.isOffline)
             Container(
               width: double.infinity,
               color: AppColors.goldPrimary.withValues(alpha: 0.2),
-              padding:
-                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Row(
                 children: [
-                  const Icon(Icons.wifi_off,
-                      size: 16, color: AppColors.goldPrimary),
+                  const Icon(Icons.wifi_off, size: 16, color: AppColors.goldPrimary),
                   const SizedBox(width: 8),
-                  Text(
-                    l10n.offlineMode,
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurface),
-                  ),
+                  Expanded(child: Text(l10n.offlineBanner, style: const TextStyle(fontSize: 12))),
                 ],
               ),
             ),
+            
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => collection.refresh(),
@@ -271,8 +257,21 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  PopupMenuItem<UrutanKoleksi> _buildSortItem(
-      String label, UrutanKoleksi value, UrutanKoleksi current) {
+  Widget _buildStatusChip(BuildContext context, String label, StatusKoleksi? status, CollectionProvider collection) {
+    final isSelected = collection.filterStatus == status;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (selected) collection.setFilterStatus(status);
+        },
+      ),
+    );
+  }
+
+  PopupMenuItem<UrutanKoleksi> _buildSortItem(String label, UrutanKoleksi value, UrutanKoleksi current) {
     return PopupMenuItem(
       value: value,
       child: Row(
@@ -285,18 +284,17 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, CollectionProvider collection,
-      AppLocalizations l10n) {
+  Widget _buildContent(BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
     if (collection.isLoading && collection.allEntries.isEmpty) {
       if (collection.isListView) {
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSizes.spacingM),
           itemCount: 6,
           itemBuilder: (context, index) => const SkeletonListCard(),
         );
       }
       return GridView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSizes.spacingM),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 180,
           childAspectRatio: 0.6,
@@ -308,8 +306,7 @@ class _CollectionPageState extends State<CollectionPage> {
       );
     }
 
-    if (collection.errorMessage != null &&
-        collection.allEntries.isEmpty) {
+    if (collection.errorMessage != null && collection.allEntries.isEmpty) {
       return ErrorView(
         message: collection.errorMessage!,
         onRetry: () => collection.refresh(),
@@ -318,15 +315,28 @@ class _CollectionPageState extends State<CollectionPage> {
 
     if (collection.entries.isEmpty) {
       final isFiltered = collection.hasActiveFilters;
-      return EmptyView(
-        title: isFiltered ? l10n.noResults : l10n.emptyCollection,
-        subtitle:
-            isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
-        icon: isFiltered
-            ? Icons.search_off
-            : Icons.collections_bookmark_outlined,
-        actionLabel: isFiltered ? l10n.resetFilter : null,
-        onAction: isFiltered ? () => collection.clearFilters() : null,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: EmptyView(
+                title: isFiltered ? l10n.noResults : l10n.emptyCollection,
+                subtitle: isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
+                icon: isFiltered ? Icons.search_off : Icons.collections_bookmark_outlined,
+                actionLabel: isFiltered ? l10n.resetFilter : l10n.searchNow,
+                onAction: isFiltered 
+                    ? () => collection.clearFilters() 
+                    : () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Silakan buka tab Katalog untuk mencari.')),
+                        );
+                      },
+              ),
+            ),
+          );
+        }
       );
     }
 
@@ -337,10 +347,9 @@ class _CollectionPageState extends State<CollectionPage> {
     }
   }
 
-  Widget _buildGridView(
-      BuildContext context, CollectionProvider collection) {
+  Widget _buildGridView(BuildContext context, CollectionProvider collection) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSizes.spacingM),
       physics: const AlwaysScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 180,
@@ -357,7 +366,7 @@ class _CollectionPageState extends State<CollectionPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CollectionDetailPage(entri: entri),
+                builder: (context) => CollectionDetailPage(id: entri.id!),
               ),
             );
           },
@@ -369,10 +378,9 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildListView(BuildContext context,
-      CollectionProvider collection, AppLocalizations l10n) {
+  Widget _buildListView(BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSizes.spacingM),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: collection.entries.length,
       itemBuilder: (context, index) {
@@ -380,80 +388,42 @@ class _CollectionPageState extends State<CollectionPage> {
         final isSelesai = entri.status == StatusKoleksi.selesai;
 
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
           child: ListTile(
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: CoverImage(
-                url: entri.coverUrl,
-                width: 50,
-                height: 70,
-              ),
+              child: CoverImage(url: entri.coverUrl, width: 50, height: 70),
             ),
-            title: Text(
-              entri.judul,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            title: Text(entri.judul, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
                 Text(
-                  '${entri.status.netralLabel(l10n)} • '
-                  '${entri.progres}/${entri.total ?? "?"} '
-                  '${entri.jenis.satuanProgres(l10n)}',
-                  style: TextStyle(
-                      color:
-                          Theme.of(context).colorScheme.onSurfaceVariant),
+                  '${entri.status.netralLabel(l10n)} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres(l10n)}',
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
-            trailing: !isSelesai && entri.total != null
+            trailing: !isSelesai
                 ? IconButton(
                     icon: const Icon(Icons.add),
                     tooltip: l10n.progress,
-                    style: IconButton.styleFrom(
-                        minimumSize: const Size(48, 48)),
                     onPressed: () async {
-                      final provider =
-                          context.read<CollectionProvider>();
-                      final messenger =
-                          ScaffoldMessenger.of(context);
-
-                      final ok =
-                          await provider.incrementProgress(entri);
+                      final provider = context.read<CollectionProvider>();
+                      final messenger = ScaffoldMessenger.of(context);
+                      final result = await provider.incrementProgress(entri);
 
                       if (!context.mounted) return;
 
-                      if (!ok) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(provider.errorMessage ??
-                                l10n.offlineMode),
-                          ),
-                        );
-                        return;
-                      }
-
-                      final updated =
-                          provider.allEntries.firstWhere(
-                        (e) => e.id == entri.id,
-                        orElse: () => entri,
-                      );
-                      if (updated.status == StatusKoleksi.selesai) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${l10n.statCompleted}: ${entri.judul}',
-                            ),
-                          ),
-                        );
+                      if (result == HasilIncrement.ok) {
+                        messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+                      } else if (result == HasilIncrement.offline) {
+                        messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
+                      } else if (result == HasilIncrement.alreadyCompleted) {
+                        messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
                       } else {
-                        messenger.showSnackBar(
-                          SnackBar(content: Text('${l10n.progress} +1')),
-                        );
+                        messenger.showSnackBar(SnackBar(content: Text(provider.errorMessage ?? l10n.errorLoadData)));
                       }
                     },
                   )
@@ -462,8 +432,7 @@ class _CollectionPageState extends State<CollectionPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      CollectionDetailPage(entri: entri),
+                  builder: (context) => CollectionDetailPage(id: entri.id!),
                 ),
               );
             },
@@ -502,26 +471,19 @@ class _CollectionPageState extends State<CollectionPage> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.redAccent),
-              title: Text(l10n.delete,
-                  style: const TextStyle(color: Colors.redAccent)),
+              title: Text(l10n.delete, style: const TextStyle(color: Colors.redAccent)),
               onTap: () async {
                 Navigator.pop(sheetCtx);
-
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (dialogCtx) => AlertDialog(
                     title: Text(l10n.delete),
                     content: Text('${l10n.delete} "${entri.judul}"?'),
                     actions: [
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.pop(dialogCtx, false),
-                        child: Text(l10n.cancel),
-                      ),
+                      TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: Text(l10n.cancel)),
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, true),
-                        style: TextButton.styleFrom(
-                            foregroundColor: Colors.redAccent),
+                        style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
                         child: Text(l10n.delete),
                       ),
                     ],
@@ -529,28 +491,21 @@ class _CollectionPageState extends State<CollectionPage> {
                 );
 
                 if (confirmed != true) return;
-
-                final berhasil =
-                    await collection.deleteEntry(entri);
+                final berhasil = await collection.deleteEntry(entri);
 
                 if (berhasil) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(l10n.categoryDeleted),
+                      content: Text(l10n.entryDeleted),
                       action: SnackBarAction(
                         label: l10n.undo,
-                        onPressed: () {
-                          collection.createEntry(entri);
-                        },
+                        onPressed: () => collection.createEntry(entri),
                       ),
                     ),
                   );
                 } else {
                   messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(collection.errorMessage ??
-                          l10n.errorLoadData),
-                    ),
+                    SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)),
                   );
                 }
               },

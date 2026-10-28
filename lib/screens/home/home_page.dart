@@ -7,7 +7,6 @@ import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
 import '../../models/profile_stats.dart';
 import '../../models/collection_entry.dart';
-import '../../models/status_collection_enum.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/catalog_provider.dart';
@@ -51,9 +50,11 @@ class _HomePageState extends State<HomePage> {
     final auth = context.read<AuthProvider>();
     final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
-
     final deviceId = settings.deviceId;
-    if (!auth.isAuthenticated || deviceId == null || deviceId.isEmpty || collection.isOffline) return;
+    
+    if (!auth.isAuthenticated || auth.username == null || deviceId == null || deviceId.isEmpty || collection.isOffline) {
+      return;
+    }
 
     final count = await collection.countClaimableCollections(deviceId);
     if (count <= 0 || !mounted) return;
@@ -63,7 +64,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: Text(l10n.claimTitle),
-        content: Text(l10n.claimDesc(count, auth.username ?? '-')),
+        content: Text(l10n.claimDesc(count, auth.username!)), 
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: Text(l10n.cancel)),
           TextButton(onPressed: () => Navigator.pop(dialogCtx, true), child: Text(l10n.claimBtn)),
@@ -359,7 +360,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     ? null
                     : () => _handleIncrement(e),
               ),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionDetailPage(entri: e))),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionDetailPage(id: e.id!))),
             ),
           );
         }),
@@ -374,21 +375,20 @@ class _ContinueSectionState extends State<_ContinueSection> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
-    final updated = await provider.incrementProgressAndReturn(e);
+    final result = await provider.incrementProgress(e);
 
     if (!mounted) return;
     setState(() => _processingIds.remove(e.id));
 
-    if (updated == null) {
-      messenger.showSnackBar(SnackBar(content: Text(provider.errorMessage ?? 'Gagal menambah progres.')));
-      return;
-    }
-
     final l10n = AppLocalizations.of(context)!;
-    if (updated.status == StatusKoleksi.selesai) {
+    if (result == HasilIncrement.ok) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+    } else if (result == HasilIncrement.offline) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
+    } else if (result == HasilIncrement.alreadyCompleted) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
     } else {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+      messenger.showSnackBar(SnackBar(content: Text(provider.errorMessage ?? l10n.errorLoadData)));
     }
   }
 }
@@ -459,7 +459,7 @@ class _PopularSection extends StatelessWidget {
                     child: MediaCard(
                       item: item,
                       width: cardWidth,
-                      heroTag: 'home_${item.malId}',
+                      heroTag: 'home_${item.anilistId}',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CatalogDetailPage(item: item))),
                     ),
                   ),

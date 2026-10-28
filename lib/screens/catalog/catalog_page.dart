@@ -170,7 +170,6 @@ class _CatalogPageState extends State<CatalogPage> {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () {
-                              // PERBAIKAN: Hapus _searchController.clear()
                               catalog.clearFilters();
                               Navigator.pop(sheetCtx);
                             },
@@ -209,8 +208,6 @@ class _CatalogPageState extends State<CatalogPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final catalog = context.watch<CatalogProvider>();
-
-    // Reset _showBackToTop saat loading
     if (catalog.isLoading && _showBackToTop) {
       _showBackToTop = false;
     }
@@ -248,7 +245,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _searchController,
-                  builder: (_, value, _) {
+                  builder: (context, value, child) {
                     return value.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear),

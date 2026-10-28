@@ -39,7 +39,7 @@ class FavoritesPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CollectionDetailPage(entri: entri),
+                        builder: (context) => CollectionDetailPage(id: entri.id!),
                       ),
                     );
                   },

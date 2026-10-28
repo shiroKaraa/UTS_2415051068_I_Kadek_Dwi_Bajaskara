@@ -26,7 +26,7 @@ class CollectionCard extends StatelessWidget {
     final progress = (entri.total != null && entri.total! > 0)
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
         : 0.0;
-    final isSelesai = entri.status == StatusKoleksi.selesai;
+    final bool isSelesai = entri.status == StatusKoleksi.selesai;
 
     return InkWell(
       onTap: onTap,
@@ -84,53 +84,27 @@ class CollectionCard extends StatelessWidget {
                           shape: const CircleBorder(),
                           child: InkWell(
                             onTap: () async {
-                              final provider =
-                                  context.read<CollectionProvider>();
-                              final messenger =
-                                  ScaffoldMessenger.of(context);
+                              final provider = context.read<CollectionProvider>();
+                              final messenger = ScaffoldMessenger.of(context);
 
-                              final ok =
-                                  await provider.incrementProgress(entri);
+                              final result = await provider.incrementProgress(entri);
 
                               if (!context.mounted) return;
 
-                              if (!ok) {
-                                final msg = provider.errorMessage ??
-                                    l10n.offlineMode;
-                                messenger.showSnackBar(
-                                  SnackBar(content: Text(msg)),
-                                );
-                                return;
-                              }
-
-                              final updated =
-                                  provider.allEntries.firstWhere(
-                                (e) => e.id == entri.id,
-                                orElse: () => entri,
-                              );
-
-                              if (updated.status == StatusKoleksi.selesai) {
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '${l10n.statCompleted}: ${entri.judul}',
-                                    ),
-                                  ),
-                                );
+                              if (result == HasilIncrement.ok) {
+                                messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+                              } else if (result == HasilIncrement.offline) {
+                                messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
+                              } else if (result == HasilIncrement.alreadyCompleted) {
+                                messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
                               } else {
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content:
-                                        Text('${l10n.progress} +1'),
-                                  ),
-                                );
+                                messenger.showSnackBar(SnackBar(content: Text(provider.errorMessage ?? l10n.errorLoadData)));
                               }
                             },
                             customBorder: const CircleBorder(),
                             child: const Padding(
                               padding: EdgeInsets.all(12.0),
-                              child: Icon(Icons.add,
-                                  color: Colors.black, size: 24),
+                              child: Icon(Icons.add, color: Colors.black, size: 24),
                             ),
                           ),
                         ),
@@ -149,17 +123,13 @@ class CollectionCard extends StatelessWidget {
           ),
           Text(
             entri.status.netralLabel(l10n),
-            style: TextStyle(
-                fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+            style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
           ),
           Semantics(
-            label:
-                '${l10n.progress} ${entri.progres} / ${entri.total ?? "?"}',
+            label: '${l10n.progress} ${entri.progres} / ${entri.total ?? "?"}',
             child: Text(
               '${entri.progres}/${entri.total ?? "?"}',
-              style: TextStyle(
-                  fontSize: 12,
-                  color: theme.colorScheme.onSurfaceVariant),
+              style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
             ),
           ),
           const SizedBox(height: 4),

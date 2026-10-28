@@ -84,6 +84,27 @@ class EntriKoleksi {
     };
   }
 
+  Map<String, dynamic> toCacheJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'device_id': deviceId,
+      'jenis': jenis.name,
+      'kategori_id': kategoriId,
+      'external_id': externalId,
+      'judul': judul,
+      'cover_url': coverUrl,
+      'status': status.name,
+      'progres': progres,
+      'total': total,
+      'rating': rating,
+      'catatan': catatan,
+      'is_favorite': isFavorite,
+      'created_at': createdAt?.toUtc().toIso8601String(),
+      'updated_at': updatedAt?.toUtc().toIso8601String(),
+    };
+  }
+
   Map<String, dynamic> toBackupJson() {
     return {
       'user_id': userId,
@@ -115,8 +136,11 @@ class EntriKoleksi {
     String? coverUrl,
     StatusKoleksi? status,
     int? progres,
+    bool clearTotal = false,
     int? total,
+    bool clearRating = false,
     int? rating,
+    bool clearCatatan = false,
     String? catatan,
     bool? isFavorite,
     DateTime? createdAt,
@@ -133,12 +157,45 @@ class EntriKoleksi {
       coverUrl: coverUrl ?? this.coverUrl,
       status: status ?? this.status,
       progres: progres ?? this.progres,
-      total: total ?? this.total,
-      rating: rating ?? this.rating,
-      catatan: catatan ?? this.catatan,
+      total: clearTotal ? null : (total ?? this.total),
+      rating: clearRating ? null : (rating ?? this.rating),
+      catatan: clearCatatan ? null : (catatan ?? this.catatan),
       isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EntriKoleksi &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          userId == other.userId &&
+          jenis == other.jenis &&
+          externalId == other.externalId &&
+          judul == other.judul &&
+          status == other.status &&
+          progres == other.progres &&
+          total == other.total &&
+          rating == other.rating &&
+          catatan == other.catatan &&
+          isFavorite == other.isFavorite &&
+          updatedAt == other.updatedAt;
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      userId.hashCode ^
+      jenis.hashCode ^
+      externalId.hashCode ^
+      judul.hashCode ^
+      status.hashCode ^
+      progres.hashCode ^
+      total.hashCode ^
+      rating.hashCode ^
+      catatan.hashCode ^
+      isFavorite.hashCode ^
+      updatedAt.hashCode;
 }

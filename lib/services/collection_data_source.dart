@@ -1,4 +1,4 @@
-import '../../models/collection_entry.dart';
+import '../models/collection_entry.dart';
 
 abstract class CollectionDataSource {
   Future<List<EntriKoleksi>> getCollection(String userId);
@@ -6,4 +6,5 @@ abstract class CollectionDataSource {
   Future<List<EntriKoleksi>> createEntries(List<EntriKoleksi> entries);
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri);
   Future<void> deleteEntry(int id);
+  Future<void> deleteAll(String userId);
 }
