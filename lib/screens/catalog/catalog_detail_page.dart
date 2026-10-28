@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../models/catalog_item.dart';
-import '../services/translation_service.dart';
-import '../widgets/cover_image.dart';
-import '../widgets/media_type_chip.dart';
-import 'entry_form_page.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../models/catalog_item.dart';
+import '../../services/translation_service.dart';
+import '../../widgets/cover_image.dart';
+import '../../widgets/media_type_chip.dart';
+import '../collection/entry_form_page.dart';
 
 class CatalogDetailPage extends StatefulWidget {
   final ItemKatalog item;

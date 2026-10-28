@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/custom_category.dart';
+import '../../models/custom_category.dart';
 import '../services/category_service.dart';
 
 class CategoryProvider extends ChangeNotifier {

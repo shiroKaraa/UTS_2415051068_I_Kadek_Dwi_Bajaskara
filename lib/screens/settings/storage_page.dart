@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
 
 class StoragePage extends StatefulWidget {
   const StoragePage({super.key});

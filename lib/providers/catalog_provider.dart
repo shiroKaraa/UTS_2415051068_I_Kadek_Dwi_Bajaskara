@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../models/catalog_item.dart';
-import '../models/media_type_enum.dart';
+import '../../models/catalog_item.dart';
+import '../../models/media_type_enum.dart';
 import '../services/anilist_service.dart';
 
 class CatalogProvider extends ChangeNotifier {

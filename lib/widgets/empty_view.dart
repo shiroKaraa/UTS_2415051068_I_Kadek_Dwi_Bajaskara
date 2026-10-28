@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
+import '../../core/app_colors.dart';
 
 class EmptyView extends StatelessWidget {
   final String? title;

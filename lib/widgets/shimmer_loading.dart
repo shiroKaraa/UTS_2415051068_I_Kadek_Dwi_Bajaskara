@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
 
 class ShimmerLoading extends StatefulWidget {
   final double? width;

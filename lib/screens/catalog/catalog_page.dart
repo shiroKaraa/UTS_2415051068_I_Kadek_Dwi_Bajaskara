@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
-import '../models/media_type_enum.dart';
-import '../providers/catalog_provider.dart';
-import '../widgets/media_card.dart';
-import '../widgets/error_view.dart';
-import '../widgets/empty_view.dart';
-import '../widgets/skeleton/skeleton_grid_card.dart';
+import '../../l10n/app_localizations.dart';
+import '../../models/media_type_enum.dart';
+import '../../providers/catalog_provider.dart';
+import '../../widgets/media_card.dart';
+import '../../widgets/error_view.dart';
+import '../../widgets/empty_view.dart';
+import '../../widgets/skeleton/skeleton_grid_card.dart';
 import 'catalog_detail_page.dart';
 
 class CatalogPage extends StatefulWidget {

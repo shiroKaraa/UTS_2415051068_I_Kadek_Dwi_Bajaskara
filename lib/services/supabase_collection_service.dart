@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/collection_entry.dart';
+import '../../models/collection_entry.dart';
 import 'collection_data_source.dart';
 
 class SupabaseCollectionService implements CollectionDataSource {

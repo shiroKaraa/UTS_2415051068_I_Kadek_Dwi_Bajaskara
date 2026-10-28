@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
-import '../../providers/settings_provider.dart';
-import '../onboarding_page.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/settings_provider.dart';
+import '../onboarding/onboarding_page.dart';
 import '../responsive_shell.dart';
 import 'login_page.dart';
 

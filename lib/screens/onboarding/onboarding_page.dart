@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../providers/settings_provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../providers/settings_provider.dart';
 import 'package:provider/provider.dart';
 
 class OnboardingPage extends StatefulWidget {

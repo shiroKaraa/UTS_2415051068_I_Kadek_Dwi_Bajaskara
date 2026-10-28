@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_sizes.dart';
-import '../models/status_collection_enum.dart';
-import '../models/media_type_enum.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../core/app_sizes.dart';
+import '../../../models/status_collection_enum.dart';
+import '../../../models/media_type_enum.dart';
 
 class EntryFormFields extends StatelessWidget {
   final JenisMedia jenisMedia;

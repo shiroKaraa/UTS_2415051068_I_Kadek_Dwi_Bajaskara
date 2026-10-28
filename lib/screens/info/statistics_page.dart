@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../models/media_type_enum.dart';
-import '../models/status_collection_enum.dart';
-import '../providers/collection_provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../models/media_type_enum.dart';
+import '../../models/status_collection_enum.dart';
+import '../../providers/collection_provider.dart';
 
 class StatisticsPage extends StatelessWidget {
   const StatisticsPage({super.key});

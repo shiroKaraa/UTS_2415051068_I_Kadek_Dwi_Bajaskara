@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../core/app_sizes.dart';
-import '../providers/collection_provider.dart';
-import '../widgets/empty_view.dart';
-import '../widgets/collection_card.dart';
+import '../../core/app_sizes.dart';
+import '../../providers/collection_provider.dart';
+import '../../widgets/empty_view.dart';
+import '../../widgets/collection_card.dart';
 import 'collection_detail_page.dart';
 
 class FavoritesPage extends StatelessWidget {

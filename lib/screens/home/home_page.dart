@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../models/catalog_item.dart';
-import '../models/profile_stats.dart';
-import '../models/collection_entry.dart';
-import '../models/status_collection_enum.dart';
-import '../providers/auth_provider.dart';
-import '../providers/collection_provider.dart';
-import '../providers/catalog_provider.dart';
-import '../providers/settings_provider.dart';
-import '../widgets/cover_image.dart';
-import '../widgets/empty_view.dart';
-import '../widgets/media_card.dart';
-import '../widgets/shimmer_loading.dart';
-import 'catalog_detail_page.dart';
-import 'collection_detail_page.dart';
-import 'collection_page.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../models/catalog_item.dart';
+import '../../models/profile_stats.dart';
+import '../../models/collection_entry.dart';
+import '../../models/status_collection_enum.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/collection_provider.dart';
+import '../../providers/catalog_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../widgets/cover_image.dart';
+import '../../widgets/empty_view.dart';
+import '../../widgets/media_card.dart';
+import '../../widgets/shimmer_loading.dart';
+import '../catalog/catalog_detail_page.dart';
+import '../collection/collection_detail_page.dart';
+import '../collection/collection_page.dart';
 
 class HomePage extends StatefulWidget {
   final Function(int tabIndex)? onNavigateTab;
@@ -46,7 +46,6 @@ class _HomePageState extends State<HomePage> {
     final auth = context.watch<AuthProvider>();
     if (auth.isAuthenticated && !_claimChecked) {
       _claimChecked = true;
-      // PERBAIKAN: Beri jeda 1 detik sebelum mengecek klaim
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) _maybeOfferClaim();
       });
@@ -97,7 +96,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _onRefresh() async {
     await Future.delayed(const Duration(milliseconds: 300));
-
     final collection = context.read<CollectionProvider>();
     await collection.refresh();
   }
@@ -233,7 +231,7 @@ class _StatsRow extends StatelessWidget {
 
     return Row(
       children: [
-        _StatCard(title: l10n.statTotal, value: stats.totalAnime + stats.totalManga, icon: Icons.collections_bookmark, color: AppColors.infoBlue),
+        _StatCard(title: l10n.statTotal, value: stats.totalEntries, icon: Icons.collections_bookmark, color: AppColors.infoBlue),
         const SizedBox(width: AppSizes.spacingS),
         _StatCard(title: l10n.statReading, value: stats.totalOngoing, icon: Icons.play_circle_outline, color: AppColors.primaryGreen),
         const SizedBox(width: AppSizes.spacingS),
@@ -408,11 +406,10 @@ class _PopularSection extends StatelessWidget {
     );
     final isLoading = context.select<CatalogProvider, bool>((c) => c.isLoadingPopular);
 
-    // Hitung tinggi kartu secara dinamis
     const cardWidth = 130.0;
-    const aspectRatio = 2 / 3; // Dari AppSizes.aspectRatioPoster
-    const imageHeight = cardWidth / aspectRatio; // 130 / (2/3) = 195
-    const textHeight = 60.0; // Perkiraan tinggi teks judul + total + margin
+    const aspectRatio = 2 / 3;
+    const imageHeight = cardWidth / aspectRatio;
+    const textHeight = 60.0;
     final listHeight = imageHeight + textHeight;
 
     return Column(
@@ -431,7 +428,7 @@ class _PopularSection extends StatelessWidget {
         const SizedBox(height: AppSizes.spacingS),
         if (isLoading && items.isEmpty)
           SizedBox(
-            height: listHeight, // Gunakan tinggi dinamis
+            height: listHeight,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 3,
@@ -445,7 +442,7 @@ class _PopularSection extends StatelessWidget {
           const EmptyView(title: 'Belum Ada Data', subtitle: 'Data populer tidak dapat dimuat.', icon: Icons.inbox_outlined)
         else
           SizedBox(
-            height: listHeight, // Gunakan tinggi dinamis
+            height: listHeight,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),

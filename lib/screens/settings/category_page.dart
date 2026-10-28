@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../models/custom_category.dart';
-import '../providers/category_provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../models/custom_category.dart';
+import '../../providers/category_provider.dart';
 
 class CategoryPage extends StatelessWidget {
   const CategoryPage({super.key});

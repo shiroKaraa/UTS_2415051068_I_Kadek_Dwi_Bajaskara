@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../l10n/app_localizations.dart';
-import '../core/screen_breakpoints.dart';
-import 'home_page.dart';
-import 'catalog_page.dart';
-import 'collection_page.dart';
-import 'other_page.dart';
-import 'profile_page.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/screen_breakpoints.dart';
+import 'home/home_page.dart';
+import 'catalog/catalog_page.dart';
+import 'collection/collection_page.dart';
+import 'other/other_page.dart';
+import 'profile/profile_page.dart';
 
 class ResponsiveShell extends StatefulWidget {
   const ResponsiveShell({super.key});
@@ -17,13 +17,19 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    CatalogPage(),
-    CollectionPage(),
-    OtherPage(),
-    ProfilePage(),
+  final List<Widget> _pages = [
+    const HomePage(),
+    const CatalogPage(),
+    const CollectionPage(),
+    const OtherPage(),
+    const ProfilePage(),
   ];
+
+  void _onNavigateTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,9 +104,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
           SafeArea(
             child: NavigationRail(
               selectedIndex: _currentIndex,
-              onDestinationSelected: (index) {
-                setState(() => _currentIndex = index);
-              },
+              onDestinationSelected: _onNavigateTab,
               labelType: labelType,
               leading: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -132,9 +136,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
+        onDestinationSelected: _onNavigateTab,
         destinations: destinations,
       ),
     );

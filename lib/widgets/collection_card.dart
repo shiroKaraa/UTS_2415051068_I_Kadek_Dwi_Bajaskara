@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../models/collection_entry.dart';
-import '../models/status_collection_enum.dart';
-import '../providers/collection_provider.dart';
+import '../../core/app_colors.dart';
+import '../../models/collection_entry.dart';
+import '../../models/status_collection_enum.dart';
+import '../../providers/collection_provider.dart';
 import 'cover_image.dart';
 
 class CollectionCard extends StatelessWidget {

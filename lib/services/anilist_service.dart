@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/media_type_enum.dart';
+import '../../models/media_type_enum.dart';
 
 class AniListService {
   static const String _url = 'https://graphql.anilist.co';

@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
-import '../core/app_sizes.dart';
-import '../models/collection_entry.dart';
-import '../models/status_collection_enum.dart';
-import '../providers/collection_provider.dart';
-import '../widgets/cover_image.dart';
-import '../widgets/entry_form_fields.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_sizes.dart';
+import '../../models/catalog_item.dart';
+import '../../models/collection_entry.dart';
+import '../../models/status_collection_enum.dart';
+import '../../providers/collection_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../widgets/cover_image.dart';
+import '../../widgets/forms/entry_form_fields.dart';
 
-class EditEntryPage extends StatefulWidget {
-  final EntriKoleksi entri;
+class EntryFormPage extends StatefulWidget {
+  final ItemKatalog item;
 
-  const EditEntryPage({super.key, required this.entri});
+  const EntryFormPage({super.key, required this.item});
 
   @override
-  State<EditEntryPage> createState() => _EditEntryPageState();
+  State<EntryFormPage> createState() => _EntryFormPageState();
 }
 
-class _EditEntryPageState extends State<EditEntryPage> {
+class _EntryFormPageState extends State<EntryFormPage> {
   final _formKey = GlobalKey<FormState>();
   late StatusKoleksi _status;
   late int _progres;
@@ -29,15 +31,12 @@ class _EditEntryPageState extends State<EditEntryPage> {
   @override
   void initState() {
     super.initState();
-    _status = widget.entri.status;
-    _progres = widget.entri.progres;
-    _progresController =
-        TextEditingController(text: widget.entri.progres.toString());
+    _status = StatusKoleksi.direncanakan;
+    _progres = 0;
+    _progresController = TextEditingController(text: '0');
     _totalController =
-        TextEditingController(text: widget.entri.total?.toString() ?? '');
-    _catatanController =
-        TextEditingController(text: widget.entri.catatan ?? '');
-    _rating = widget.entri.rating;
+        TextEditingController(text: widget.item.total?.toString() ?? '');
+    _catatanController = TextEditingController();
   }
 
   @override
@@ -52,9 +51,22 @@ class _EditEntryPageState extends State<EditEntryPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final l10n = AppLocalizations.of(context)!;
+    final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
 
-    final entriUpdate = widget.entri.copyWith(
+    if (settings.deviceId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.deviceIdNotAvailable)),
+      );
+      return;
+    }
+
+    final entriBaru = EntriKoleksi(
+      deviceId: settings.deviceId!,
+      jenis: widget.item.jenis,
+      externalId: widget.item.malId.toString(),
+      judul: widget.item.displayTitle,
+      coverUrl: widget.item.coverUrl,
       status: _status,
       progres: _progres,
       total: int.tryParse(_totalController.text),
@@ -62,18 +74,17 @@ class _EditEntryPageState extends State<EditEntryPage> {
       catatan: _catatanController.text.trim().isEmpty
           ? null
           : _catatanController.text.trim(),
-      updatedAt: DateTime.now(),
     );
 
-    final berhasil = await collection.updateEntry(entriUpdate);
+    final berhasil = await collection.createEntry(entriBaru);
 
     if (!mounted) return;
 
     if (berhasil) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.categoryUpdated)),
+        SnackBar(content: Text(l10n.categoryAdded)),
       );
-      Navigator.pop(context, true);
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)),
@@ -88,7 +99,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
     final isSaving = collection.isSaving;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.edit)),
+      appBar: AppBar(title: Text(l10n.addToCollection)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSizes.spacingM),
         child: Column(
@@ -99,19 +110,19 @@ class _EditEntryPageState extends State<EditEntryPage> {
                 leading: SizedBox(
                   width: 40,
                   height: 60,
-                  child: CoverImage(url: widget.entri.coverUrl),
+                  child: CoverImage(url: widget.item.coverUrl),
                 ),
-                title: Text(widget.entri.judul),
+                title: Text(widget.item.displayTitle),
                 subtitle: Text(
-                  '${widget.entri.jenis.label(l10n)} • '
-                  '${widget.entri.total ?? "?"} '
-                  '${widget.entri.jenis.satuanProgres(l10n)}',
+                  '${widget.item.jenis.label(l10n)} • '
+                  '${widget.item.total ?? "?"} '
+                  '${widget.item.jenis.satuanProgres(l10n)}',
                 ),
               ),
             ),
             const SizedBox(height: AppSizes.spacingM),
             EntryFormFields(
-              jenisMedia: widget.entri.jenis,
+              jenisMedia: widget.item.jenis,
               formKey: _formKey,
               status: _status,
               onStatusChanged: (val) => setState(() => _status = val),

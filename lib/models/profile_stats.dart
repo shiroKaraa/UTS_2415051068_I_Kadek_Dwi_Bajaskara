@@ -10,8 +10,8 @@ class ProfileStats {
   final int totalChapters;
   final int volumesRead;
   final int totalCompleted;
-  final int totalOngoing; // <-- Tambahkan ini
-  final int totalEntries; // <-- Untuk "Total" keseluruhan
+  final int totalOngoing;
+  final int totalEntries;
 
   const ProfileStats({
     this.totalAnime = 0,
@@ -63,7 +63,7 @@ class ProfileStats {
       volumesRead: volumes > 0 ? volumes : (chapters > 0 ? 1 : 0),
       totalCompleted: completed,
       totalOngoing: ongoing,
-      totalEntries: entries.length, // <-- Total keseluruhan
+      totalEntries: entries.length,
     );
   }
 

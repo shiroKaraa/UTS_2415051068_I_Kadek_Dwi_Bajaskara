@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/collection_entry.dart';
-import '../models/media_type_enum.dart';
-import '../models/status_collection_enum.dart';
-import '../models/profile_stats.dart';
+import '../../models/collection_entry.dart';
+import '../../models/media_type_enum.dart';
+import '../../models/status_collection_enum.dart';
+import '../../models/profile_stats.dart';
 import '../repositories/collection_repository.dart';
 import '../services/auth_service.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../models/catalog_item.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../models/catalog_item.dart';
 import 'cover_image.dart';
 import 'media_type_chip.dart';
 

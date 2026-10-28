@@ -1,4 +1,4 @@
-import '../models/collection_entry.dart';
+import '../../models/collection_entry.dart';
 
 abstract class CollectionDataSource {
   Future<List<EntriKoleksi>> getCollection(String userId);

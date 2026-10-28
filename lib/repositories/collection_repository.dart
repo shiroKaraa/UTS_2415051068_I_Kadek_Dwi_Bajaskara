@@ -1,4 +1,4 @@
-import '../models/collection_entry.dart';
+import '../../models/collection_entry.dart';
 import '../services/collection_data_source.dart';
 
 class CollectionRepository {

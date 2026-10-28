@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../providers/auth_provider.dart';
-import '../providers/collection_provider.dart';
-import '../models/profile_stats.dart';
-import 'profile/edit_profile_page.dart';
-import 'favorites_page.dart';
-import 'collection_page.dart';
-import 'settings_page.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/collection_provider.dart';
+import '../../models/profile_stats.dart';
+import 'edit_profile_page.dart';
+import '../collection/favorites_page.dart';
+import '../collection/collection_page.dart';
+import '../settings/settings_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});

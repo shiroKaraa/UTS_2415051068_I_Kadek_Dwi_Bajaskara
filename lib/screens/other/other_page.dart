@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../l10n/app_localizations.dart';
-import '../core/app_colors.dart';
-import '../core/app_sizes.dart';
-import '../models/profile_stats.dart';
-import '../models/status_collection_enum.dart';
-import '../providers/auth_provider.dart';
-import '../providers/collection_provider.dart';
-import '../providers/settings_provider.dart';
-import 'about_page.dart';
-import 'category_page.dart';
-import 'help_page.dart';
-import 'settings_page.dart';
-import 'statistics_page.dart';
-import 'storage_page.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/app_colors.dart';
+import '../../core/app_sizes.dart';
+import '../../models/profile_stats.dart';
+import '../../models/status_collection_enum.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/collection_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../info/about_page.dart';
+import '../settings/category_page.dart';
+import '../info/help_page.dart';
+import '../settings/settings_page.dart';
+import '../info/statistics_page.dart';
+import '../settings/storage_page.dart';
 
 class OtherPage extends StatelessWidget {
   const OtherPage({super.key});

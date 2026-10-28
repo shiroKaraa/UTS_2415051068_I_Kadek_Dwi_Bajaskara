@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../l10n/app_localizations.dart';
-import '../providers/settings_provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/settings_provider.dart';
 import 'backup_restore_page.dart';
 
 class SettingsPage extends StatelessWidget {

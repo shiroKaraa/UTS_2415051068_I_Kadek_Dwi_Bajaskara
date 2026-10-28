@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_sizes.dart';
+import '../../core/app_sizes.dart';
 
 class ResponsiveGrid extends StatelessWidget {
   final int itemCount;

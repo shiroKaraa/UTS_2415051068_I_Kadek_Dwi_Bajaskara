@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/custom_category.dart';
+import '../../models/custom_category.dart';
 
 class CategoryService {
   final SupabaseClient _supabase = Supabase.instance.client;

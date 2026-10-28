@@ -16,7 +16,6 @@ class AppTheme {
         surface: AppColors.darkCard,
         error: Colors.redAccent,
       ),
-      // 👇 CardTheme global — dark
       cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.darkCard,
@@ -78,7 +77,6 @@ class AppTheme {
         surface: AppColors.lightCard,
         error: Colors.redAccent,
       ),
-      // 👇 CardTheme global — light
       cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.lightCard,
