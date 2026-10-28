@@ -6,7 +6,6 @@ class CoverImage extends StatelessWidget {
   final double? width;
   final double? height;
   final BoxFit fit;
-
   const CoverImage({
     super.key,
     this.url,
@@ -31,8 +30,12 @@ class CoverImage extends StatelessWidget {
     }
 
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final memWidth = width != null && width!.isFinite ? (width! * dpr).round() : null;
-    final memHeight = height != null && height!.isFinite ? (height! * dpr).round() : null;
+    final memWidth = width != null && width!.isFinite 
+        ? (width! * dpr).round() 
+        : 300;
+    final memHeight = height != null && height!.isFinite 
+        ? (height! * dpr).round() 
+        : null;
 
     return CachedNetworkImage(
       imageUrl: url!,
@@ -41,6 +44,8 @@ class CoverImage extends StatelessWidget {
       fit: fit,
       memCacheWidth: memWidth,
       memCacheHeight: memHeight,
+      fadeInDuration: const Duration(milliseconds: 200),
+      fadeOutDuration: const Duration(milliseconds: 100),
       placeholder: (context, url) => placeholder(Icons.image_outlined),
       errorWidget: (context, url, error) => placeholder(Icons.broken_image_outlined),
     );

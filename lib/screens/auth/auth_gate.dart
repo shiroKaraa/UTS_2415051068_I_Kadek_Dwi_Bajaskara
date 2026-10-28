@@ -20,7 +20,7 @@ class AuthGate extends StatelessWidget {
     }
 
     if (!settings.hasSeenOnboarding) {
-      return const OnboardingPage();
+      return const OnboardingPage(key: ValueKey('onboarding'));
     }
 
     if (auth.status == AuthStatus.unknown) {
@@ -28,10 +28,10 @@ class AuthGate extends StatelessWidget {
     }
 
     if (auth.isAuthenticated) {
-      return const ResponsiveShell();
+      return const ResponsiveShell(key: ValueKey('main_shell')); 
     }
 
-    return const LoginPage();
+    return const LoginPage(key: ValueKey('login_page'));
   }
 }
 

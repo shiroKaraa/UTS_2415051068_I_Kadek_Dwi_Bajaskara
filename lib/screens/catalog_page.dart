@@ -21,6 +21,7 @@ class _CatalogPageState extends State<CatalogPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Timer? _debounceTimer;
+  Timer? _scrollThrottle;
   CatalogProvider? _catalogProvider;
 
   @override
@@ -28,10 +29,15 @@ class _CatalogPageState extends State<CatalogPage> {
     super.initState();
     _scrollController.addListener(() {
       if (!_scrollController.hasClients) return;
-      
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
-        context.read<CatalogProvider>().loadMore();
+        if (_scrollThrottle?.isActive ?? false) return;
+        
+        _scrollThrottle = Timer(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            context.read<CatalogProvider>().loadMore();
+          }
+        });
       }
     });
   }
@@ -41,7 +47,6 @@ class _CatalogPageState extends State<CatalogPage> {
     super.didChangeDependencies();
     final catalog = Provider.of<CatalogProvider>(context, listen: false);
     
-    // Sinkronisasi controller jika query di-reset dari luar
     if (_catalogProvider != catalog) {
       _catalogProvider?.removeListener(_syncSearchController);
       _catalogProvider = catalog;
@@ -59,6 +64,7 @@ class _CatalogPageState extends State<CatalogPage> {
   @override
   void dispose() {
     _catalogProvider?.removeListener(_syncSearchController);
+    _scrollThrottle?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     _debounceTimer?.cancel();
@@ -180,7 +186,6 @@ class _CatalogPageState extends State<CatalogPage> {
               decoration: InputDecoration(
                 hintText: l10n.searchHint,
                 prefixIcon: const Icon(Icons.search),
-                // Poin 7: ValueListenableBuilder agar tidak rebuild seluruh halaman
                 suffixIcon: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _searchController,
                   builder: (_, value, __) {
