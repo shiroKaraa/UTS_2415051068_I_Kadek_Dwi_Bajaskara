@@ -7,7 +7,7 @@ import '../models/media_type_enum.dart';
 import '../providers/auth_provider.dart';
 import '../providers/collection_provider.dart';
 import 'profile/edit_profile_page.dart';
-import 'collection_page.dart'; 
+import 'favorites_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -169,7 +169,7 @@ class ProfilePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CollectionPage(), 
+                    builder: (context) => const FavoritesPage(),
                   ),
                 );
               },
