@@ -24,7 +24,8 @@ class CatalogProvider extends ChangeNotifier {
   List<ItemKatalog> _popularManga = [];
   bool _isLoadingPopular = false;
   bool _hasFetchedPopular = false;
-  
+  String? _popularError;
+
   bool _disposed = false;
 
   List<ItemKatalog> get items => _items;
@@ -40,10 +41,9 @@ class CatalogProvider extends ChangeNotifier {
   List<ItemKatalog> get topAnime => _popularAnime;
   List<ItemKatalog> get topManga => _popularManga;
   bool get isLoadingPopular => _isLoadingPopular;
+  String? get popularError => _popularError;
 
-  CatalogProvider() {
-    fetchCatalog();
-  }
+  CatalogProvider();
 
   @override
   void dispose() {
@@ -110,12 +110,9 @@ class CatalogProvider extends ChangeNotifier {
       } else {
         _currentPage = nextPage;
         final newItems = rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
-        
         final existingIds = _items.map((e) => e.malId).toSet();
         final uniqueNewItems = newItems.where((e) => !existingIds.contains(e.malId)).toList();
-        
         _items.addAll(uniqueNewItems);
-        
         if (rawData.length < 20) _hasNextPage = false;
       }
     } catch (e) {
@@ -126,11 +123,16 @@ class CatalogProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchPopularHome() async {
+  Future<void> fetchPopularHome({bool forceRefresh = false}) async {
+    if (forceRefresh) {
+      _hasFetchedPopular = false;
+      _popularError = null;
+    }
     if (_hasFetchedPopular) return;
     if (_isLoadingPopular) return;
 
     _isLoadingPopular = true;
+    _popularError = null;
     _safeNotify();
 
     try {
@@ -152,13 +154,19 @@ class CatalogProvider extends ChangeNotifier {
       
       if (_popularAnime.isNotEmpty || _popularManga.isNotEmpty) {
         _hasFetchedPopular = true;
+      } else {
+        _popularError = 'Data populer kosong.';
       }
     } catch (e) {
-      debugPrint('Gagal memuat data populer: $e');
+      _popularError = _pesanError(e);
     } finally {
       _isLoadingPopular = false;
       _safeNotify();
     }
+  }
+
+  Future<void> refreshPopular() async {
+    await fetchPopularHome(forceRefresh: true);
   }
 
   Future<List<Map<String, dynamic>>> _fetchData(int page) {
@@ -205,7 +213,6 @@ class CatalogProvider extends ChangeNotifier {
     fetchCatalog();
   }
 
-  // HANYA ADA SATU method refresh()
   Future<void> refresh() async {
     await fetchCatalog();
   }

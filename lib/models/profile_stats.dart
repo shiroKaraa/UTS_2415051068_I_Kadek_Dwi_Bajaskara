@@ -10,7 +10,8 @@ class ProfileStats {
   final int totalChapters;
   final int volumesRead;
   final int totalCompleted;
-  final int totalOngoing;
+  final int totalOngoing; // <-- Tambahkan ini
+  final int totalEntries; // <-- Untuk "Total" keseluruhan
 
   const ProfileStats({
     this.totalAnime = 0,
@@ -21,6 +22,7 @@ class ProfileStats {
     this.volumesRead = 0,
     this.totalCompleted = 0,
     this.totalOngoing = 0,
+    this.totalEntries = 0,
   });
 
   factory ProfileStats.fromEntries(List<EntriKoleksi> entries) {
@@ -60,7 +62,8 @@ class ProfileStats {
       totalChapters: chapters,
       volumesRead: volumes > 0 ? volumes : (chapters > 0 ? 1 : 0),
       totalCompleted: completed,
-      totalOngoing: ongoing, 
+      totalOngoing: ongoing,
+      totalEntries: entries.length, // <-- Total keseluruhan
     );
   }
 
@@ -76,7 +79,9 @@ class ProfileStats {
           totalChapters == other.totalChapters &&
           volumesRead == other.volumesRead &&
           totalCompleted == other.totalCompleted &&
-          totalOngoing == other.totalOngoing;
+          totalOngoing == other.totalOngoing &&
+          totalEntries == other.totalEntries;
+
   @override
   int get hashCode =>
       totalAnime.hashCode ^
@@ -86,5 +91,6 @@ class ProfileStats {
       totalChapters.hashCode ^
       volumesRead.hashCode ^
       totalCompleted.hashCode ^
-      totalOngoing.hashCode;
+      totalOngoing.hashCode ^
+      totalEntries.hashCode;
 }

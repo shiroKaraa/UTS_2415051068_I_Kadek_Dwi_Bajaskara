@@ -16,6 +16,15 @@ class AppTheme {
         surface: AppColors.darkCard,
         error: Colors.redAccent,
       ),
+      // 👇 CardTheme global — dark
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: AppColors.darkCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.darkBackground,
         foregroundColor: AppColors.textLight,
@@ -68,6 +77,15 @@ class AppTheme {
         secondary: AppColors.infoBlue,
         surface: AppColors.lightCard,
         error: Colors.redAccent,
+      ),
+      // 👇 CardTheme global — light
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: AppColors.lightCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
+        ),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.lightBackground,
