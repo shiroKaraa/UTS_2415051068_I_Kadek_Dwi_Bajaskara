@@ -937,6 +937,78 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Bergabung sejak {date}'**
   String joinedAt(Object date);
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat Pagi'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat Siang'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat Malam'**
+  String get greetingEvening;
+
+  /// No description provided for @greetingSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Mari lanjutkan progresmu hari ini.'**
+  String get greetingSubtitle;
+
+  /// No description provided for @claimTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pindahkan data lama?'**
+  String get claimTitle;
+
+  /// No description provided for @claimDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Ditemukan {count} koleksi lama di perangkat ini yang belum terhubung ke akun. Pindahkan ke akun @{username}?'**
+  String claimDesc(Object count, Object username);
+
+  /// No description provided for @claimBtn.
+  ///
+  /// In id, this message translates to:
+  /// **'Pindahkan'**
+  String get claimBtn;
+
+  /// No description provided for @claimSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} koleksi berhasil dipindahkan.'**
+  String claimSuccess(Object count);
+
+  /// No description provided for @claimFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memindahkan data lama.'**
+  String get claimFailed;
+
+  /// No description provided for @offlineBanner.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode Offline: Data mungkin tidak terbaru.'**
+  String get offlineBanner;
+
+  /// No description provided for @progressAdded.
+  ///
+  /// In id, this message translates to:
+  /// **'Progres +1 berhasil.'**
+  String get progressAdded;
+
+  /// No description provided for @congratsCompleted.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat! Kamu telah menamatkan judul ini.'**
+  String get congratsCompleted;
 }
 
 class _AppLocalizationsDelegate

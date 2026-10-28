@@ -447,4 +447,44 @@ class AppLocalizationsId extends AppLocalizations {
   String joinedAt(Object date) {
     return 'Bergabung sejak $date';
   }
+
+  @override
+  String get greetingMorning => 'Selamat Pagi';
+
+  @override
+  String get greetingAfternoon => 'Selamat Siang';
+
+  @override
+  String get greetingEvening => 'Selamat Malam';
+
+  @override
+  String get greetingSubtitle => 'Mari lanjutkan progresmu hari ini.';
+
+  @override
+  String get claimTitle => 'Pindahkan data lama?';
+
+  @override
+  String claimDesc(Object count, Object username) {
+    return 'Ditemukan $count koleksi lama di perangkat ini yang belum terhubung ke akun. Pindahkan ke akun @$username?';
+  }
+
+  @override
+  String get claimBtn => 'Pindahkan';
+
+  @override
+  String claimSuccess(Object count) {
+    return '$count koleksi berhasil dipindahkan.';
+  }
+
+  @override
+  String get claimFailed => 'Gagal memindahkan data lama.';
+
+  @override
+  String get offlineBanner => 'Mode Offline: Data mungkin tidak terbaru.';
+
+  @override
+  String get progressAdded => 'Progres +1 berhasil.';
+
+  @override
+  String get congratsCompleted => 'Selamat! Kamu telah menamatkan judul ini.';
 }

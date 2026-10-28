@@ -7,6 +7,7 @@ import '../services/anilist_service.dart';
 
 class CatalogProvider extends ChangeNotifier {
   final AniListService _aniListService = AniListService();
+  
   List<ItemKatalog> _items = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
@@ -18,11 +19,14 @@ class CatalogProvider extends ChangeNotifier {
   int _requestGeneration = 0;
   String? _filterGenre;
   int? _filterTahun;
+  
   List<ItemKatalog> _popularAnime = [];
   List<ItemKatalog> _popularManga = [];
   bool _isLoadingPopular = false;
   bool _hasFetchedPopular = false;
+  
   bool _disposed = false;
+
   List<ItemKatalog> get items => _items;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -32,6 +36,7 @@ class CatalogProvider extends ChangeNotifier {
   String get query => _query;
   String? get filterGenre => _filterGenre;
   int? get filterTahun => _filterTahun;
+
   List<ItemKatalog> get topAnime => _popularAnime;
   List<ItemKatalog> get topManga => _popularManga;
   bool get isLoadingPopular => _isLoadingPopular;
@@ -200,11 +205,8 @@ class CatalogProvider extends ChangeNotifier {
     fetchCatalog();
   }
 
+  // HANYA ADA SATU method refresh()
   Future<void> refresh() async {
-    _hasFetchedPopular = false;
-    await Future.wait([
-      fetchCatalog(),
-      fetchPopularHome(),
-    ]);
+    await fetchCatalog();
   }
 }

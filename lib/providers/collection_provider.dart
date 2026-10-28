@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
 import '../models/status_collection_enum.dart';
@@ -49,9 +50,16 @@ class CollectionProvider extends ChangeNotifier {
       _filterFavorit;
 
   List<EntriKoleksi> get allEntries => _entries;
+
   ProfileStats get stats {
     _cachedStats ??= ProfileStats.fromEntries(_entries);
     return _cachedStats!;
+  }
+
+  List<EntriKoleksi> get continueWatching {
+    final list = _entries.where((e) => e.status == StatusKoleksi.sedang).toList();
+    list.sort((a, b) => (b.updatedAt ?? DateTime.now()).compareTo(a.updatedAt ?? DateTime.now()));
+    return list.take(3).toList();
   }
 
   List<EntriKoleksi> get entries {
@@ -346,12 +354,43 @@ class CollectionProvider extends ChangeNotifier {
     return updateEntry(updated);
   }
 
+  Future<EntriKoleksi?> incrementProgressAndReturn(EntriKoleksi entri) async {
+    if (_isOffline || _isSaving) return null;
+    if (entri.status == StatusKoleksi.selesai) return null;
+    if (entri.total == null || entri.progres >= entri.total!) return null;
+
+    final newProgres = entri.progres + 1;
+    final isSelesai = newProgres >= entri.total!;
+
+    final updated = entri.copyWith(
+      progres: newProgres,
+      status: isSelesai ? StatusKoleksi.selesai : entri.status,
+      updatedAt: DateTime.now(),
+    );
+    
+    final success = await updateEntry(updated);
+    return success ? updated : null;
+  }
+
   Future<bool> toggleFavorite(EntriKoleksi entri) async {
     final updated = entri.copyWith(
       isFavorite: !entri.isFavorite,
       updatedAt: DateTime.now(),
     );
     return updateEntry(updated);
+  }
+  
+  Future<int> countClaimableCollections(String deviceId) async {
+    try {
+      final res = await Supabase.instance.client.rpc(
+        'count_claimable_collections',
+        params: {'p_device_id': deviceId},
+      );
+      return res is int ? res : 0;
+    } catch (e) {
+      debugPrint('Count claimable error: $e');
+      return 0;
+    }
   }
 
   Future<int> claimDeviceCollections(String deviceId) async {

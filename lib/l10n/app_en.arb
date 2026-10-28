@@ -139,5 +139,17 @@
   "logoutConfirmBtn": "Logout",
   "logoutFailed": "Failed to log out, try again.",
   "emptyCollectionPrompt": "Start adding your first anime!",
-  "joinedAt": "Joined on {date}"
+  "joinedAt": "Joined on {date}",
+  "greetingMorning": "Good Morning",
+  "greetingAfternoon": "Good Afternoon",
+  "greetingEvening": "Good Evening",
+  "greetingSubtitle": "Let's continue your progress today.",
+  "claimTitle": "Move old data?",
+  "claimDesc": "Found {count} old collections on this device not linked to your account. Move to @{username}?",
+  "claimBtn": "Move",
+  "claimSuccess": "{count} collections moved successfully.",
+  "claimFailed": "Failed to move old data.",
+  "offlineBanner": "Offline Mode: Data may not be up to date.",
+  "progressAdded": "Progress +1 successful.",
+  "congratsCompleted": "Congratulations! You completed this title."
 }

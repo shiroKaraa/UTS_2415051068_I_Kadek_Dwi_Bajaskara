@@ -446,4 +446,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String joinedAt(Object date) {
     return 'Joined on $date';
   }
+
+  @override
+  String get greetingMorning => 'Good Morning';
+
+  @override
+  String get greetingAfternoon => 'Good Afternoon';
+
+  @override
+  String get greetingEvening => 'Good Evening';
+
+  @override
+  String get greetingSubtitle => 'Let\'s continue your progress today.';
+
+  @override
+  String get claimTitle => 'Move old data?';
+
+  @override
+  String claimDesc(Object count, Object username) {
+    return 'Found $count old collections on this device not linked to your account. Move to @$username?';
+  }
+
+  @override
+  String get claimBtn => 'Move';
+
+  @override
+  String claimSuccess(Object count) {
+    return '$count collections moved successfully.';
+  }
+
+  @override
+  String get claimFailed => 'Failed to move old data.';
+
+  @override
+  String get offlineBanner => 'Offline Mode: Data may not be up to date.';
+
+  @override
+  String get progressAdded => 'Progress +1 successful.';
+
+  @override
+  String get congratsCompleted => 'Congratulations! You completed this title.';
 }

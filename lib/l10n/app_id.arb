@@ -139,5 +139,17 @@
   "logoutConfirmBtn": "Keluar",
   "logoutFailed": "Gagal keluar, coba lagi.",
   "emptyCollectionPrompt": "Mulai tambahkan anime pertamamu!",
-  "joinedAt": "Bergabung sejak {date}"
+  "joinedAt": "Bergabung sejak {date}",
+  "greetingMorning": "Selamat Pagi",
+  "greetingAfternoon": "Selamat Siang",
+  "greetingEvening": "Selamat Malam",
+  "greetingSubtitle": "Mari lanjutkan progresmu hari ini.",
+  "claimTitle": "Pindahkan data lama?",
+  "claimDesc": "Ditemukan {count} koleksi lama di perangkat ini yang belum terhubung ke akun. Pindahkan ke akun @{username}?",
+  "claimBtn": "Pindahkan",
+  "claimSuccess": "{count} koleksi berhasil dipindahkan.",
+  "claimFailed": "Gagal memindahkan data lama.",
+  "offlineBanner": "Mode Offline: Data mungkin tidak terbaru.",
+  "progressAdded": "Progres +1 berhasil.",
+  "congratsCompleted": "Selamat! Kamu telah menamatkan judul ini."
 }

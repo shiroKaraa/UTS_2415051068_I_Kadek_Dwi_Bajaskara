@@ -10,6 +10,7 @@ class ProfileStats {
   final int totalChapters;
   final int volumesRead;
   final int totalCompleted;
+  final int totalOngoing;
 
   const ProfileStats({
     this.totalAnime = 0,
@@ -19,16 +20,19 @@ class ProfileStats {
     this.totalChapters = 0,
     this.volumesRead = 0,
     this.totalCompleted = 0,
+    this.totalOngoing = 0,
   });
 
   factory ProfileStats.fromEntries(List<EntriKoleksi> entries) {
     if (entries.isEmpty) return const ProfileStats();
 
-    int anime = 0, episodes = 0, manga = 0, chapters = 0, completed = 0;
+    int anime = 0, episodes = 0, manga = 0, chapters = 0, completed = 0, ongoing = 0;
     const double avgEpisodeMinutes = 24.0;
 
     for (var e in entries) {
       if (e.status == StatusKoleksi.selesai) completed++;
+      if (e.status == StatusKoleksi.sedang) ongoing++;
+      
       switch (e.jenis) {
         case JenisMedia.anime:
           anime++;
@@ -56,6 +60,7 @@ class ProfileStats {
       totalChapters: chapters,
       volumesRead: volumes > 0 ? volumes : (chapters > 0 ? 1 : 0),
       totalCompleted: completed,
+      totalOngoing: ongoing, 
     );
   }
 
@@ -70,8 +75,8 @@ class ProfileStats {
           totalManga == other.totalManga &&
           totalChapters == other.totalChapters &&
           volumesRead == other.volumesRead &&
-          totalCompleted == other.totalCompleted;
-
+          totalCompleted == other.totalCompleted &&
+          totalOngoing == other.totalOngoing;
   @override
   int get hashCode =>
       totalAnime.hashCode ^
@@ -80,5 +85,6 @@ class ProfileStats {
       totalManga.hashCode ^
       totalChapters.hashCode ^
       volumesRead.hashCode ^
-      totalCompleted.hashCode;
+      totalCompleted.hashCode ^
+      totalOngoing.hashCode;
 }
