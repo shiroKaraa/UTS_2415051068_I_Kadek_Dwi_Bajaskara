@@ -106,8 +106,8 @@ class CatalogProvider extends ChangeNotifier {
         _currentPage = nextPage;
         final newItems = rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
         
-        final existingIds = _items.map((e) => e.malId).whereType<int>().toSet();
-        final uniqueNewItems = newItems.where((e) => e.malId == null || !existingIds.contains(e.malId)).toList();
+        final existingIds = _items.map((e) => e.malId).toSet();
+        final uniqueNewItems = newItems.where((e) => !existingIds.contains(e.malId)).toList();
         
         _items.addAll(uniqueNewItems);
         

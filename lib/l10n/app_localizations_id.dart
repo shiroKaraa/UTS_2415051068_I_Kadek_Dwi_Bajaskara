@@ -408,4 +408,43 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get noNotes => 'Tidak ada catatan.';
+
+  @override
+  String get favoriteTitle => 'Favorit Saya';
+
+  @override
+  String get statAnime => 'Anime';
+
+  @override
+  String get statManga => 'Manga';
+
+  @override
+  String get statDaysWatched => 'Hari Ditonton';
+
+  @override
+  String get statEpisodes => 'Episode';
+
+  @override
+  String get statChapters => 'Chapter';
+
+  @override
+  String get statVolumes => 'Volume';
+
+  @override
+  String get logoutConfirmDesc =>
+      'Apakah Anda yakin ingin keluar dari akun ini?';
+
+  @override
+  String get logoutConfirmBtn => 'Keluar';
+
+  @override
+  String get logoutFailed => 'Gagal keluar, coba lagi.';
+
+  @override
+  String get emptyCollectionPrompt => 'Mulai tambahkan anime pertamamu!';
+
+  @override
+  String joinedAt(Object date) {
+    return 'Bergabung sejak $date';
+  }
 }

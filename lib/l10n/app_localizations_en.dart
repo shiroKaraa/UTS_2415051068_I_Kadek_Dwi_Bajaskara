@@ -407,4 +407,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noNotes => 'No notes.';
+
+  @override
+  String get favoriteTitle => 'My Favorites';
+
+  @override
+  String get statAnime => 'Anime';
+
+  @override
+  String get statManga => 'Manga';
+
+  @override
+  String get statDaysWatched => 'Days Watched';
+
+  @override
+  String get statEpisodes => 'Episodes';
+
+  @override
+  String get statChapters => 'Chapters Read';
+
+  @override
+  String get statVolumes => 'Volumes Read';
+
+  @override
+  String get logoutConfirmDesc =>
+      'Are you sure you want to log out of this account?';
+
+  @override
+  String get logoutConfirmBtn => 'Logout';
+
+  @override
+  String get logoutFailed => 'Failed to log out, try again.';
+
+  @override
+  String get emptyCollectionPrompt => 'Start adding your first anime!';
+
+  @override
+  String joinedAt(Object date) {
+    return 'Joined on $date';
+  }
 }

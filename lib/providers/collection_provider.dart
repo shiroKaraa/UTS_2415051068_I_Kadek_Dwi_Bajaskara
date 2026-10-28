@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
 import '../models/status_collection_enum.dart';
+import '../models/profile_stats.dart';
 import '../repositories/collection_repository.dart';
 import '../services/auth_service.dart';
 
@@ -26,6 +27,7 @@ class CollectionProvider extends ChangeNotifier {
   String _query = '';
   JenisMedia? _filterJenis;
   int? _filterRating;
+  ProfileStats? _cachedStats;
 
   bool get isOffline => _isOffline;
   bool get isListView => _isListView;
@@ -47,6 +49,10 @@ class CollectionProvider extends ChangeNotifier {
       _filterFavorit;
 
   List<EntriKoleksi> get allEntries => _entries;
+  ProfileStats get stats {
+    _cachedStats ??= ProfileStats.fromEntries(_entries);
+    return _cachedStats!;
+  }
 
   List<EntriKoleksi> get entries {
     var filtered = List<EntriKoleksi>.from(_entries);
@@ -87,6 +93,12 @@ class CollectionProvider extends ChangeNotifier {
 
   CollectionProvider(this._repository, {AuthService? authService})
       : _authService = authService ?? AuthService();
+
+  @override
+  void notifyListeners() {
+    _cachedStats = null;
+    super.notifyListeners();
+  }
 
   void bindUser(String? userId) {
     if (_userId == userId) return;
@@ -157,12 +169,18 @@ class CollectionProvider extends ChangeNotifier {
       _errorMessage = 'Silakan login terlebih dahulu.';
       notifyListeners();
       return false;
-    }
+    } 
     if (_isOffline) {
-      _errorMessage = 'Tidak dapat menambah data saat offline.';
-      notifyListeners();
-      return false;
+      try {
+        await _repository.getCollection(_userId!);
+        _isOffline = false;
+      } catch (_) {
+        _errorMessage = 'Tidak dapat menambah data saat offline.';
+        notifyListeners();
+        return false;
+      }
     }
+
     _isSaving = true;
     _errorMessage = null;
     notifyListeners();

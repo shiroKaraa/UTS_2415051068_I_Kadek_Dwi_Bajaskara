@@ -188,7 +188,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _searchController,
-                  builder: (_, value, __) {
+                  builder: (_, value, _) {
                     return value.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear),
@@ -297,7 +297,7 @@ class _CatalogPageState extends State<CatalogPage> {
 
     return CustomScrollView(
       controller: _scrollController,
-      cacheExtent: 500.0, 
+      cacheExtent: 500.0,
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),

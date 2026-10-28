@@ -127,5 +127,17 @@
   "statusDropped": "Dropped",
   "note": "Note",
   "editEntry": "Edit This Entry",
-  "noNotes": "No notes."
+  "noNotes": "No notes.",
+  "favoriteTitle": "My Favorites",
+  "statAnime": "Anime",
+  "statManga": "Manga",
+  "statDaysWatched": "Days Watched",
+  "statEpisodes": "Episodes",
+  "statChapters": "Chapters Read",
+  "statVolumes": "Volumes Read",
+  "logoutConfirmDesc": "Are you sure you want to log out of this account?",
+  "logoutConfirmBtn": "Logout",
+  "logoutFailed": "Failed to log out, try again.",
+  "emptyCollectionPrompt": "Start adding your first anime!",
+  "joinedAt": "Joined on {date}"
 }

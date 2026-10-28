@@ -127,5 +127,17 @@
   "statusDropped": "Dihentikan",
   "note": "Catatan",
   "editEntry": "Edit Entri Ini",
-  "noNotes": "Tidak ada catatan."
+  "noNotes": "Tidak ada catatan.",
+  "favoriteTitle": "Favorit Saya",
+  "statAnime": "Anime",
+  "statManga": "Manga",
+  "statDaysWatched": "Hari Ditonton",
+  "statEpisodes": "Episode",
+  "statChapters": "Chapter",
+  "statVolumes": "Volume",
+  "logoutConfirmDesc": "Apakah Anda yakin ingin keluar dari akun ini?",
+  "logoutConfirmBtn": "Keluar",
+  "logoutFailed": "Gagal keluar, coba lagi.",
+  "emptyCollectionPrompt": "Mulai tambahkan anime pertamamu!",
+  "joinedAt": "Bergabung sejak {date}"
 }

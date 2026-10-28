@@ -865,6 +865,78 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tidak ada catatan.'**
   String get noNotes;
+
+  /// No description provided for @favoriteTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Favorit Saya'**
+  String get favoriteTitle;
+
+  /// No description provided for @statAnime.
+  ///
+  /// In id, this message translates to:
+  /// **'Anime'**
+  String get statAnime;
+
+  /// No description provided for @statManga.
+  ///
+  /// In id, this message translates to:
+  /// **'Manga'**
+  String get statManga;
+
+  /// No description provided for @statDaysWatched.
+  ///
+  /// In id, this message translates to:
+  /// **'Hari Ditonton'**
+  String get statDaysWatched;
+
+  /// No description provided for @statEpisodes.
+  ///
+  /// In id, this message translates to:
+  /// **'Episode'**
+  String get statEpisodes;
+
+  /// No description provided for @statChapters.
+  ///
+  /// In id, this message translates to:
+  /// **'Chapter'**
+  String get statChapters;
+
+  /// No description provided for @statVolumes.
+  ///
+  /// In id, this message translates to:
+  /// **'Volume'**
+  String get statVolumes;
+
+  /// No description provided for @logoutConfirmDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Apakah Anda yakin ingin keluar dari akun ini?'**
+  String get logoutConfirmDesc;
+
+  /// No description provided for @logoutConfirmBtn.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluar'**
+  String get logoutConfirmBtn;
+
+  /// No description provided for @logoutFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal keluar, coba lagi.'**
+  String get logoutFailed;
+
+  /// No description provided for @emptyCollectionPrompt.
+  ///
+  /// In id, this message translates to:
+  /// **'Mulai tambahkan anime pertamamu!'**
+  String get emptyCollectionPrompt;
+
+  /// No description provided for @joinedAt.
+  ///
+  /// In id, this message translates to:
+  /// **'Bergabung sejak {date}'**
+  String joinedAt(Object date);
 }
 
 class _AppLocalizationsDelegate
