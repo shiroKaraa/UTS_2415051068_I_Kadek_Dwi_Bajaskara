@@ -530,4 +530,48 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get levelVeteran => 'Veteran';
+
+  @override
+  String showingResults(Object count, Object total) {
+    return 'Menampilkan $count dari $total';
+  }
+
+  @override
+  String get loadMoreFailed => 'Gagal memuat. Ketuk untuk coba lagi.';
+
+  @override
+  String get filterGenre => 'Genre';
+
+  @override
+  String get filterStatus => 'Status';
+
+  @override
+  String get filterYear => 'Tahun';
+
+  @override
+  String get sortBy => 'Urutkan';
+
+  @override
+  String get sortPopular => 'Populer';
+
+  @override
+  String get sortScore => 'Skor Tertinggi';
+
+  @override
+  String get sortNewest => 'Terbaru';
+
+  @override
+  String get sortTitle => 'A-Z';
+
+  @override
+  String get statusAiring => 'Sedang Tayang';
+
+  @override
+  String get statusFinished => 'Tamat';
+
+  @override
+  String get statusUpcoming => 'Akan Datang';
+
+  @override
+  String get all => 'Semua';
 }

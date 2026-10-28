@@ -162,5 +162,19 @@
   "mangaLegend": "Manga {percent}%",
   "levelBeginner": "Pemula",
   "levelIntermediate": "Penikmat",
-  "levelVeteran": "Veteran"
+  "levelVeteran": "Veteran",
+  "showingResults": "Menampilkan {count} dari {total}",
+  "loadMoreFailed": "Gagal memuat. Ketuk untuk coba lagi.",
+  "filterGenre": "Genre",
+  "filterStatus": "Status",
+  "filterYear": "Tahun",
+  "sortBy": "Urutkan",
+  "sortPopular": "Populer",
+  "sortScore": "Skor Tertinggi",
+  "sortNewest": "Terbaru",
+  "sortTitle": "A-Z",
+  "statusAiring": "Sedang Tayang",
+  "statusFinished": "Tamat",
+  "statusUpcoming": "Akan Datang",
+  "all": "Semua"
 }

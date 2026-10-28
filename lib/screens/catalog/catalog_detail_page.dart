@@ -72,16 +72,11 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
 
   Color _getColorForType(String label) {
     switch (label) {
-      case 'Anime':
-        return AppColors.typeAnime;
-      case 'Manga':
-        return AppColors.typeManga;
-      case 'Manhwa':
-        return AppColors.typeManhwa;
-      case 'Manhua':
-        return AppColors.typeManhua;
-      default:
-        return AppColors.typeLainnya;
+      case 'Anime': return AppColors.typeAnime;
+      case 'Manga': return AppColors.typeManga;
+      case 'Manhwa': return AppColors.typeManhwa;
+      case 'Manhua': return AppColors.typeManhua;
+      default: return AppColors.typeLainnya;
     }
   }
 
@@ -108,7 +103,7 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
           children: [
             Center(
               child: Hero(
-                tag: 'poster_${widget.item.malId}',
+                tag: 'poster_${widget.item.anilistId}',
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.radiusL),
                   child: Stack(

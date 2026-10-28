@@ -529,4 +529,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get levelVeteran => 'Veteran';
+
+  @override
+  String showingResults(Object count, Object total) {
+    return 'Showing $count of $total';
+  }
+
+  @override
+  String get loadMoreFailed => 'Failed to load. Tap to retry.';
+
+  @override
+  String get filterGenre => 'Genre';
+
+  @override
+  String get filterStatus => 'Status';
+
+  @override
+  String get filterYear => 'Year';
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get sortPopular => 'Popular';
+
+  @override
+  String get sortScore => 'Highest Score';
+
+  @override
+  String get sortNewest => 'Newest';
+
+  @override
+  String get sortTitle => 'A-Z';
+
+  @override
+  String get statusAiring => 'Airing';
+
+  @override
+  String get statusFinished => 'Finished';
+
+  @override
+  String get statusUpcoming => 'Upcoming';
+
+  @override
+  String get all => 'All';
 }

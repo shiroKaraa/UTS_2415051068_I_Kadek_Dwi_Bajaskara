@@ -1,10 +1,12 @@
 import 'media_type_enum.dart';
 
 class ItemKatalog {
-  final int malId;
+  final int anilistId;
+  final int? malId;
   final String judul;
   final String? judulInggris;
   final String? coverUrl;
+  final String? bannerUrl;
   final String? sinopsis;
   final double? skor;
   final int? total;
@@ -12,12 +14,17 @@ class ItemKatalog {
   final List<String> genres;
   final int? tahunRilis;
   final String? statusTayang;
+  final String? studio;
+  final int? durasi;
+  final int? popularitas;
 
   ItemKatalog({
-    required this.malId,
+    required this.anilistId,
+    this.malId,
     required this.judul,
     this.judulInggris,
     this.coverUrl,
+    this.bannerUrl,
     this.sinopsis,
     this.skor,
     this.total,
@@ -25,6 +32,9 @@ class ItemKatalog {
     this.genres = const [],
     this.tahunRilis,
     this.statusTayang,
+    this.studio,
+    this.durasi,
+    this.popularitas,
   });
 
   String get displayTitle {
@@ -37,8 +47,9 @@ class ItemKatalog {
   factory ItemKatalog.fromAniList(Map<String, dynamic> json, JenisMedia jenis) {
     final titleObj = json['title'] as Map<String, dynamic>?;
     final coverObj = json['coverImage'] as Map<String, dynamic>?;
-    
-    final malId = json['idMal'] as int? ?? json['id'] as int;
+    final startDate = json['startDate'] as Map<String, dynamic>?;
+    final studiosObj = json['studios'] as Map<String, dynamic>?;
+    final studioNodes = studiosObj?['nodes'] as List<dynamic>?;
 
     int? totalData;
     if (jenis == JenisMedia.anime) {
@@ -52,20 +63,25 @@ class ItemKatalog {
       skor = (json['averageScore'] as num).toDouble() / 10.0;
     }
 
-    final genresList = (json['genres'] as List<dynamic>?)?.cast<String>() ?? [];
-
     return ItemKatalog(
-      malId: malId,
+      anilistId: json['id'] as int,
+      malId: json['idMal'] as int?,
       judul: titleObj?['romaji'] as String? ?? 'Tanpa Judul',
       judulInggris: titleObj?['english'] as String?,
-      coverUrl: coverObj?['large'] as String?,
+      coverUrl: coverObj?['extraLarge'] as String? ?? coverObj?['large'] as String?,
+      bannerUrl: json['bannerImage'] as String?,
       sinopsis: json['description'] as String?,
       skor: skor,
       total: totalData,
       jenis: jenis,
-      genres: genresList,
-      tahunRilis: json['seasonYear'] as int?,
+      genres: (json['genres'] as List<dynamic>?)?.cast<String>() ?? [],
+      tahunRilis: startDate?['year'] as int? ?? json['seasonYear'] as int?,
       statusTayang: json['status'] as String?,
+      studio: (studioNodes != null && studioNodes.isNotEmpty)
+          ? (studioNodes[0]['name'] as String?)
+          : null,
+      durasi: json['duration'] as int?,
+      popularitas: json['popularity'] as int?,
     );
   }
 }

@@ -1075,6 +1075,90 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Veteran'**
   String get levelVeteran;
+
+  /// No description provided for @showingResults.
+  ///
+  /// In id, this message translates to:
+  /// **'Menampilkan {count} dari {total}'**
+  String showingResults(Object count, Object total);
+
+  /// No description provided for @loadMoreFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat. Ketuk untuk coba lagi.'**
+  String get loadMoreFailed;
+
+  /// No description provided for @filterGenre.
+  ///
+  /// In id, this message translates to:
+  /// **'Genre'**
+  String get filterGenre;
+
+  /// No description provided for @filterStatus.
+  ///
+  /// In id, this message translates to:
+  /// **'Status'**
+  String get filterStatus;
+
+  /// No description provided for @filterYear.
+  ///
+  /// In id, this message translates to:
+  /// **'Tahun'**
+  String get filterYear;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In id, this message translates to:
+  /// **'Urutkan'**
+  String get sortBy;
+
+  /// No description provided for @sortPopular.
+  ///
+  /// In id, this message translates to:
+  /// **'Populer'**
+  String get sortPopular;
+
+  /// No description provided for @sortScore.
+  ///
+  /// In id, this message translates to:
+  /// **'Skor Tertinggi'**
+  String get sortScore;
+
+  /// No description provided for @sortNewest.
+  ///
+  /// In id, this message translates to:
+  /// **'Terbaru'**
+  String get sortNewest;
+
+  /// No description provided for @sortTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'A-Z'**
+  String get sortTitle;
+
+  /// No description provided for @statusAiring.
+  ///
+  /// In id, this message translates to:
+  /// **'Sedang Tayang'**
+  String get statusAiring;
+
+  /// No description provided for @statusFinished.
+  ///
+  /// In id, this message translates to:
+  /// **'Tamat'**
+  String get statusFinished;
+
+  /// No description provided for @statusUpcoming.
+  ///
+  /// In id, this message translates to:
+  /// **'Akan Datang'**
+  String get statusUpcoming;
+
+  /// No description provided for @all.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua'**
+  String get all;
 }
 
 class _AppLocalizationsDelegate

@@ -162,5 +162,19 @@
   "mangaLegend": "Manga {percent}%",
   "levelBeginner": "Beginner",
   "levelIntermediate": "Enthusiast",
-  "levelVeteran": "Veteran"
+  "levelVeteran": "Veteran",
+  "showingResults": "Showing {count} of {total}",
+  "loadMoreFailed": "Failed to load. Tap to retry.",
+  "filterGenre": "Genre",
+  "filterStatus": "Status",
+  "filterYear": "Year",
+  "sortBy": "Sort by",
+  "sortPopular": "Popular",
+  "sortScore": "Highest Score",
+  "sortNewest": "Newest",
+  "sortTitle": "A-Z",
+  "statusAiring": "Airing",
+  "statusFinished": "Finished",
+  "statusUpcoming": "Upcoming",
+  "all": "All"
 }

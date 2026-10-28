@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/app_sizes.dart';
 import '../../models/media_type_enum.dart';
 import '../../providers/catalog_provider.dart';
 import '../../widgets/media_card.dart';
@@ -21,8 +22,7 @@ class _CatalogPageState extends State<CatalogPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Timer? _debounceTimer;
-  Timer? _scrollThrottle;
-  CatalogProvider? _catalogProvider;
+  bool _showBackToTop = false;
 
   @override
   void initState() {
@@ -36,53 +36,44 @@ class _CatalogPageState extends State<CatalogPage> {
     });
 
     _scrollController.addListener(() {
-      if (!_scrollController.hasClients) return;
       if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        if (_scrollThrottle?.isActive ?? false) return;
-        
-        _scrollThrottle = Timer(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            context.read<CatalogProvider>().loadMore();
-          }
-        });
+          _scrollController.position.maxScrollExtent - 400) {
+        context.read<CatalogProvider>().loadMore();
+      }
+
+      if (_scrollController.position.pixels > 500 && !_showBackToTop) {
+        setState(() => _showBackToTop = true);
+      } else if (_scrollController.position.pixels <= 500 && _showBackToTop) {
+        setState(() => _showBackToTop = false);
       }
     });
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final catalog = Provider.of<CatalogProvider>(context, listen: false);
-    
-    if (_catalogProvider != catalog) {
-      _catalogProvider?.removeListener(_syncSearchController);
-      _catalogProvider = catalog;
-      _catalogProvider?.addListener(_syncSearchController);
-    }
-  }
-
-  void _syncSearchController() {
-    if (_catalogProvider == null) return;
-    if (_catalogProvider!.query.isEmpty && _searchController.text.isNotEmpty) {
-      _searchController.clear();
-    }
-  }
-
-  @override
   void dispose() {
-    _catalogProvider?.removeListener(_syncSearchController);
-    _scrollThrottle?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
   }
 
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   void _showFilterSheet(BuildContext context, AppLocalizations l10n) {
     final catalog = context.read<CatalogProvider>();
-    String? tempGenre = catalog.filterGenre;
+    
+    List<String> tempGenres = List.from(catalog.filterGenres);
     int? tempTahun = catalog.filterTahun;
+    String? tempStatus = catalog.filterStatus;
+    UrutanKatalog tempUrutan = catalog.urutan;
 
     showModalBottomSheet(
       context: context,
@@ -90,72 +81,123 @@ class _CatalogPageState extends State<CatalogPage> {
       builder: (sheetCtx) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 16,
-                right: 16,
-                top: 16,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.filterCatalog, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: tempGenre,
-                    decoration: InputDecoration(labelText: 'Genre', border: const OutlineInputBorder()),
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(l10n.allGenres)),
-                      const DropdownMenuItem(value: 'Action', child: Text('Action')),
-                      const DropdownMenuItem(value: 'Romance', child: Text('Romance')),
-                      const DropdownMenuItem(value: 'Comedy', child: Text('Comedy')),
-                      const DropdownMenuItem(value: 'Fantasy', child: Text('Fantasy')),
-                      const DropdownMenuItem(value: 'Sci-Fi', child: Text('Sci-Fi')),
-                    ],
-                    onChanged: (val) => setState(() => tempGenre = val),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    initialValue: tempTahun,
-                    decoration: InputDecoration(labelText: l10n.allYears, border: const OutlineInputBorder()),
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(l10n.allYears)),
-                      ...List.generate(10, (i) => DateTime.now().year - i).map((thn) {
-                        return DropdownMenuItem(value: thn, child: Text(thn.toString()));
-                      }),
-                    ],
-                    onChanged: (val) => setState(() => tempTahun = val),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            catalog.clearFilters();
-                            Navigator.pop(sheetCtx);
+            return DraggableScrollableSheet(
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (_, scrollController) {
+                return ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(AppSizes.spacingM),
+                  children: [
+                    Text(l10n.filterCatalog, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppSizes.spacingM),
+                    
+                    Text(l10n.filterGenre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppSizes.spacingS),
+                    Wrap(
+                      spacing: AppSizes.spacingS,
+                      runSpacing: AppSizes.spacingS,
+                      children: catalog.availableGenres.map((genre) {
+                        final isSelected = tempGenres.contains(genre);
+                        return FilterChip(
+                          label: Text(genre),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                tempGenres.add(genre);
+                              } else {
+                                tempGenres.remove(genre);
+                              }
+                            });
                           },
-                          child: Text(l10n.reset),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
+
+                    Text(l10n.filterStatus, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppSizes.spacingS),
+                    DropdownButtonFormField<String>(
+                      initialValue: tempStatus,
+                      decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.all)),
+                        DropdownMenuItem(value: 'RELEASING', child: Text(l10n.statusAiring)),
+                        DropdownMenuItem(value: 'FINISHED', child: Text(l10n.statusFinished)),
+                        DropdownMenuItem(value: 'NOT_YET_RELEASED', child: Text(l10n.statusUpcoming)),
+                      ],
+                      onChanged: (val) => setState(() => tempStatus = val),
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
+
+                    Text(l10n.filterYear, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppSizes.spacingS),
+                    DropdownButtonFormField<int>(
+                      initialValue: tempTahun,
+                      decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.all)),
+                        ...List.generate(10, (i) => DateTime.now().year - i).map((thn) {
+                          return DropdownMenuItem(value: thn, child: Text(thn.toString()));
+                        }),
+                      ],
+                      onChanged: (val) => setState(() => tempTahun = val),
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
+
+                    Text(l10n.sortBy, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppSizes.spacingS),
+                    DropdownButtonFormField<UrutanKatalog>(
+                      initialValue: tempUrutan,
+                      decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                      items: [
+                        DropdownMenuItem(value: UrutanKatalog.populer, child: Text(l10n.sortPopular)),
+                        DropdownMenuItem(value: UrutanKatalog.skor, child: Text(l10n.sortScore)),
+                        DropdownMenuItem(value: UrutanKatalog.terbaru, child: Text(l10n.sortNewest)),
+                        DropdownMenuItem(value: UrutanKatalog.judul, child: Text(l10n.sortTitle)),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setState(() => tempUrutan = val);
+                      },
+                    ),
+                    const SizedBox(height: AppSizes.spacingXl),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              // PERBAIKAN: Hapus _searchController.clear()
+                              catalog.clearFilters();
+                              Navigator.pop(sheetCtx);
+                            },
+                            child: Text(l10n.reset),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            catalog.setFilters(genre: tempGenre, tahun: tempTahun);
-                            Navigator.pop(sheetCtx);
-                          },
-                          child: Text(l10n.apply),
+                        const SizedBox(width: AppSizes.spacingM),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              catalog.setFilters(
+                                genres: tempGenres,
+                                tahun: tempTahun,
+                                status: tempStatus,
+                                urutan: tempUrutan,
+                              );
+                              Navigator.pop(sheetCtx);
+                            },
+                            child: Text(l10n.apply),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSizes.spacingXl),
+                  ],
+                );
+              },
             );
           },
         );
@@ -167,6 +209,11 @@ class _CatalogPageState extends State<CatalogPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final catalog = context.watch<CatalogProvider>();
+
+    // Reset _showBackToTop saat loading
+    if (catalog.isLoading && _showBackToTop) {
+      _showBackToTop = false;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -182,13 +229,18 @@ class _CatalogPageState extends State<CatalogPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSizes.spacingM),
             child: TextField(
               controller: _searchController,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (value) {
+                _debounceTimer?.cancel();
+                context.read<CatalogProvider>().setQuery(value.trim());
+              },
               onChanged: (value) {
                 if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
                 _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-                  context.read<CatalogProvider>().setQuery(value);
+                  context.read<CatalogProvider>().setQuery(value.trim());
                 });
               },
               decoration: InputDecoration(
@@ -215,9 +267,10 @@ class _CatalogPageState extends State<CatalogPage> {
               ),
             ),
           ),
+          
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
             child: Row(
               children: [
                 ...JenisMedia.values.map((jenis) {
@@ -227,58 +280,71 @@ class _CatalogPageState extends State<CatalogPage> {
                       label: Text(jenis.label(l10n)),
                       selected: catalog.selectedJenis == jenis,
                       onSelected: (selected) {
-                        if (selected) catalog.setJenis(jenis);
+                        if (selected) {
+                          catalog.setJenis(jenis);
+                          _scrollToTop();
+                        }
                       },
                     ),
                   );
                 }),
-                if (catalog.filterGenre != null || catalog.filterTahun != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Chip(
-                      avatar: const Icon(Icons.filter_alt, size: 16),
-                      label: Text(l10n.activeFilter),
-                      onDeleted: () {
-                        _searchController.clear();
-                        catalog.clearFilters();
-                      },
-                    ),
+                if (catalog.hasActiveFilters) ...[
+                  const SizedBox(width: 8),
+                  ActionChip(
+                    avatar: const Icon(Icons.filter_alt, size: 16),
+                    label: Text(l10n.clearAll),
+                    onPressed: () {
+                      _searchController.clear();
+                      catalog.clearAll();
+                      _scrollToTop();
+                    },
                   ),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSizes.spacingS),
           
           if (!catalog.isLoading && catalog.errorMessage == null && catalog.items.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  l10n.trackedTitles(catalog.items.length),
+                  l10n.showingResults(catalog.items.length, catalog.totalResults),
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
+            
           Expanded(
-            child: _buildContent(context, catalog, l10n),
+            child: RefreshIndicator(
+              onRefresh: () => context.read<CatalogProvider>().refresh(),
+              child: _buildContent(context, catalog, l10n),
+            ),
           ),
         ],
       ),
+      floatingActionButton: _showBackToTop
+          ? FloatingActionButton.small(
+              onPressed: _scrollToTop,
+              child: const Icon(Icons.arrow_upward),
+            )
+          : null,
     );
   }
 
   Widget _buildContent(BuildContext context, CatalogProvider catalog, AppLocalizations l10n) {
     if (catalog.isLoading) {
       return GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 180,
           childAspectRatio: 0.55,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
         ),
-        itemCount: 6,
+        itemCount: 12,
         itemBuilder: (context, index) => const SkeletonGridCard(),
       );
     }
@@ -298,17 +364,17 @@ class _CatalogPageState extends State<CatalogPage> {
         actionLabel: l10n.resetFilter,
         onAction: () {
           _searchController.clear();
-          catalog.clearFilters();
+          catalog.clearAll();
         },
       );
     }
 
     return CustomScrollView(
       controller: _scrollController,
-      cacheExtent: 500.0,
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
           sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 180,
@@ -336,11 +402,25 @@ class _CatalogPageState extends State<CatalogPage> {
             ),
           ),
         ),
+        
         if (catalog.isLoadingMore)
           const SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(AppSizes.spacingM),
               child: Center(child: CircularProgressIndicator()),
+            ),
+          )
+        else if (catalog.loadMoreError != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSizes.spacingM),
+              child: Center(
+                child: TextButton.icon(
+                  onPressed: () => catalog.retryLoadMore(),
+                  icon: const Icon(Icons.refresh),
+                  label: Text(l10n.loadMoreFailed),
+                ),
+              ),
             ),
           ),
       ],

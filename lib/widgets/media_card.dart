@@ -36,15 +36,15 @@ class MediaCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
-              aspectRatio: AppSizes.aspectRatioPoster, 
+              aspectRatio: AppSizes.aspectRatioPoster,
               child: Hero(
-                tag: heroTag ?? 'poster_${item.malId}',
+                tag: heroTag ?? 'poster_${item.anilistId}',
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.radiusM),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      CoverImage(url: item.coverUrl), 
+                      CoverImage(url: item.coverUrl),
                       Positioned(
                         bottom: 0,
                         left: 0,
