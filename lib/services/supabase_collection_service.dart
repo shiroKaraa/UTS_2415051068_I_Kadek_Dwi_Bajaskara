@@ -37,13 +37,21 @@ class SupabaseCollectionService implements CollectionDataSource {
       ...entri.toJson(),
       'user_id': userId,
     };
-    final response = await _supabase
-        .from('koleksi')
-        .insert(payload)
-        .select()
-        .single();
+    
+    try {
+      final response = await _supabase
+          .from('koleksi')
+          .insert(payload)
+          .select()
+          .single();
 
-    return EntriKoleksi.fromJson(response);
+      return EntriKoleksi.fromJson(response);
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') {
+        throw Exception('Anime/komik ini sudah ada di koleksimu.');
+      }
+      rethrow;
+    }
   }
 
   @override

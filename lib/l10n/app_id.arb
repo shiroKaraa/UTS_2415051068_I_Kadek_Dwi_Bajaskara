@@ -151,5 +151,16 @@
   "claimFailed": "Gagal memindahkan data lama.",
   "offlineBanner": "Mode Offline: Data mungkin tidak terbaru.",
   "progressAdded": "Progres +1 berhasil.",
-  "congratsCompleted": "Selamat! Kamu telah menamatkan judul ini."
+  "congratsCompleted": "Selamat! Kamu telah menamatkan judul ini.",
+  "logoutTitle": "Keluar Akun?",
+  "greeting": "Halo, {name}! 👋",
+  "totalWatchTime": "{hours} Jam",
+  "totalWatchTimeMinutes": "{minutes} Menit",
+  "editProfile": "Edit Profil",
+  "noData": "Belum ada data",
+  "animeLegend": "Anime {percent}%",
+  "mangaLegend": "Manga {percent}%",
+  "levelBeginner": "Pemula",
+  "levelIntermediate": "Penikmat",
+  "levelVeteran": "Veteran"
 }

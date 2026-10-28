@@ -71,26 +71,37 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       );
     }).toList();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-
-        if (width >= ScreenBreakpoints.medium) {
-          return _buildRailLayout(
-            labelType: NavigationRailLabelType.all,
-            destinations: railDestinations,
-          );
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        
+        if (_currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+        } else {
         }
-
-        if (width >= ScreenBreakpoints.compact) {
-          return _buildRailLayout(
-            labelType: NavigationRailLabelType.none,
-            destinations: railDestinations,
-          );
-        }
-
-        return _buildBottomNavLayout(destinations);
       },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+
+          if (width >= ScreenBreakpoints.medium) {
+            return _buildRailLayout(
+              labelType: NavigationRailLabelType.all,
+              destinations: railDestinations,
+            );
+          }
+
+          if (width >= ScreenBreakpoints.compact) {
+            return _buildRailLayout(
+              labelType: NavigationRailLabelType.none,
+              destinations: railDestinations,
+            );
+          }
+
+          return _buildBottomNavLayout(destinations);
+        },
+      ),
     );
   }
 

@@ -1009,6 +1009,72 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Selamat! Kamu telah menamatkan judul ini.'**
   String get congratsCompleted;
+
+  /// No description provided for @logoutTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluar Akun?'**
+  String get logoutTitle;
+
+  /// No description provided for @greeting.
+  ///
+  /// In id, this message translates to:
+  /// **'Halo, {name}! 👋'**
+  String greeting(Object name);
+
+  /// No description provided for @totalWatchTime.
+  ///
+  /// In id, this message translates to:
+  /// **'{hours} Jam'**
+  String totalWatchTime(Object hours);
+
+  /// No description provided for @totalWatchTimeMinutes.
+  ///
+  /// In id, this message translates to:
+  /// **'{minutes} Menit'**
+  String totalWatchTimeMinutes(Object minutes);
+
+  /// No description provided for @editProfile.
+  ///
+  /// In id, this message translates to:
+  /// **'Edit Profil'**
+  String get editProfile;
+
+  /// No description provided for @noData.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada data'**
+  String get noData;
+
+  /// No description provided for @animeLegend.
+  ///
+  /// In id, this message translates to:
+  /// **'Anime {percent}%'**
+  String animeLegend(Object percent);
+
+  /// No description provided for @mangaLegend.
+  ///
+  /// In id, this message translates to:
+  /// **'Manga {percent}%'**
+  String mangaLegend(Object percent);
+
+  /// No description provided for @levelBeginner.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemula'**
+  String get levelBeginner;
+
+  /// No description provided for @levelIntermediate.
+  ///
+  /// In id, this message translates to:
+  /// **'Penikmat'**
+  String get levelIntermediate;
+
+  /// No description provided for @levelVeteran.
+  ///
+  /// In id, this message translates to:
+  /// **'Veteran'**
+  String get levelVeteran;
 }
 
 class _AppLocalizationsDelegate

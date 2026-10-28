@@ -487,4 +487,47 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get congratsCompleted => 'Selamat! Kamu telah menamatkan judul ini.';
+
+  @override
+  String get logoutTitle => 'Keluar Akun?';
+
+  @override
+  String greeting(Object name) {
+    return 'Halo, $name! 👋';
+  }
+
+  @override
+  String totalWatchTime(Object hours) {
+    return '$hours Jam';
+  }
+
+  @override
+  String totalWatchTimeMinutes(Object minutes) {
+    return '$minutes Menit';
+  }
+
+  @override
+  String get editProfile => 'Edit Profil';
+
+  @override
+  String get noData => 'Belum ada data';
+
+  @override
+  String animeLegend(Object percent) {
+    return 'Anime $percent%';
+  }
+
+  @override
+  String mangaLegend(Object percent) {
+    return 'Manga $percent%';
+  }
+
+  @override
+  String get levelBeginner => 'Pemula';
+
+  @override
+  String get levelIntermediate => 'Penikmat';
+
+  @override
+  String get levelVeteran => 'Veteran';
 }

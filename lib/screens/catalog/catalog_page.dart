@@ -27,6 +27,14 @@ class _CatalogPageState extends State<CatalogPage> {
   @override
   void initState() {
     super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final catalog = context.read<CatalogProvider>();
+      if (catalog.items.isEmpty) {
+        catalog.fetchCatalog();
+      }
+    });
+
     _scrollController.addListener(() {
       if (!_scrollController.hasClients) return;
       if (_scrollController.position.pixels >=

@@ -486,4 +486,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get congratsCompleted => 'Congratulations! You completed this title.';
+
+  @override
+  String get logoutTitle => 'Log Out?';
+
+  @override
+  String greeting(Object name) {
+    return 'Hello, $name! 👋';
+  }
+
+  @override
+  String totalWatchTime(Object hours) {
+    return '$hours Hours';
+  }
+
+  @override
+  String totalWatchTimeMinutes(Object minutes) {
+    return '$minutes Minutes';
+  }
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get noData => 'No data yet';
+
+  @override
+  String animeLegend(Object percent) {
+    return 'Anime $percent%';
+  }
+
+  @override
+  String mangaLegend(Object percent) {
+    return 'Manga $percent%';
+  }
+
+  @override
+  String get levelBeginner => 'Beginner';
+
+  @override
+  String get levelIntermediate => 'Enthusiast';
+
+  @override
+  String get levelVeteran => 'Veteran';
 }

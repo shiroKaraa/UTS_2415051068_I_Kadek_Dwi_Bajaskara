@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
@@ -33,20 +34,12 @@ class _HomePageState extends State<HomePage> {
   bool _claimChecked = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CatalogProvider>().fetchPopularHome();
-    });
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final auth = context.watch<AuthProvider>();
     if (auth.isAuthenticated && !_claimChecked) {
       _claimChecked = true;
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) _maybeOfferClaim();
       });
     } else if (!auth.isAuthenticated) {
@@ -95,15 +88,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _onRefresh() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    final catalog = context.read<CatalogProvider>();
     final collection = context.read<CollectionProvider>();
-    await collection.refresh();
+    
+    await Future.wait([
+      collection.refresh(),
+      catalog.fetchPopularHome(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isOffline = context.select<CollectionProvider, bool>((c) => c.isOffline);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<CatalogProvider>().fetchPopularHome();
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(

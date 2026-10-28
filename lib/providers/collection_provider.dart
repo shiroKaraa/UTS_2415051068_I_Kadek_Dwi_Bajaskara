@@ -189,6 +189,16 @@ class CollectionProvider extends ChangeNotifier {
       }
     }
 
+    final isDuplicate = _entries.any((e) => 
+        e.externalId == entri.externalId && e.jenis == entri.jenis
+    );
+    
+    if (isDuplicate) {
+      _errorMessage = 'Anime/komik ini sudah ada di koleksimu.';
+      notifyListeners();
+      return false;
+    }
+
     _isSaving = true;
     _errorMessage = null;
     notifyListeners();
@@ -198,7 +208,7 @@ class CollectionProvider extends ChangeNotifier {
       _entries.insert(0, newEntry);
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
       return false;
     } finally {
       _isSaving = false;
@@ -346,9 +356,16 @@ class CollectionProvider extends ChangeNotifier {
     final newProgres = entri.progres + 1;
     final isSelesai = newProgres >= entri.total!;
 
+    StatusKoleksi newStatus = entri.status;
+    if (isSelesai) {
+      newStatus = StatusKoleksi.selesai;
+    } else if (entri.status == StatusKoleksi.direncanakan) {
+      newStatus = StatusKoleksi.sedang;
+    }
+
     final updated = entri.copyWith(
       progres: newProgres,
-      status: isSelesai ? StatusKoleksi.selesai : entri.status,
+      status: newStatus,
       updatedAt: DateTime.now(),
     );
     return updateEntry(updated);
@@ -362,9 +379,16 @@ class CollectionProvider extends ChangeNotifier {
     final newProgres = entri.progres + 1;
     final isSelesai = newProgres >= entri.total!;
 
+    StatusKoleksi newStatus = entri.status;
+    if (isSelesai) {
+      newStatus = StatusKoleksi.selesai;
+    } else if (entri.status == StatusKoleksi.direncanakan) {
+      newStatus = StatusKoleksi.sedang;
+    }
+
     final updated = entri.copyWith(
       progres: newProgres,
-      status: isSelesai ? StatusKoleksi.selesai : entri.status,
+      status: newStatus,
       updatedAt: DateTime.now(),
     );
     

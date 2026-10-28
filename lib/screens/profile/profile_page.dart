@@ -7,6 +7,7 @@ import '../../core/app_sizes.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../models/profile_stats.dart';
+import '../../widgets/shimmer_loading.dart';
 import 'edit_profile_page.dart';
 import '../collection/favorites_page.dart';
 import '../collection/collection_page.dart';
@@ -14,11 +15,12 @@ import '../settings/settings_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
+
   Future<bool> _konfirmasiLogout(BuildContext context, AppLocalizations l10n) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.logoutConfirmDesc),
+        title: Text(l10n.logoutTitle), // <-- Gunakan key baru
         content: Text(l10n.logoutConfirmDesc),
         actions: [
           TextButton(
@@ -44,63 +46,53 @@ class ProfilePage extends StatelessWidget {
     final isEmpty = context.select<CollectionProvider, bool>((c) => c.allEntries.isEmpty);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.profile),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: l10n.settings,
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: () => context.read<CollectionProvider>().refresh(),
-        child: ListView(
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSizes.spacingM),
-          children: [
-            _ProfileHeader(stats: stats),
-            const SizedBox(height: AppSizes.spacingL),
+          slivers: [
+            const _ProfileHeader(),
             
-            if (isEmpty && !isLoading)
-              _EmptyProfileState(onLihatKatalog: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const CollectionPage()));
-              })
-            else ...[
-              Text(l10n.statistics, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: AppSizes.spacingS),
-              
-              if (isLoading && isEmpty) 
-                const Center(child: CircularProgressIndicator())
-              else 
-                _StatsSection(stats: stats),
+            SliverPadding(
+              padding: const EdgeInsets.all(AppSizes.spacingM),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  if (isEmpty && !isLoading)
+                    _EmptyProfileState(onLihatKatalog: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CollectionPage()));
+                    })
+                  else ...[
+                    _SectionTitle(title: l10n.statistics, icon: Icons.insights_outlined),
+                    const SizedBox(height: AppSizes.spacingS),
+                    
+                    // Loading menggunakan shimmer
+                    if (isLoading && isEmpty) 
+                      const _ShimmerStats()
+                    else 
+                      _StatsSection(stats: stats),
 
-              const SizedBox(height: AppSizes.spacingL),
-              
-              Card(
-                elevation: 0,
-                color: Theme.of(context).cardColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.radiusM),
-                  side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3)),
-                ),
-                child: ListTile(
-                  leading: const Icon(Icons.favorite, color: AppColors.typeManga),
-                  title: Text(l10n.favoriteTitle, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesPage())),
+                    const SizedBox(height: AppSizes.spacingL),
+                    
+                    const _QuickMenu(),
+                  ],
+                ]),
+              ),
+            ),
+            
+            // Tombol Logout di paling bawah
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSizes.spacingM),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _LogoutButton(
+                    onConfirm: () => _konfirmasiLogout(context, l10n),
+                    onSignOut: () => context.read<AuthProvider>().signOut(),
+                  ),
                 ),
               ),
-            ],
-            
-            const SizedBox(height: AppSizes.spacingXl),
-            
-            _LogoutButton(
-              onConfirm: () => _konfirmasiLogout(context, l10n),
-              onSignOut: () => context.read<AuthProvider>().signOut(),
             ),
-            const SizedBox(height: AppSizes.spacingL),
           ],
         ),
       ),
@@ -108,75 +100,201 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
+// --- WIDGET TERPISAH ---
+
 class _ProfileHeader extends StatelessWidget {
-  final ProfileStats stats;
-  const _ProfileHeader({required this.stats});
+  const _ProfileHeader(); // <-- const constructor
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
+    // Gunakan select untuk optimasi
+    final displayName = context.select<AuthProvider, String?>((a) => a.displayName);
+    final username = context.select<AuthProvider, String?>((a) => a.username);
+    final avatar = context.select<AuthProvider, String?>((a) => a.avatarEmoji);
+    
     final theme = Theme.of(context);
-    final displayName = auth.displayName ?? auth.username ?? 'Pengguna';
-    final username = auth.username ?? '-';
-    final avatar = auth.avatarEmoji ?? '👤';
+    final l10n = AppLocalizations.of(context)!;
+    
+    final name = displayName ?? username ?? 'Pengguna';
+    final avatarEmoji = avatar ?? '👤';
 
-    return Card(
-      elevation: 0,
-      color: theme.cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.radiusL),
-        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSizes.radiusL),
-          gradient: LinearGradient(
-            colors: [theme.cardColor, AppColors.primaryGreen.withValues(alpha: 0.25)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        padding: const EdgeInsets.all(AppSizes.spacingL),
-        child: Column(
-          children: [
-            Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primaryGreen, width: 3),
-                  ),
-                  child: CircleAvatar(
-                    radius: 45,
-                    backgroundColor: theme.cardColor,
-                    child: Text(avatar, style: const TextStyle(fontSize: 44)),
-                  ),
-                ),
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: AppColors.primaryGreen, shape: BoxShape.circle),
-                      child: const Icon(Icons.edit, size: 16, color: Colors.black),
-                    ),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage())),
-                    tooltip: 'Edit Profil',
-                  ),
-                ),
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: 200,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      // Hapus title dari FlexibleSpaceBar, gunakan title biasa
+      title: Text(l10n.profile, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primaryGreen.withValues(alpha: 0.35), // Alpha dinaikkan
+                theme.colorScheme.surface,
               ],
             ),
-            const SizedBox(height: AppSizes.spacingM),
-            Text(displayName, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            Text('@$username', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            const SizedBox(height: AppSizes.spacingS),
-            Text(
-              '${stats.totalAnime} Anime · ${stats.totalManga} Manga',
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: AppColors.primaryGreen),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 56, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Row(
+                    children: [
+                      // Avatar dengan ring hijau dan InkWell
+                      Semantics(
+                        button: true,
+                        label: l10n.editProfile,
+                        child: InkWell(
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage())),
+                          customBorder: const CircleBorder(),
+                          child: Container(
+                            padding: const EdgeInsets.all(3), // Ruang untuk ring
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primaryGreen.withValues(alpha: 0.2),
+                              border: Border.all(color: AppColors.primaryGreen, width: 3),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                CircleAvatar(
+                                  radius: 32,
+                                  backgroundColor: theme.cardColor,
+                                  child: Text(avatarEmoji, style: const TextStyle(fontSize: 32)),
+                                ),
+                                // Badge edit diperbesar
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primaryGreen,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.edit, size: 16, color: Colors.black),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.greeting(name),
+                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '@${username ?? '-'}',
+                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _SectionTitle({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(title, style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+}
+
+class _QuickMenu extends StatelessWidget {
+  const _QuickMenu(); // <-- const constructor
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Row(
+      children: [
+        Expanded(
+          child: _QuickMenuCard(
+            icon: Icons.favorite,
+            color: AppColors.typeManga,
+            title: l10n.favoriteTitle,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesPage())),
+          ),
+        ),
+        const SizedBox(width: AppSizes.spacingS),
+        Expanded(
+          child: _QuickMenuCard(
+            icon: Icons.settings,
+            color: AppColors.typeManhua,
+            title: l10n.settings,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickMenuCard extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final VoidCallback onTap;
+
+  const _QuickMenuCard({required this.icon, required this.color, required this.title, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSizes.radiusM),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSizes.spacingM),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -189,6 +307,13 @@ class _StatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final showAnime = stats.totalAnime > 0;
+    final showManga = stats.totalManga > 0;
+    final total = stats.totalAnime + stats.totalManga;
+    final animePercent = total > 0 ? (stats.totalAnime / total * 100).round() : 0;
+    final mangaPercent = total > 0 ? (stats.totalManga / total * 100).round() : 0;
+
     return Column(
       children: [
         Row(
@@ -199,18 +324,59 @@ class _StatsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSizes.spacingS),
-        _RatioBar(anime: stats.totalAnime, manga: stats.totalManga),
-        const SizedBox(height: AppSizes.spacingS),
-        Wrap(
-          spacing: AppSizes.spacingS,
-          runSpacing: AppSizes.spacingS,
+        
+        // Bar rasio dengan legenda
+        if (total > 0) ...[
+          _RatioBar(anime: stats.totalAnime, manga: stats.totalManga),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (showAnime) _LegendItem(color: AppColors.infoBlue, label: l10n.animeLegend(animePercent)),
+              if (showManga) _LegendItem(color: AppColors.typeManga, label: l10n.mangaLegend(mangaPercent)),
+            ],
+          ),
+          const SizedBox(height: AppSizes.spacingS),
+        ],
+
+        // Grid statistik yang aman
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSizes.spacingS,
+          crossAxisSpacing: AppSizes.spacingS,
+          childAspectRatio: 2.8,
           children: [
-            _StatSecondaryCard(title: 'Days Watched', value: stats.daysWatched.toStringAsFixed(1), icon: Icons.access_time),
-            _StatSecondaryCard(title: 'Episodes', value: stats.totalEpisodes.toString(), icon: Icons.tv),
-            _StatSecondaryCard(title: 'Chapters Read', value: stats.totalChapters.toString(), icon: Icons.auto_stories),
-            _StatSecondaryCard(title: 'Volumes', value: stats.volumesRead.toString(), icon: Icons.library_books),
+            if (showAnime) ...[
+              _StatSecondaryCard(title: 'Hari Ditonton', value: stats.daysWatched.toStringAsFixed(1), icon: Icons.access_time),
+              _StatSecondaryCard(title: 'Episode', value: stats.totalEpisodes.toString(), icon: Icons.tv),
+            ],
+            if (showManga) ...[
+              _StatSecondaryCard(title: 'Chapter', value: stats.totalChapters.toString(), icon: Icons.auto_stories),
+              _StatSecondaryCard(title: 'Volume', value: stats.volumesRead.toString(), icon: Icons.library_books),
+            ],
           ],
         ),
+      ],
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendItem({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 4),
+        Text(label, style: Theme.of(context).textTheme.labelSmall),
       ],
     );
   }
@@ -252,30 +418,24 @@ class _StatHighlightCard extends StatelessWidget {
     return Semantics(
       label: '$title: $value',
       child: Card(
-        elevation: 0,
         color: color.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
           side: BorderSide(color: color.withValues(alpha: 0.5)),
         ),
-        child: InkWell(
-          onTap: () {
-          },
-          borderRadius: BorderRadius.circular(AppSizes.radiusM),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingM),
-            child: Column(
-              children: [
-                Icon(icon, color: color, size: 28),
-                const SizedBox(height: AppSizes.spacingS),
-                TweenAnimationBuilder<int>(
-                  tween: IntTween(begin: 0, end: value),
-                  duration: const Duration(milliseconds: 800),
-                  builder: (_, val, _) => Text('$val', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
-                ),
-                Text(title, style: Theme.of(context).textTheme.labelSmall),
-              ],
-            ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingM),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(height: AppSizes.spacingS),
+              TweenAnimationBuilder<int>(
+                tween: IntTween(begin: 0, end: value),
+                duration: const Duration(milliseconds: 800),
+                builder: (_, val, _) => Text('$val', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+              ),
+              Text(title, style: Theme.of(context).textTheme.labelSmall),
+            ],
           ),
         ),
       ),
@@ -295,7 +455,6 @@ class _StatSecondaryCard extends StatelessWidget {
     return Semantics(
       label: '$title: $value',
       child: Container(
-        width: (MediaQuery.sizeOf(context).width - AppSizes.spacingM * 2 - AppSizes.spacingS) / 2,
         padding: const EdgeInsets.all(AppSizes.spacingS),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
@@ -323,6 +482,39 @@ class _StatSecondaryCard extends StatelessWidget {
   }
 }
 
+class _ShimmerStats extends StatelessWidget {
+  const _ShimmerStats();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: ShimmerLoading(height: 100)),
+            const SizedBox(width: AppSizes.spacingS),
+            Expanded(child: ShimmerLoading(height: 100)),
+          ],
+        ),
+        const SizedBox(height: AppSizes.spacingS),
+        ShimmerLoading(height: 8),
+        const SizedBox(height: AppSizes.spacingS),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSizes.spacingS,
+          crossAxisSpacing: AppSizes.spacingS,
+          childAspectRatio: 2.8,
+          children: const [
+            ShimmerLoading(), ShimmerLoading(), ShimmerLoading(), ShimmerLoading(),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class _EmptyProfileState extends StatelessWidget {
   final VoidCallback onLihatKatalog;
   const _EmptyProfileState({required this.onLihatKatalog});
@@ -330,9 +522,6 @@ class _EmptyProfileState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 0,
-      color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusM)),
       child: Padding(
         padding: const EdgeInsets.all(AppSizes.spacingXl),
         child: Column(
@@ -371,15 +560,20 @@ class _LogoutButtonState extends State<_LogoutButton> {
   Future<void> _handleLogout() async {
     final confirmed = await widget.onConfirm();
     if (!confirmed) return;
-
+    
+    if (!mounted) return; // <-- Tambahkan pengecekan mounted
     setState(() => _isLoading = true);
+    
     try {
       await widget.onSignOut();
     } catch (e) {
       debugPrint('Logout error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal keluar, coba lagi.'), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.logoutFailed),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -395,10 +589,12 @@ class _LogoutButtonState extends State<_LogoutButton> {
         onPressed: _isLoading ? null : _handleLogout,
         icon: _isLoading 
             ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-            : const Icon(Icons.logout),
-        label: Text(_isLoading ? 'Memproses...' : 'Logout'),
+            : Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
+        label: Text(
+          _isLoading ? 'Memproses...' : 'Keluar Akun',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
         style: OutlinedButton.styleFrom(
-          foregroundColor: Theme.of(context).colorScheme.error,
           side: BorderSide(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5)),
           padding: const EdgeInsets.symmetric(vertical: 14),
         ),

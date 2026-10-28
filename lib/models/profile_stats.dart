@@ -93,4 +93,21 @@ class ProfileStats {
       totalCompleted.hashCode ^
       totalOngoing.hashCode ^
       totalEntries.hashCode;
+  
+    String get formattedWatchTime {
+    if (totalEpisodes == 0) return '0m';
+    final totalMinutes = totalEpisodes * 24;
+    if (totalMinutes < 60) return '${totalMinutes}m';
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    if (minutes == 0) return '${hours}j';
+    return '${hours}j ${minutes}m';
+  }
+
+  String get userLevel {
+    if (totalEpisodes < 50) return 'beginner';
+    if (totalEpisodes < 200) return 'intermediate';
+    return 'veteran';
+  }
+  
 }

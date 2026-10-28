@@ -151,5 +151,16 @@
   "claimFailed": "Failed to move old data.",
   "offlineBanner": "Offline Mode: Data may not be up to date.",
   "progressAdded": "Progress +1 successful.",
-  "congratsCompleted": "Congratulations! You completed this title."
+  "congratsCompleted": "Congratulations! You completed this title.",
+  "logoutTitle": "Log Out?",
+  "greeting": "Hello, {name}! 👋",
+  "totalWatchTime": "{hours} Hours",
+  "totalWatchTimeMinutes": "{minutes} Minutes",
+  "editProfile": "Edit Profile",
+  "noData": "No data yet",
+  "animeLegend": "Anime {percent}%",
+  "mangaLegend": "Manga {percent}%",
+  "levelBeginner": "Beginner",
+  "levelIntermediate": "Enthusiast",
+  "levelVeteran": "Veteran"
 }
