@@ -21,6 +21,7 @@ class _CatalogPageState extends State<CatalogPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Timer? _debounceTimer;
+  CatalogProvider? _catalogProvider;
 
   @override
   void initState() {
@@ -36,7 +37,28 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final catalog = Provider.of<CatalogProvider>(context, listen: false);
+    
+    // Sinkronisasi controller jika query di-reset dari luar
+    if (_catalogProvider != catalog) {
+      _catalogProvider?.removeListener(_syncSearchController);
+      _catalogProvider = catalog;
+      _catalogProvider?.addListener(_syncSearchController);
+    }
+  }
+
+  void _syncSearchController() {
+    if (_catalogProvider == null) return;
+    if (_catalogProvider!.query.isEmpty && _searchController.text.isNotEmpty) {
+      _searchController.clear();
+    }
+  }
+
+  @override
   void dispose() {
+    _catalogProvider?.removeListener(_syncSearchController);
     _searchController.dispose();
     _scrollController.dispose();
     _debounceTimer?.cancel();
@@ -98,6 +120,7 @@ class _CatalogPageState extends State<CatalogPage> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () {
+                            _searchController.clear();
                             catalog.clearFilters();
                             Navigator.pop(sheetCtx);
                           },
@@ -149,7 +172,6 @@ class _CatalogPageState extends State<CatalogPage> {
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
-                setState(() {});
                 if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
                 _debounceTimer = Timer(const Duration(milliseconds: 500), () {
                   context.read<CatalogProvider>().setQuery(value);
@@ -158,17 +180,22 @@ class _CatalogPageState extends State<CatalogPage> {
               decoration: InputDecoration(
                 hintText: l10n.searchHint,
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _debounceTimer?.cancel();
-                        _searchController.clear();
-                        context.read<CatalogProvider>().setQuery('');
-                        setState(() {});
-                      },
-                    )
-                    : null,
+                // Poin 7: ValueListenableBuilder agar tidak rebuild seluruh halaman
+                suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _searchController,
+                  builder: (_, value, __) {
+                    return value.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _debounceTimer?.cancel();
+                              _searchController.clear();
+                              context.read<CatalogProvider>().setQuery('');
+                            },
+                          )
+                        : const SizedBox.shrink();
+                  },
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -198,7 +225,10 @@ class _CatalogPageState extends State<CatalogPage> {
                     child: Chip(
                       avatar: const Icon(Icons.filter_alt, size: 16),
                       label: Text(l10n.activeFilter),
-                      onDeleted: () => catalog.clearFilters(),
+                      onDeleted: () {
+                        _searchController.clear();
+                        catalog.clearFilters();
+                      },
                     ),
                   ),
               ],
@@ -253,12 +283,16 @@ class _CatalogPageState extends State<CatalogPage> {
         subtitle: l10n.noResultsDesc,
         icon: Icons.search_off,
         actionLabel: l10n.resetFilter,
-        onAction: () => catalog.clearFilters(),
+        onAction: () {
+          _searchController.clear();
+          catalog.clearFilters();
+        },
       );
     }
 
     return CustomScrollView(
       controller: _scrollController,
+      cacheExtent: 500.0, 
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -285,6 +319,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 );
               },
               childCount: catalog.items.length,
+              addAutomaticKeepAlives: false,
             ),
           ),
         ),

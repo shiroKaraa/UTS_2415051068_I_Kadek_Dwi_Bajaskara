@@ -31,17 +31,18 @@ class CoverImage extends StatelessWidget {
     }
 
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final canResize = width != null && width!.isFinite;
+    final memWidth = width != null && width!.isFinite ? (width! * dpr).round() : null;
+    final memHeight = height != null && height!.isFinite ? (height! * dpr).round() : null;
 
     return CachedNetworkImage(
       imageUrl: url!,
       width: width,
       height: height,
       fit: fit,
-      memCacheWidth: canResize ? (width! * dpr).round() : null,
+      memCacheWidth: memWidth,
+      memCacheHeight: memHeight,
       placeholder: (context, url) => placeholder(Icons.image_outlined),
-      errorWidget: (context, url, error) =>
-          placeholder(Icons.broken_image_outlined),
+      errorWidget: (context, url, error) => placeholder(Icons.broken_image_outlined),
     );
   }
 }

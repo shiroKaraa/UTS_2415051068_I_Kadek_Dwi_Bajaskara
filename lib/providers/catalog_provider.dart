@@ -22,6 +22,7 @@ class CatalogProvider extends ChangeNotifier {
   List<ItemKatalog> _popularManga = [];
   bool _isLoadingPopular = false;
   bool _hasFetchedPopular = false;
+  bool _disposed = false;
   List<ItemKatalog> get items => _items;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -31,13 +32,22 @@ class CatalogProvider extends ChangeNotifier {
   String get query => _query;
   String? get filterGenre => _filterGenre;
   int? get filterTahun => _filterTahun;
-
   List<ItemKatalog> get topAnime => _popularAnime;
   List<ItemKatalog> get topManga => _popularManga;
   bool get isLoadingPopular => _isLoadingPopular;
 
   CatalogProvider() {
     fetchCatalog();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
   }
 
   String _pesanError(Object e) {
@@ -53,10 +63,11 @@ class CatalogProvider extends ChangeNotifier {
   Future<void> fetchCatalog() async {
     final gen = ++_requestGeneration;
     _isLoading = true;
+    _isLoadingMore = false;
     _errorMessage = null;
     _currentPage = 1;
     _hasNextPage = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final rawData = await _fetchData(_currentPage);
@@ -68,19 +79,21 @@ class CatalogProvider extends ChangeNotifier {
       if (gen != _requestGeneration) return;
       _errorMessage = _pesanError(e);
       _items = [];
+      _hasNextPage = false;
     } finally {
       if (gen == _requestGeneration) {
         _isLoading = false;
-        notifyListeners();
+        _safeNotify();
       }
     }
   }
 
   Future<void> loadMore() async {
     if (_isLoadingMore || !_hasNextPage || _isLoading) return;
+
     final gen = _requestGeneration;
     _isLoadingMore = true;
-    notifyListeners();
+    _safeNotify();
     
     try {
       final nextPage = _currentPage + 1;
@@ -92,38 +105,54 @@ class CatalogProvider extends ChangeNotifier {
       } else {
         _currentPage = nextPage;
         final newItems = rawData.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
-        final existingIds = _items.map((e) => e.malId).toSet();
-        _items.addAll(newItems.where((e) => !existingIds.contains(e.malId)));
+        
+        final existingIds = _items.map((e) => e.malId).whereType<int>().toSet();
+        final uniqueNewItems = newItems.where((e) => e.malId == null || !existingIds.contains(e.malId)).toList();
+        
+        _items.addAll(uniqueNewItems);
         
         if (rawData.length < 20) _hasNextPage = false;
       }
     } catch (e) {
       debugPrint('Gagal memuat halaman berikutnya: $e');
     } finally {
-      if (gen == _requestGeneration) {
-        _isLoadingMore = false;
-        notifyListeners();
-      }
+      _isLoadingMore = false;
+      if (gen == _requestGeneration) _safeNotify();
     }
   }
 
   Future<void> fetchPopularHome() async {
     if (_hasFetchedPopular) return;
+    if (_isLoadingPopular) return;
+
     _isLoadingPopular = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
-      final animeData = await _aniListService.getTop(jenis: JenisMedia.anime, page: 1);
-      final mangaData = await _aniListService.getTop(jenis: JenisMedia.manga, page: 1);
+      final results = await Future.wait([
+        _aniListService.getTop(jenis: JenisMedia.anime, page: 1)
+            .catchError((e) {
+              debugPrint('Gagal muat anime populer: $e');
+              return <Map<String, dynamic>>[];
+            }),
+        _aniListService.getTop(jenis: JenisMedia.manga, page: 1)
+            .catchError((e) {
+              debugPrint('Gagal muat manga populer: $e');
+              return <Map<String, dynamic>>[];
+            }),
+      ]);
       
-      _popularAnime = animeData.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
-      _popularManga = mangaData.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
-      _hasFetchedPopular = true;
+      _popularAnime = results[0].map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
+      _popularManga = results[1].map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
+      
+      if (_popularAnime.isNotEmpty || _popularManga.isNotEmpty) {
+        _hasFetchedPopular = true;
+      }
     } catch (e) {
       debugPrint('Gagal memuat data populer: $e');
     } finally {
       _isLoadingPopular = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -153,6 +182,7 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   void setQuery(String query) {
+    if (_query == query) return;
     _query = query;
     fetchCatalog();
   }
@@ -166,13 +196,15 @@ class CatalogProvider extends ChangeNotifier {
   void clearFilters() {
     _filterGenre = null;
     _filterTahun = null;
+    _query = ''; 
     fetchCatalog();
   }
 
   Future<void> refresh() async {
     _hasFetchedPopular = false;
-    await fetchCatalog();
-    await fetchPopularHome();
+    await Future.wait([
+      fetchCatalog(),
+      fetchPopularHome(),
+    ]);
   }
-  
 }
