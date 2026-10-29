@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/collection_entry.dart';
@@ -12,15 +14,24 @@ class BackupException implements Exception {
 }
 
 class BackupService {
-  Future<String> exportToJson(List<EntriKoleksi> entries) async {
+  static const int _currentVersion = 1;
+
+  Future<String> exportToJson(
+    List<EntriKoleksi> entries, {
+    Rect? sharePositionOrigin,
+  }) async {
     if (entries.isEmpty) {
-      throw BackupException('Collection is empty, nothing to export.');
+      throw BackupException('Koleksi kosong, tidak ada yang diekspor.');
     }
 
-    final List<Map<String, dynamic>> jsonList =
-        entries.map((e) => e.toBackupJson()).toList();
+    final items = entries.map((e) => e.toBackupJson()).toList();
+    final payload = {
+      'version': _currentVersion,
+      'exported_at': DateTime.now().toUtc().toIso8601String(),
+      'items': items,
+    };
     final String jsonString =
-        const JsonEncoder.withIndent('  ').convert(jsonList);
+        const JsonEncoder.withIndent('  ').convert(payload);
 
     final directory = await getTemporaryDirectory();
     final timestamp = DateTime.now()
@@ -29,7 +40,7 @@ class BackupService {
         .split('.')
         .first;
     final fileName = 'tsuzuki_backup_$timestamp.json';
-    final file = File('${directory.path}/$fileName');
+    final file = File(p.join(directory.path, fileName));
     await file.writeAsString(jsonString);
 
     final sizeKb = (jsonString.length / 1024).toStringAsFixed(1);
@@ -40,7 +51,12 @@ class BackupService {
       text:
           'Tsuzuki collection backup file (${entries.length} items, ~$sizeKb KB). '
           'Store this file in a safe place (Google Drive, Files, etc).',
+      sharePositionOrigin: sharePositionOrigin,
     );
+
+    try {
+      await file.delete();
+    } catch (_) {}
 
     return file.path;
   }
@@ -50,44 +66,49 @@ class BackupService {
     try {
       decoded = jsonDecode(jsonString);
     } on FormatException {
-      throw BackupException('File is not valid JSON.');
+      throw BackupException('File bukan JSON yang valid.');
     }
 
-    if (decoded is! List) {
+    List<dynamic> items;
+    if (decoded is List) {
+      items = decoded;
+    } else if (decoded is Map<String, dynamic> && decoded['items'] is List) {
+      items = decoded['items'] as List<dynamic>;
+    } else {
       throw BackupException(
-        'Invalid file format. Must be a JSON array.',
+        'Format file tidak dikenali. Harus berupa array JSON atau objek {items: [...]}.',
       );
     }
 
     final entries = <EntriKoleksi>[];
-    for (int i = 0; i < decoded.length; i++) {
-      final raw = decoded[i];
+    for (int i = 0; i < items.length; i++) {
+      final raw = items[i];
       if (raw is! Map<String, dynamic>) {
-        throw BackupException('Entry #${i + 1}: invalid format.');
+        throw BackupException('Entri #${i + 1}: format tidak valid.');
       }
 
       final judul = raw['judul'];
       if (judul == null || (judul is String && judul.trim().isEmpty)) {
-        throw BackupException('Entry #${i + 1}: "judul" is required.');
+        throw BackupException('Entri #${i + 1}: "judul" wajib diisi.');
       }
       if (raw['jenis'] == null) {
-        throw BackupException('Entry #${i + 1}: "jenis" is required.');
+        throw BackupException('Entri #${i + 1}: "jenis" wajib diisi.');
       }
       if (raw['status'] == null) {
-        throw BackupException('Entry #${i + 1}: "status" is required.');
+        throw BackupException('Entri #${i + 1}: "status" wajib diisi.');
       }
 
       try {
         entries.add(EntriKoleksi.fromJson(raw));
       } catch (e) {
         throw BackupException(
-          'Entry #${i + 1}: failed to read (${e.toString()}).',
+          'Entri #${i + 1}: gagal dibaca (${e.toString()}).',
         );
       }
     }
 
     if (entries.isEmpty) {
-      throw BackupException('File is empty, no data to import.');
+      throw BackupException('File kosong, tidak ada data untuk diimpor.');
     }
 
     return entries;

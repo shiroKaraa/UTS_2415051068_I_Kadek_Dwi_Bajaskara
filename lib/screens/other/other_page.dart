@@ -9,6 +9,7 @@ import '../../models/status_collection_enum.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../collection/collection_page.dart';
 import '../info/about_page.dart';
 import '../settings/category_page.dart';
 import '../info/help_page.dart';
@@ -42,7 +43,7 @@ class OtherPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSizes.spacingM),
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.goldPrimary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
@@ -51,7 +52,23 @@ class OtherPage extends StatelessWidget {
                         children: [
                           const Icon(Icons.wifi_off, color: AppColors.goldPrimary, size: 20),
                           const SizedBox(width: 8),
-                          Text(l10n.offlineMode, style: const TextStyle(fontSize: 12)),
+                          Expanded(
+                            child: Text(l10n.offlineMode,
+                                style: const TextStyle(fontSize: 12)),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final provider = context.read<CollectionProvider>();
+                              final messenger = ScaffoldMessenger.of(context);
+                              final ok = await provider.retryConnection();
+                              if (!context.mounted) return;
+                              messenger.showSnackBar(SnackBar(
+                                content: Text(ok ? l10n.progressAdded : l10n.stillOffline),
+                              ));
+                            },
+                            child: Text(l10n.retryConnection,
+                                style: const TextStyle(fontSize: 12)),
+                          ),
                         ],
                       ),
                     ),
@@ -177,7 +194,12 @@ class _ActivityStats extends StatelessWidget {
   }
 
   void _navigateToFiltered(BuildContext context, StatusKoleksi? status) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const StatisticsPage()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CollectionPage(initialStatus: status),
+      ),
+    );
   }
 }
 

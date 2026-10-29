@@ -28,19 +28,29 @@ class ProfileStats {
   factory ProfileStats.fromEntries(List<EntriKoleksi> entries) {
     if (entries.isEmpty) return const ProfileStats();
 
-    int anime = 0, episodes = 0, manga = 0, chapters = 0, completed = 0, ongoing = 0;
+    int anime = 0;
+    int episodes = 0;
+    int manga = 0;
+    int chapters = 0;
+    int mangaOnlyChapters = 0;
+    int completed = 0;
+    int ongoing = 0;
     const double avgEpisodeMinutes = 24.0;
 
     for (var e in entries) {
       if (e.status == StatusKoleksi.selesai) completed++;
       if (e.status == StatusKoleksi.sedang) ongoing++;
-      
+
       switch (e.jenis) {
         case JenisMedia.anime:
           anime++;
           episodes += e.progres;
           break;
         case JenisMedia.manga:
+          manga++;
+          chapters += e.progres;
+          mangaOnlyChapters += e.progres;
+          break;
         case JenisMedia.manhwa:
         case JenisMedia.manhua:
           manga++;
@@ -52,7 +62,7 @@ class ProfileStats {
     }
 
     final days = (episodes * avgEpisodeMinutes) / 1440;
-    final volumes = (chapters / 9).floor();
+    final volumes = (mangaOnlyChapters / 9).floor();
 
     return ProfileStats(
       totalAnime: anime,
@@ -60,7 +70,7 @@ class ProfileStats {
       daysWatched: days,
       totalManga: manga,
       totalChapters: chapters,
-      volumesRead: volumes > 0 ? volumes : (chapters > 0 ? 1 : 0),
+      volumesRead: volumes > 0 ? volumes : (mangaOnlyChapters > 0 ? 1 : 0),
       totalCompleted: completed,
       totalOngoing: ongoing,
       totalEntries: entries.length,
@@ -93,8 +103,8 @@ class ProfileStats {
       totalCompleted.hashCode ^
       totalOngoing.hashCode ^
       totalEntries.hashCode;
-  
-    String get formattedWatchTime {
+
+  String get formattedWatchTime {
     if (totalEpisodes == 0) return '0m';
     final totalMinutes = totalEpisodes * 24;
     if (totalMinutes < 60) return '${totalMinutes}m';
@@ -109,5 +119,4 @@ class ProfileStats {
     if (totalEpisodes < 200) return 'intermediate';
     return 'veteran';
   }
-  
 }

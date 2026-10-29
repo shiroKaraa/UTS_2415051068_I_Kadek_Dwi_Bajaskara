@@ -45,9 +45,9 @@ class EntryFormFields extends StatelessWidget {
         children: [
           DropdownButtonFormField<StatusKoleksi>(
             initialValue: status,
-            decoration: const InputDecoration(
-              labelText: 'Status',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.fieldStatus,
+              border: const OutlineInputBorder(),
             ),
             items: StatusKoleksi.values.map((s) {
               return DropdownMenuItem(
@@ -66,18 +66,22 @@ class EntryFormFields extends StatelessWidget {
                 child: TextFormField(
                   controller: progresController,
                   decoration: InputDecoration(
-                    labelText:
-                        '${l10n.progress} (${jenisMedia.satuanProgres(l10n)})',
+                    labelText: l10n.fieldProgressUnit(
+                        jenisMedia.satuanProgres(l10n)),
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (val) {
-                    if (val == null || val.isEmpty) return 'Wajib diisi';
+                    if (val == null || val.isEmpty) {
+                      return l10n.fieldRequired;
+                    }
                     final num = int.tryParse(val);
-                    if (num == null) return 'Harus angka';
-                    if (num < 0) return 'Tidak boleh negatif';
+                    if (num == null) return l10n.fieldMustBeNumber;
+                    if (num < 0) return l10n.fieldNotNegative;
                     final total = int.tryParse(totalController.text);
-                    if (total != null && num > total) return 'Melebihi total';
+                    if (total != null && num > total) {
+                      return l10n.fieldExceedsTotal;
+                    }
                     return null;
                   },
                 ),
@@ -86,16 +90,16 @@ class EntryFormFields extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   controller: totalController,
-                  decoration: const InputDecoration(
-                    labelText: 'Total',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.fieldTotal,
+                    border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (val) {
                     if (val != null &&
                         val.isNotEmpty &&
                         int.tryParse(val) == null) {
-                      return 'Harus angka';
+                      return l10n.fieldMustBeNumber;
                     }
                     return null;
                   },
@@ -106,9 +110,9 @@ class EntryFormFields extends StatelessWidget {
           const SizedBox(height: AppSizes.spacingM),
           DropdownButtonFormField<int>(
             initialValue: rating,
-            decoration: const InputDecoration(
-              labelText: 'Rating (Opsional)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.fieldRating,
+              border: const OutlineInputBorder(),
             ),
             items: [
               const DropdownMenuItem(value: null, child: Text('-')),
@@ -125,7 +129,7 @@ class EntryFormFields extends StatelessWidget {
           TextFormField(
             controller: catatanController,
             decoration: InputDecoration(
-              labelText: '${l10n.note} (Opsional)',
+              labelText: l10n.fieldNote,
               border: const OutlineInputBorder(),
             ),
             maxLines: 3,

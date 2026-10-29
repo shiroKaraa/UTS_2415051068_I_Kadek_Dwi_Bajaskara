@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../models/collection_entry.dart';
 import '../../models/status_collection_enum.dart';
 import '../../providers/collection_provider.dart';
+import 'progress_bar.dart';
 import 'cover_image.dart';
 
 class CollectionCard extends StatelessWidget {
@@ -67,8 +68,8 @@ class CollectionCard extends StatelessWidget {
                       top: 8,
                       left: 8,
                       child: Icon(
-                        Icons.star,
-                        color: AppColors.goldPrimary,
+                        Icons.favorite,
+                        color: Colors.redAccent,
                         size: 20,
                       ),
                     ),
@@ -133,12 +134,7 @@ class CollectionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
-            color: AppColors.primaryGreen,
-            minHeight: 3,
-          ),
+          ProgressBar(value: progress),
         ],
       ),
     );

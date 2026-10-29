@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../core/app_colors.dart';
 import '../../../core/app_sizes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/auth_provider.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -16,9 +16,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _passwordController;
+  late TextEditingController _confirmController;
 
   String _selectedEmoji = '👤';
-  final List<String> _emojis = ['👤', '🐱', '🐶', '🦊', '🐼', '🦁', '🐧', '🐲', '🌸', '🍀'];
+  final List<String> _emojis = [
+    '👤', '🐱', '🐶', '🦊', '🐼', '🦁', '🐧', '🐲', '🌸', '🍀'
+  ];
 
   @override
   void initState() {
@@ -28,6 +31,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       text: auth.displayName ?? auth.username ?? '',
     );
     _passwordController = TextEditingController();
+    _confirmController = TextEditingController();
     _selectedEmoji = auth.avatarEmoji ?? '👤';
   }
 
@@ -35,51 +39,72 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void dispose() {
     _nameController.dispose();
     _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
   Future<void> _simpan() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final auth = context.read<AuthProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     final profileOk = await auth.updateProfile(
-      displayName: _nameController.text,
+      displayName: _nameController.text.trim(),
       avatarEmoji: _selectedEmoji,
     );
 
     if (!profileOk) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error ?? 'Gagal update profil'), backgroundColor: Colors.redAccent),
+      messenger.showSnackBar(
+        SnackBar(
+            content: Text(auth.error ?? l10n.loginFailedTitle),
+            backgroundColor: Colors.redAccent),
       );
       return;
     }
 
-    if (_passwordController.text.isNotEmpty) {
-      final passOk = await auth.updatePassword(_passwordController.text);
-      if (!passOk) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error ?? 'Gagal update password'), backgroundColor: Colors.redAccent),
-        );
-        return;
-      }
+    final passwordBaru = _passwordController.text;
+    if (passwordBaru.isEmpty) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.profileUpdated)),
+      );
+      navigator.pop();
+      return;
     }
 
+    final passOk = await auth.updatePassword(passwordBaru);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profil berhasil diperbarui!')),
+
+    if (!passOk) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileSavedPasswordFailed),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      navigator.pop();
+      return;
+    }
+
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.profilePasswordSaved)),
     );
-    Navigator.pop(context);
+    navigator.pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final auth = context.watch<AuthProvider>();
     final isLoading = auth.isLoading;
+    final passwordBaru = _passwordController.text;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profil')),
+      appBar: AppBar(title: Text(l10n.editProfile)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSizes.spacingL),
         child: Form(
@@ -87,7 +112,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Pilih Avatar', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(l10n.chooseAvatar,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: AppSizes.spacingS),
               Wrap(
                 spacing: AppSizes.spacingS,
@@ -106,11 +132,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             : Theme.of(context).cardColor,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected ? AppColors.primaryGreen : Colors.transparent,
+                          color: isSelected
+                              ? AppColors.primaryGreen
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
-                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                      child:
+                          Text(emoji, style: const TextStyle(fontSize: 24)),
                     ),
                   );
                 }).toList(),
@@ -118,14 +147,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
               const SizedBox(height: AppSizes.spacingL),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Tampilan',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.badge_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.displayNameLabel,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.badge_outlined),
                 ),
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Nama tidak boleh kosong';
-                  if (val.length > 30) return 'Maksimal 30 karakter';
+                  final v = (val ?? '').trim();
+                  if (v.isEmpty) return l10n.displayNameEmpty;
+                  if (v.length > 30) return l10n.displayNameMaxLength;
                   return null;
                 },
               ),
@@ -133,19 +163,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password Baru (Opsional)',
-                  helperText: 'Biarkan kosong jika tidak ingin mengubah password',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock_outline),
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  labelText: l10n.newPasswordLabel,
+                  helperText: l10n.newPasswordHint,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock_outline),
                 ),
                 validator: (val) {
                   if (val != null && val.isNotEmpty && val.length < 6) {
-                    return 'Password minimal 6 karakter';
+                    return l10n.passwordMinLength;
                   }
                   return null;
                 },
               ),
+              if (passwordBaru.isNotEmpty) ...[
+                const SizedBox(height: AppSizes.spacingM),
+                TextFormField(
+                  controller: _confirmController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.confirmPasswordHint,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                  ),
+                  validator: (val) {
+                    if (passwordBaru.isNotEmpty && val != passwordBaru) {
+                      return l10n.confirmPasswordMismatch;
+                    }
+                    return null;
+                  },
+                ),
+              ],
               const SizedBox(height: AppSizes.spacingXl),
               SizedBox(
                 width: double.infinity,
@@ -157,8 +206,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     foregroundColor: Colors.black,
                   ),
                   child: isLoading
-                      ? const CircularProgressIndicator(color: Colors.black)
-                      : const Text('Simpan Perubahan', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(l10n.saveChanges,
+                          style:
+                              const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

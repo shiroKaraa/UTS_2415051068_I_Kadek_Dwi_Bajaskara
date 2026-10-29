@@ -14,11 +14,14 @@ import '../../widgets/error_view.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/collection_card.dart';
 import '../../widgets/cover_image.dart';
+import '../catalog/catalog_page.dart';
 import 'collection_detail_page.dart';
 import 'edit_entry_page.dart';
 
 class CollectionPage extends StatefulWidget {
-  const CollectionPage({super.key});
+  final StatusKoleksi? initialStatus;
+
+  const CollectionPage({super.key, this.initialStatus});
 
   @override
   State<CollectionPage> createState() => _CollectionPageState();
@@ -33,6 +36,10 @@ class _CollectionPageState extends State<CollectionPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<CollectionProvider>();
+      if (widget.initialStatus != null &&
+          provider.filterStatus != widget.initialStatus) {
+        provider.setFilterStatus(widget.initialStatus);
+      }
       if (_searchController.text != provider.query) {
         _searchController.text = provider.query;
       }
@@ -175,14 +182,32 @@ class _CollectionPageState extends State<CollectionPage> {
         title: Text(l10n.navCollection),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.filter_list),
+                if (collection.hasActiveFilters)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             tooltip: l10n.activeFilter,
             onPressed: () => _showFilterSheet(context, l10n),
           ),
           IconButton(
             icon: Icon(
                 collection.isListView ? Icons.grid_view : Icons.view_list),
-            tooltip: collection.isListView ? 'Grid View' : 'List View',
+            tooltip: collection.isListView ? l10n.gridView : l10n.listView,
             onPressed: () => collection.toggleView(),
           ),
           PopupMenuButton<UrutanKoleksi>(
@@ -289,6 +314,19 @@ class _CollectionPageState extends State<CollectionPage> {
                     child: Text(l10n.offlineBanner,
                         style: const TextStyle(fontSize: 12)),
                   ),
+                  TextButton(
+                    onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final ok = await collection.retryConnection();
+                      if (!context.mounted) return;
+                      messenger.showSnackBar(SnackBar(
+                        content:
+                            Text(ok ? l10n.progressAdded : l10n.stillOffline),
+                      ));
+                    },
+                    child: Text(l10n.retryConnection,
+                        style: const TextStyle(fontSize: 12)),
+                  ),
                 ],
               ),
             ),
@@ -364,33 +402,22 @@ class _CollectionPageState extends State<CollectionPage> {
 
     if (collection.entries.isEmpty) {
       final isFiltered = collection.hasActiveFilters;
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: EmptyView(
-                title: isFiltered ? l10n.noResults : l10n.emptyCollection,
-                subtitle:
-                    isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
-                icon: isFiltered
-                    ? Icons.search_off
-                    : Icons.collections_bookmark_outlined,
-                actionLabel: isFiltered ? l10n.resetFilter : l10n.searchNow,
-                onAction: isFiltered
-                    ? () => collection.clearFilters()
-                    : () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Silakan buka tab Katalog untuk mencari.')),
-                        );
-                      },
-              ),
-            ),
-          );
-        },
+      return EmptyView(
+        title: isFiltered ? l10n.noResults : l10n.emptyCollection,
+        subtitle:
+            isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
+        icon: isFiltered
+            ? Icons.search_off
+            : Icons.collections_bookmark_outlined,
+        actionLabel: isFiltered ? l10n.resetFilter : l10n.searchNow,
+        onAction: isFiltered
+            ? () => collection.clearFilters()
+            : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CatalogPage()),
+                );
+              },
       );
     }
 

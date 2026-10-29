@@ -126,13 +126,17 @@ class EntriKoleksi {
   }
 
   EntriKoleksi copyWith({
+    bool clearId = false,
     int? id,
     String? userId,
     String? deviceId,
     JenisMedia? jenis,
+    bool clearKategoriId = false,
     int? kategoriId,
+    bool clearExternalId = false,
     String? externalId,
     String? judul,
+    bool clearCoverUrl = false,
     String? coverUrl,
     StatusKoleksi? status,
     int? progres,
@@ -147,14 +151,14 @@ class EntriKoleksi {
     DateTime? updatedAt,
   }) {
     return EntriKoleksi(
-      id: id ?? this.id,
+      id: clearId ? null : (id ?? this.id),
       userId: userId ?? this.userId,
       deviceId: deviceId ?? this.deviceId,
       jenis: jenis ?? this.jenis,
-      kategoriId: kategoriId ?? this.kategoriId,
-      externalId: externalId ?? this.externalId,
+      kategoriId: clearKategoriId ? null : (kategoriId ?? this.kategoriId),
+      externalId: clearExternalId ? null : (externalId ?? this.externalId),
       judul: judul ?? this.judul,
-      coverUrl: coverUrl ?? this.coverUrl,
+      coverUrl: clearCoverUrl ? null : (coverUrl ?? this.coverUrl),
       status: status ?? this.status,
       progres: progres ?? this.progres,
       total: clearTotal ? null : (total ?? this.total),

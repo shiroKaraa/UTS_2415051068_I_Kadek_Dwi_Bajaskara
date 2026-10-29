@@ -39,13 +39,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
       },
       {
         'icon': Icons.track_changes,
-        'title': 'Lacak Progresmu',
-        'desc': 'Catat episode atau chapter yang sudah kamu tonton dan baca dengan mudah.',
+        'title': l10n.onboardingSlide2Title,
+        'desc': l10n.onboardingSlide2Desc,
       },
       {
         'icon': Icons.collections_bookmark,
-        'title': 'Koleksi Pribadi',
-        'desc': 'Simpan judul favoritmu, beri rating, dan buat catatan pribadi.',
+        'title': l10n.onboardingSlide3Title,
+        'desc': l10n.onboardingSlide3Desc,
       },
     ];
 

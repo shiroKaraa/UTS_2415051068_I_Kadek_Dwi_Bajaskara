@@ -8,6 +8,7 @@ class EmptyView extends StatelessWidget {
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final bool scrollable;
 
   const EmptyView({
     super.key,
@@ -16,21 +17,23 @@ class EmptyView extends StatelessWidget {
     this.icon = Icons.inbox_outlined,
     this.actionLabel,
     this.onAction,
+    this.scrollable = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    
+
     final displayTitle = title ?? l10n.errorEmptyData;
     final displaySubtitle = subtitle ?? l10n.noResultsDesc;
 
-    return Center(
+    final content = Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(24),
@@ -69,6 +72,24 @@ class EmptyView extends StatelessWidget {
           ],
         ),
       ),
+    );
+
+    if (!scrollable) return content;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight.isFinite
+                  ? constraints.maxHeight
+                  : 0,
+            ),
+            child: content,
+          ),
+        );
+      },
     );
   }
 }

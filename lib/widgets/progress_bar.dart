@@ -17,8 +17,8 @@ class ProgressBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(4),
       child: LinearProgressIndicator(
         value: value.clamp(0.0, 1.0),
-        minHeight: 6,
-        backgroundColor: AppColors.darkCard,
+        minHeight: 8,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         valueColor: AlwaysStoppedAnimation<Color>(
           color ?? AppColors.primaryGreen,
         ),

@@ -180,7 +180,7 @@ class AuthService {
     try {
       final data = await _supabase
           .from('profiles')
-          .select('id, username, created_at')
+          .select('id, username, display_name, avatar_emoji, created_at')
           .eq('id', user.id)
           .maybeSingle();
       return data;
@@ -258,6 +258,12 @@ class AuthService {
     if (msg.contains('password should be')) {
       return 'Password terlalu lemah (minimal 6 karakter).';
     }
-    return e.message;
+    if (msg.contains('timeout') || msg.contains('timed out')) {
+      return 'Server terlalu lama merespons. Coba lagi.';
+    }
+    if (msg.contains('network') || msg.contains('socket')) {
+      return 'Masalah koneksi internet. Periksa jaringan Anda.';
+    }
+    return 'Terjadi kesalahan. Silakan coba lagi.';
   }
 }

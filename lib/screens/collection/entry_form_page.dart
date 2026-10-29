@@ -26,6 +26,7 @@ class _EntryFormPageState extends State<EntryFormPage> {
   late TextEditingController _totalController;
   late TextEditingController _catatanController;
   int? _rating;
+  bool _isDirty = false;
 
   @override
   void initState() {
@@ -51,18 +52,72 @@ class _EntryFormPageState extends State<EntryFormPage> {
     final l10n = AppLocalizations.of(context)!;
     final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
 
     final progresBaru = int.tryParse(_progresController.text) ?? 0;
+    final totalBaru = int.tryParse(_totalController.text);
+    final judul = widget.item.displayTitle;
+
+    // B-23: auto-suggest status Selesai.
+    var statusUntukSimpan = _status;
+    if (totalBaru != null &&
+        progresBaru >= totalBaru &&
+        _status != StatusKoleksi.selesai) {
+      final suggest = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.statusSuggestCompleted),
+          content: Text(l10n.statusSuggestCompletedDesc),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.no),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.yes),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (suggest == true) {
+        statusUntukSimpan = StatusKoleksi.selesai;
+      }
+    }
+
+    if (collection.hasDuplicateTitle(judul, widget.item.jenis)) {
+      final lanjut = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.inCollection),
+          content: Text(l10n.duplicateTitleWarning),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.addAnyway),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (lanjut != true) return;
+    }
 
     final entriBaru = EntriKoleksi(
       deviceId: settings.deviceId,
       jenis: widget.item.jenis,
       externalId: 'al:${widget.item.anilistId}',
-      judul: widget.item.displayTitle,
+      judul: judul,
       coverUrl: widget.item.coverUrl,
-      status: _status,
+      status: statusUntukSimpan,
       progres: progresBaru,
-      total: int.tryParse(_totalController.text),
+      total: totalBaru,
       rating: _rating,
       catatan: _catatanController.text.trim().isEmpty
           ? null
@@ -73,15 +128,42 @@ class _EntryFormPageState extends State<EntryFormPage> {
     if (!mounted) return;
 
     if (berhasil) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.addToCollection)),
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.entryAdded)),
       );
-      Navigator.pop(context);
+      navigator.pop();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)),
       );
     }
+  }
+
+  Future<void> _onWillPop() async {
+    if (!_isDirty) {
+      Navigator.pop(context);
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.unsavedChangesTitle),
+        content: Text(l10n.unsavedChangesDesc),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.keepEditing),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: Text(l10n.discard),
+          ),
+        ],
+      ),
+    );
+    if (discard == true && mounted) Navigator.pop(context);
   }
 
   @override
@@ -90,44 +172,63 @@ class _EntryFormPageState extends State<EntryFormPage> {
     final isSaving =
         context.select<CollectionProvider, bool>((c) => c.isSaving);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.addToCollection)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.spacingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: ListTile(
-                leading: SizedBox(
-                  width: 40,
-                  height: 60,
-                  child: CoverImage(url: widget.item.coverUrl),
-                ),
-                title: Text(widget.item.displayTitle),
-                subtitle: Text(
-                  '${widget.item.jenis.label(l10n)} • '
-                  '${widget.item.total ?? "?"} '
-                  '${widget.item.jenis.satuanProgres(l10n)}',
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await _onWillPop();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(l10n.addToCollection)),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSizes.spacingM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Card(
+                child: ListTile(
+                  leading: SizedBox(
+                    width: 40,
+                    height: 60,
+                    child: CoverImage(url: widget.item.coverUrl),
+                  ),
+                  title: Text(widget.item.displayTitle),
+                  subtitle: Text(
+                    '${widget.item.jenis.label(l10n)} • '
+                    '${widget.item.total ?? "?"} '
+                    '${widget.item.jenis.satuanProgres(l10n)}',
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSizes.spacingM),
-            EntryFormFields(
-              jenisMedia: widget.item.jenis,
-              formKey: _formKey,
-              status: _status,
-              onStatusChanged: (val) => setState(() => _status = val),
-              progresController: _progresController,
-              totalController: _totalController,
-              rating: _rating,
-              onRatingChanged: (val) => setState(() => _rating = val),
-              catatanController: _catatanController,
-              isSaving: isSaving,
-              onSimpan: _simpan,
-              buttonText: l10n.save,
-            ),
-          ],
+              const SizedBox(height: AppSizes.spacingM),
+              NotificationListener<Notification>(
+                onNotification: (_) {
+                  if (!_isDirty) setState(() => _isDirty = true);
+                  return false;
+                },
+                child: EntryFormFields(
+                  jenisMedia: widget.item.jenis,
+                  formKey: _formKey,
+                  status: _status,
+                  onStatusChanged: (val) => setState(() {
+                    _status = val;
+                    _isDirty = true;
+                  }),
+                  progresController: _progresController,
+                  totalController: _totalController,
+                  rating: _rating,
+                  onRatingChanged: (val) => setState(() {
+                    _rating = val;
+                    _isDirty = true;
+                  }),
+                  catatanController: _catatanController,
+                  isSaving: isSaving,
+                  onSimpan: _simpan,
+                  buttonText: l10n.save,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

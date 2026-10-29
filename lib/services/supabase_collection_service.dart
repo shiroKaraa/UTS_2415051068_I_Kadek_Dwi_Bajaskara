@@ -5,6 +5,9 @@ import 'collection_data_source.dart';
 class SupabaseCollectionService implements CollectionDataSource {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  static const int _pageSize = 500;
+  static const Duration _timeout = Duration(seconds: 10);
+
   String _requireUserId() {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('Pengguna belum login.');
@@ -13,16 +16,29 @@ class SupabaseCollectionService implements CollectionDataSource {
 
   @override
   Future<List<EntriKoleksi>> getCollection(String userId) async {
-    final response = await _supabase
-        .from('koleksi')
-        .select()
-        .eq('user_id', userId)
-        .order('updated_at', ascending: false)
-        .timeout(const Duration(seconds: 5), onTimeout: () => throw Exception('Koneksi lambat / Offline'));
+    final all = <EntriKoleksi>[];
+    int from = 0;
 
-    return (response as List)
-        .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
-        .toList();
+    while (true) {
+      final response = await _supabase
+          .from('koleksi')
+          .select()
+          .eq('user_id', userId)
+          .order('updated_at', ascending: false)
+          .range(from, from + _pageSize - 1)
+          .timeout(_timeout,
+              onTimeout: () => throw Exception('Koneksi lambat / Offline'));
+
+      final batch = (response as List)
+          .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      all.addAll(batch);
+      if (batch.length < _pageSize) break;
+      from += _pageSize;
+    }
+
+    return all;
   }
 
   @override

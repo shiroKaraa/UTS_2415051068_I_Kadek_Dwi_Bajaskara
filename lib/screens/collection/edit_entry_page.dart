@@ -24,6 +24,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
   late TextEditingController _totalController;
   late TextEditingController _catatanController;
   int? _rating;
+  bool _isDirty = false;
 
   @override
   void initState() {
@@ -58,8 +59,32 @@ class _EditEntryPageState extends State<EditEntryPage> {
         ? null
         : _catatanController.text.trim();
 
+    var statusUntukSimpan = _status;
+    if (totalBaru != null &&
+        progresBaru >= totalBaru &&
+        _status != StatusKoleksi.selesai) {
+      final suggest = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.statusSuggestCompleted),
+          content: Text(l10n.statusSuggestCompletedDesc),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.no),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.yes),
+            ),
+          ],
+        ),
+      );
+      if (suggest == true) statusUntukSimpan = StatusKoleksi.selesai;
+    }
+
     final entriUpdate = widget.entri.copyWith(
-      status: _status,
+      status: statusUntukSimpan,
       progres: progresBaru,
       total: totalBaru,
       clearTotal: totalBaru == null,
@@ -75,7 +100,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
     if (berhasil) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.save)),
+        SnackBar(content: Text(l10n.entryUpdated)),
       );
       Navigator.pop(context);
     } else {
@@ -85,50 +110,96 @@ class _EditEntryPageState extends State<EditEntryPage> {
     }
   }
 
+  Future<void> _onWillPop() async {
+    if (!_isDirty) {
+      Navigator.pop(context);
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.unsavedChangesTitle),
+        content: Text(l10n.unsavedChangesDesc),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.keepEditing),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: Text(l10n.discard),
+          ),
+        ],
+      ),
+    );
+    if (discard == true && mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isSaving =
         context.select<CollectionProvider, bool>((c) => c.isSaving);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.edit)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.spacingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: ListTile(
-                leading: SizedBox(
-                  width: 40,
-                  height: 60,
-                  child: CoverImage(url: widget.entri.coverUrl),
-                ),
-                title: Text(widget.entri.judul),
-                subtitle: Text(
-                  '${widget.entri.jenis.label(l10n)} • '
-                  '${widget.entri.total ?? "?"} '
-                  '${widget.entri.jenis.satuanProgres(l10n)}',
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await _onWillPop();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(l10n.edit)),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSizes.spacingM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Card(
+                child: ListTile(
+                  leading: SizedBox(
+                    width: 40,
+                    height: 60,
+                    child: CoverImage(url: widget.entri.coverUrl),
+                  ),
+                  title: Text(widget.entri.judul),
+                  subtitle: Text(
+                    '${widget.entri.jenis.label(l10n)} • '
+                    '${widget.entri.total ?? "?"} '
+                    '${widget.entri.jenis.satuanProgres(l10n)}',
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSizes.spacingM),
-            EntryFormFields(
-              jenisMedia: widget.entri.jenis,
-              formKey: _formKey,
-              status: _status,
-              onStatusChanged: (val) => setState(() => _status = val),
-              progresController: _progresController,
-              totalController: _totalController,
-              rating: _rating,
-              onRatingChanged: (val) => setState(() => _rating = val),
-              catatanController: _catatanController,
-              isSaving: isSaving,
-              onSimpan: _simpan,
-              buttonText: l10n.save,
-            ),
-          ],
+              const SizedBox(height: AppSizes.spacingM),
+              NotificationListener<Notification>(
+                onNotification: (_) {
+                  if (!_isDirty) setState(() => _isDirty = true);
+                  return false;
+                },
+                child: EntryFormFields(
+                  jenisMedia: widget.entri.jenis,
+                  formKey: _formKey,
+                  status: _status,
+                  onStatusChanged: (val) => setState(() {
+                    _status = val;
+                    _isDirty = true;
+                  }),
+                  progresController: _progresController,
+                  totalController: _totalController,
+                  rating: _rating,
+                  onRatingChanged: (val) => setState(() {
+                    _rating = val;
+                    _isDirty = true;
+                  }),
+                  catatanController: _catatanController,
+                  isSaving: isSaving,
+                  onSimpan: _simpan,
+                  buttonText: l10n.save,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

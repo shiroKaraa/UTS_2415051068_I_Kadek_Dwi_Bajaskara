@@ -27,6 +27,59 @@ class MediaCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final satuan = item.jenis.satuanProgres(l10n);
 
+    final poster = ClipRRect(
+      borderRadius: BorderRadius.circular(AppSizes.radiusM),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CoverImage(url: item.coverUrl),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 60,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.8),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (onAddProgress != null)
+            Positioned(
+              bottom: AppSizes.spacingS,
+              right: AppSizes.spacingS,
+              child: Material(
+                color: AppColors.primaryGreen,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  onTap: onAddProgress,
+                  customBorder: const CircleBorder(),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Icon(Icons.add, color: Colors.black, size: 20),
+                  ),
+                ),
+              ),
+            ),
+          Positioned(
+            top: AppSizes.spacingS,
+            left: AppSizes.spacingS,
+            child: MediaTypeChip(
+              label: item.jenis.label(l10n),
+              dotColor: _getColorForType(item.jenis.label(l10n)),
+            ),
+          ),
+        ],
+      ),
+    );
+
     return SizedBox(
       width: width,
       child: InkWell(
@@ -37,61 +90,9 @@ class MediaCard extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: AppSizes.aspectRatioPoster,
-              child: Hero(
-                tag: heroTag ?? 'poster_${item.anilistId}',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSizes.radiusM),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CoverImage(url: item.coverUrl),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 60,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.8),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (onAddProgress != null)
-                        Positioned(
-                          bottom: AppSizes.spacingS,
-                          right: AppSizes.spacingS,
-                          child: Material(
-                            color: AppColors.primaryGreen,
-                            shape: const CircleBorder(),
-                            child: InkWell(
-                              onTap: onAddProgress,
-                              customBorder: const CircleBorder(),
-                              child: const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Icon(Icons.add, color: Colors.black, size: 20),
-                              ),
-                            ),
-                          ),
-                        ),
-                      Positioned(
-                        top: AppSizes.spacingS,
-                        left: AppSizes.spacingS,
-                        child: MediaTypeChip(
-                          label: item.jenis.label(l10n),
-                          dotColor: _getColorForType(item.jenis.label(l10n)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              child: heroTag != null
+                  ? Hero(tag: heroTag!, child: poster)
+                  : poster,
             ),
             const SizedBox(height: AppSizes.spacingS),
             Text(
@@ -102,7 +103,9 @@ class MediaCard extends StatelessWidget {
             ),
             Text(
               '${item.total ?? "?"} $satuan',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12),
             ),
           ],
         ),
@@ -112,11 +115,16 @@ class MediaCard extends StatelessWidget {
 
   Color _getColorForType(String label) {
     switch (label) {
-      case 'Anime': return AppColors.typeAnime;
-      case 'Manga': return AppColors.typeManga;
-      case 'Manhwa': return AppColors.typeManhwa;
-      case 'Manhua': return AppColors.typeManhua;
-      default: return AppColors.typeLainnya;
+      case 'Anime':
+        return AppColors.typeAnime;
+      case 'Manga':
+        return AppColors.typeManga;
+      case 'Manhwa':
+        return AppColors.typeManhwa;
+      case 'Manhua':
+        return AppColors.typeManhua;
+      default:
+        return AppColors.typeLainnya;
     }
   }
 }

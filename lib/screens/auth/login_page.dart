@@ -39,7 +39,8 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
 
     if (!ok) {
-      final msg = auth.error ?? 'Login gagal.';
+      final l10n = AppLocalizations.of(context)!;
+      final msg = auth.error ?? l10n.loginFailedTitle;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(msg),
@@ -85,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: AppSizes.spacingM),
                     Text(
-                      'Tsuzuki',
+                      l10n.appTitle,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -93,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: AppSizes.spacingXs),
                     Text(
-                      l10n.onboardingDesc,
+                      l10n.loginSubtitle,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -106,22 +107,18 @@ class _LoginPageState extends State<LoginPage> {
                       enabled: !isLoading,
                       textInputAction: TextInputAction.next,
                       autocorrect: false,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.usernameLabel,
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: const OutlineInputBorder(),
                       ),
                       validator: (val) {
                         final v = (val ?? '').trim();
-                        if (v.isEmpty) return 'Username wajib diisi.';
-                        if (v.length < 3) {
-                          return 'Username minimal 3 karakter.';
-                        }
-                        if (v.length > 20) {
-                          return 'Username maksimal 20 karakter.';
-                        }
+                        if (v.isEmpty) return l10n.usernameRequired;
+                        if (v.length < 3) return l10n.usernameMinLength;
+                        if (v.length > 20) return l10n.usernameMaxLength;
                         if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v)) {
-                          return 'Hanya huruf, angka, dan underscore.';
+                          return l10n.usernameInvalidChars;
                         }
                         return null;
                       },
@@ -135,13 +132,13 @@ class _LoginPageState extends State<LoginPage> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: l10n.passwordLabel,
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           tooltip: _obscurePassword
-                              ? 'Tampilkan password'
-                              : 'Sembunyikan password',
+                              ? l10n.showPassword
+                              : l10n.hidePassword,
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
@@ -154,11 +151,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       validator: (val) {
                         if (val == null || val.isEmpty) {
-                          return 'Password wajib diisi.';
+                          return l10n.passwordRequired;
                         }
-                        if (val.length < 6) {
-                          return 'Password minimal 6 karakter.';
-                        }
+                        if (val.length < 6) return l10n.passwordMinLength;
                         return null;
                       },
                     ),
@@ -178,7 +173,8 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               )
                             : const Icon(Icons.login),
-                        label: Text(isLoading ? 'Memproses...' : 'Masuk'),
+                        label: Text(
+                            isLoading ? l10n.processing : l10n.loginButton),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryGreen,
                           foregroundColor: Colors.black,
@@ -195,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Belum punya akun?',
+                          l10n.noAccountYet,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -207,12 +203,11 @@ class _LoginPageState extends State<LoginPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          const RegisterPage(),
+                                      builder: (_) => const RegisterPage(),
                                     ),
                                   );
                                 },
-                          child: const Text('Daftar'),
+                          child: Text(l10n.registerButton),
                         ),
                       ],
                     ),

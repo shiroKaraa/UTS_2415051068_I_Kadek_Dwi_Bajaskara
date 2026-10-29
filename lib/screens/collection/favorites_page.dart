@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_sizes.dart';
+import '../../l10n/app_localizations.dart';
+import '../../models/collection_entry.dart';
 import '../../providers/collection_provider.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/collection_card.dart';
 import 'collection_detail_page.dart';
+import 'edit_entry_page.dart';
 
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
-    final favorites = collection.allEntries.where((e) => e.isFavorite).toList();
+    final favorites =
+        collection.allEntries.where((e) => e.isFavorite).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Favorit Saya')),
+      appBar: AppBar(title: Text(l10n.favoriteTitle)),
       body: favorites.isEmpty
           ? EmptyView(
-              title: 'Belum Ada Favorit',
-              subtitle: 'Tandai anime atau manga favoritmu dengan ikon bintang.',
-              icon: Icons.star_border_rounded,
+              title: l10n.noFavoritesTitle,
+              subtitle: l10n.noFavoritesDesc,
+              icon: Icons.favorite_border_rounded,
             )
           : GridView.builder(
               padding: const EdgeInsets.all(AppSizes.spacingM),
@@ -34,20 +39,101 @@ class FavoritesPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final entri = favorites[index];
                 return CollectionCard(
+                  key: ValueKey(entri.id),
                   entri: entri,
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CollectionDetailPage(id: entri.id!),
+                        builder: (context) =>
+                            CollectionDetailPage(id: entri.id!),
                       ),
                     );
                   },
-                  onLongPress: () {
-                  },
+                  onLongPress: () =>
+                      _showQuickMenu(context, entri, l10n),
                 );
               },
             ),
+    );
+  }
+
+  void _showQuickMenu(
+      BuildContext context, EntriKoleksi entri, AppLocalizations l10n) {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final collection = context.read<CollectionProvider>();
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: Text(l10n.edit),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                navigator.push(
+                  MaterialPageRoute(
+                    builder: (context) => EditEntryPage(entri: entri),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading:
+                  const Icon(Icons.delete, color: Colors.redAccent),
+              title: Text(l10n.delete,
+                  style: const TextStyle(color: Colors.redAccent)),
+              onTap: () async {
+                Navigator.pop(sheetCtx);
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (dialogCtx) => AlertDialog(
+                    title: Text(l10n.delete),
+                    content: Text('${l10n.delete} "${entri.judul}"?'),
+                    actions: [
+                      TextButton(
+                          onPressed: () =>
+                              Navigator.pop(dialogCtx, false),
+                          child: Text(l10n.cancel)),
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogCtx, true),
+                        style: TextButton.styleFrom(
+                            foregroundColor: Colors.redAccent),
+                        child: Text(l10n.delete),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmed != true) return;
+                final berhasil = await collection.deleteEntry(entri);
+
+                if (berhasil) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.entryDeleted),
+                      action: SnackBarAction(
+                        label: l10n.undo,
+                        onPressed: () => collection.createEntry(entri),
+                      ),
+                    ),
+                  );
+                } else {
+                  messenger.showSnackBar(
+                    SnackBar(
+                        content: Text(collection.errorMessage ??
+                            l10n.errorLoadData)),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

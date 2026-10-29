@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/screen_breakpoints.dart';
+import '../../providers/collection_provider.dart';
 import 'home/home_page.dart';
 import 'catalog/catalog_page.dart';
 import 'collection/collection_page.dart';
@@ -15,7 +17,8 @@ class ResponsiveShell extends StatefulWidget {
   State<ResponsiveShell> createState() => _ResponsiveShellState();
 }
 
-class _ResponsiveShellState extends State<ResponsiveShell> {
+class _ResponsiveShellState extends State<ResponsiveShell>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   final Set<int> _built = {0};
   final GlobalKey _stackKey = GlobalKey();
@@ -28,6 +31,28 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     const ProfilePage(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final provider = context.read<CollectionProvider>();
+      if (provider.isOffline) {
+        provider.retryConnection();
+      }
+    }
+  }
+
   void _onNavigateTab(int index) {
     setState(() {
       _currentIndex = index;
@@ -38,7 +63,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     final destinations = [
       NavigationDestination(
         icon: const Icon(Icons.home_outlined),
@@ -79,7 +104,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        
+
         if (_currentIndex != 0) {
           _onNavigateTab(0);
         } else {

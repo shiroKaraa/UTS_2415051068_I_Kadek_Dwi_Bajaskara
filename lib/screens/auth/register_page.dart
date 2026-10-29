@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/app_sizes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/auth_provider.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -40,7 +41,8 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!mounted) return;
 
     if (!ok) {
-      final msg = auth.error ?? 'Registrasi gagal.';
+      final l10n = AppLocalizations.of(context)!;
+      final msg = auth.error ?? l10n.registerFailedTitle;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(msg),
@@ -55,12 +57,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final auth = context.watch<AuthProvider>();
     final isLoading = auth.isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Akun')),
+      appBar: AppBar(title: Text(l10n.registerButton)),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -73,15 +76,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Buat akun Tsuzuki',
+                      l10n.registerHeader,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: AppSizes.spacingXs),
                     Text(
-                      'Koleksimu akan tersimpan di akun dan bisa diakses '
-                      'dari perangkat lain.',
+                      l10n.registerSubtitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -93,24 +95,19 @@ class _RegisterPageState extends State<RegisterPage> {
                       enabled: !isLoading,
                       textInputAction: TextInputAction.next,
                       autocorrect: false,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        helperText:
-                            '3–20 karakter: huruf, angka, underscore.',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.usernameLabel,
+                        helperText: l10n.usernameHint,
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: const OutlineInputBorder(),
                       ),
                       validator: (val) {
                         final v = (val ?? '').trim();
-                        if (v.isEmpty) return 'Username wajib diisi.';
-                        if (v.length < 3) {
-                          return 'Username minimal 3 karakter.';
-                        }
-                        if (v.length > 20) {
-                          return 'Username maksimal 20 karakter.';
-                        }
+                        if (v.isEmpty) return l10n.usernameRequired;
+                        if (v.length < 3) return l10n.usernameMinLength;
+                        if (v.length > 20) return l10n.usernameMaxLength;
                         if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v)) {
-                          return 'Hanya huruf, angka, dan underscore.';
+                          return l10n.usernameInvalidChars;
                         }
                         return null;
                       },
@@ -123,11 +120,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                        labelText: 'Password',
-                        helperText: 'Minimal 6 karakter.',
+                        labelText: l10n.passwordLabel,
+                        helperText: l10n.passwordHint,
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
+                          tooltip: _obscurePassword
+                              ? l10n.showPassword
+                              : l10n.hidePassword,
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
@@ -140,11 +140,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       validator: (val) {
                         if (val == null || val.isEmpty) {
-                          return 'Password wajib diisi.';
+                          return l10n.passwordRequired;
                         }
-                        if (val.length < 6) {
-                          return 'Password minimal 6 karakter.';
-                        }
+                        if (val.length < 6) return l10n.passwordMinLength;
                         return null;
                       },
                     ),
@@ -157,10 +155,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'Konfirmasi Password',
+                        labelText: l10n.confirmPasswordLabel,
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
+                          tooltip: _obscureConfirm
+                              ? l10n.showPassword
+                              : l10n.hidePassword,
                           icon: Icon(
                             _obscureConfirm
                                 ? Icons.visibility_off_outlined
@@ -173,10 +174,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       validator: (val) {
                         if (val == null || val.isEmpty) {
-                          return 'Konfirmasi password wajib diisi.';
+                          return l10n.confirmPasswordRequired;
                         }
                         if (val != _passwordController.text) {
-                          return 'Konfirmasi password tidak cocok.';
+                          return l10n.confirmPasswordNotMatch;
                         }
                         return null;
                       },
@@ -197,8 +198,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               )
                             : const Icon(Icons.person_add_alt_1),
-                        label:
-                            Text(isLoading ? 'Memproses...' : 'Daftar'),
+                        label: Text(
+                            isLoading ? l10n.processing : l10n.registerButton),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryGreen,
                           foregroundColor: Colors.black,
@@ -211,12 +212,34 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: AppSizes.spacingM),
                     Text(
-                      'Dengan mendaftar, kamu menyetujui bahwa data koleksi '
-                      'disimpan secara aman dan hanya dapat diakses oleh '
-                      'akunmu.',
+                      l10n.registerTerms,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.spacingM),
+                    Container(
+                      padding: const EdgeInsets.all(AppSizes.spacingS),
+                      decoration: BoxDecoration(
+                        color: Colors.orangeAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusS),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.warning_amber_rounded,
+                              size: 18, color: Colors.orangeAccent),
+                          const SizedBox(width: AppSizes.spacingS),
+                          Expanded(
+                            child: Text(
+                              l10n.noPasswordRecovery,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: AppSizes.spacingXl),

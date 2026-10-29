@@ -248,6 +248,30 @@ abstract class AppLocalizations {
   /// **'Aplikasi pelacak progres tontonan Anime dan bacaan Komik favoritmu.'**
   String get onboardingDesc;
 
+  /// No description provided for @onboardingSlide2Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Lacak Progresmu'**
+  String get onboardingSlide2Title;
+
+  /// No description provided for @onboardingSlide2Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Catat episode atau chapter yang sudah kamu tonton dan baca dengan mudah.'**
+  String get onboardingSlide2Desc;
+
+  /// No description provided for @onboardingSlide3Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Koleksi Pribadi'**
+  String get onboardingSlide3Title;
+
+  /// No description provided for @onboardingSlide3Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan judul favoritmu, beri rating, dan buat catatan pribadi.'**
+  String get onboardingSlide3Desc;
+
   /// No description provided for @skip.
   ///
   /// In id, this message translates to:
@@ -596,6 +620,12 @@ abstract class AppLocalizations {
   /// **'Satuan Progres (misal: Bagian, Halaman, Tugas)'**
   String get progressUnit;
 
+  /// No description provided for @categoryUnitPrefix.
+  ///
+  /// In id, this message translates to:
+  /// **'Satuan:'**
+  String get categoryUnitPrefix;
+
   /// No description provided for @save.
   ///
   /// In id, this message translates to:
@@ -611,8 +641,8 @@ abstract class AppLocalizations {
   /// No description provided for @deleteCategoryDesc.
   ///
   /// In id, this message translates to:
-  /// **'Menghapus kategori \"{name}\" akan menghapus semua entri di dalamnya. Lanjutkan?'**
-  String deleteCategoryDesc(Object name);
+  /// **'Entri di kategori ini akan menjadi tanpa kategori.'**
+  String get deleteCategoryDesc;
 
   /// No description provided for @categoryAdded.
   ///
@@ -649,6 +679,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Gagal menghapus kategori'**
   String get failedDeleteCategory;
+
+  /// No description provided for @categoryGenericError.
+  ///
+  /// In id, this message translates to:
+  /// **'Terjadi kesalahan.'**
+  String get categoryGenericError;
+
+  /// No description provided for @categoryDeleteFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menghapus.'**
+  String get categoryDeleteFailed;
 
   /// No description provided for @deviceIdNotAvailable.
   ///
@@ -829,6 +871,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Sedang'**
   String get statusOngoing;
+
+  /// No description provided for @statusOngoingWatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Sedang Menonton'**
+  String get statusOngoingWatch;
+
+  /// No description provided for @statusOngoingRead.
+  ///
+  /// In id, this message translates to:
+  /// **'Sedang Membaca'**
+  String get statusOngoingRead;
 
   /// No description provided for @statusCompleted.
   ///
@@ -1106,6 +1160,12 @@ abstract class AppLocalizations {
   /// **'Tahun'**
   String get filterYear;
 
+  /// No description provided for @filterScore.
+  ///
+  /// In id, this message translates to:
+  /// **'Skor Minimum'**
+  String get filterScore;
+
   /// No description provided for @sortBy.
   ///
   /// In id, this message translates to:
@@ -1213,6 +1273,618 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Progres -1 berhasil.'**
   String get progressRemoved;
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ekspor Koleksi'**
+  String get exportTitle;
+
+  /// No description provided for @exportDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan koleksi Anda ke file JSON.'**
+  String get exportDesc;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Impor Koleksi'**
+  String get importTitle;
+
+  /// No description provided for @importDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Pulihkan koleksi Anda dari file backup.'**
+  String get importDesc;
+
+  /// No description provided for @importMerge.
+  ///
+  /// In id, this message translates to:
+  /// **'Gabungkan'**
+  String get importMerge;
+
+  /// No description provided for @importReplace.
+  ///
+  /// In id, this message translates to:
+  /// **'Ganti Semua'**
+  String get importReplace;
+
+  /// No description provided for @importMergeDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambahkan judul baru, lewati duplikat.'**
+  String get importMergeDesc;
+
+  /// No description provided for @importReplaceDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus semua judul saat ini dan ganti dengan backup.'**
+  String get importReplaceDesc;
+
+  /// No description provided for @confirmDeleteAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Ketik HAPUS SEMUA untuk konfirmasi'**
+  String get confirmDeleteAll;
+
+  /// No description provided for @confirmDeleteAllHint.
+  ///
+  /// In id, this message translates to:
+  /// **'HAPUS SEMUA'**
+  String get confirmDeleteAllHint;
+
+  /// No description provided for @deleteAllTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus semua koleksi?'**
+  String get deleteAllTitle;
+
+  /// No description provided for @deleteAllDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua judul tersimpan akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.'**
+  String get deleteAllDesc;
+
+  /// No description provided for @retryConnection.
+  ///
+  /// In id, this message translates to:
+  /// **'Coba Lagi'**
+  String get retryConnection;
+
+  /// No description provided for @stillOffline.
+  ///
+  /// In id, this message translates to:
+  /// **'Masih offline. Periksa koneksi Anda.'**
+  String get stillOffline;
+
+  /// No description provided for @duplicateTitleWarning.
+  ///
+  /// In id, this message translates to:
+  /// **'Judul ini sudah ada di koleksimu. Tetap tambahkan?'**
+  String get duplicateTitleWarning;
+
+  /// No description provided for @addAnyway.
+  ///
+  /// In id, this message translates to:
+  /// **'Tetap Tambahkan'**
+  String get addAnyway;
+
+  /// No description provided for @entryAdded.
+  ///
+  /// In id, this message translates to:
+  /// **'Ditambahkan ke koleksi.'**
+  String get entryAdded;
+
+  /// No description provided for @entryUpdated.
+  ///
+  /// In id, this message translates to:
+  /// **'Entri diperbarui.'**
+  String get entryUpdated;
+
+  /// No description provided for @openCollection.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Koleksi'**
+  String get openCollection;
+
+  /// No description provided for @viewOriginal.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Teks Asli'**
+  String get viewOriginal;
+
+  /// No description provided for @viewTranslation.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Terjemahan'**
+  String get viewTranslation;
+
+  /// No description provided for @unsavedChangesTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Buang perubahan?'**
+  String get unsavedChangesTitle;
+
+  /// No description provided for @unsavedChangesDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Ada perubahan yang belum disimpan. Yakin ingin keluar?'**
+  String get unsavedChangesDesc;
+
+  /// No description provided for @discard.
+  ///
+  /// In id, this message translates to:
+  /// **'Buang'**
+  String get discard;
+
+  /// No description provided for @imageCache.
+  ///
+  /// In id, this message translates to:
+  /// **'Cache Gambar'**
+  String get imageCache;
+
+  /// No description provided for @keepEditing.
+  ///
+  /// In id, this message translates to:
+  /// **'Lanjut Edit'**
+  String get keepEditing;
+
+  /// No description provided for @confirmPasswordHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi password baru'**
+  String get confirmPasswordHint;
+
+  /// No description provided for @confirmPasswordMismatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Password tidak cocok.'**
+  String get confirmPasswordMismatch;
+
+  /// No description provided for @profileSavedPasswordFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Profil diperbarui, tapi password gagal diubah.'**
+  String get profileSavedPasswordFailed;
+
+  /// No description provided for @profilePasswordSaved.
+  ///
+  /// In id, this message translates to:
+  /// **'Profil dan password diperbarui.'**
+  String get profilePasswordSaved;
+
+  /// No description provided for @passwordOnlySaved.
+  ///
+  /// In id, this message translates to:
+  /// **'Password diperbarui.'**
+  String get passwordOnlySaved;
+
+  /// No description provided for @noPasswordRecovery.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan: Aplikasi ini memakai login berbasis username. Jika lupa password, akun tidak dapat dipulihkan. Sebaiknya gunakan Backup & Restore secara rutin untuk menyimpan salinan koleksimu.'**
+  String get noPasswordRecovery;
+
+  /// No description provided for @passwordRecoveryFaqTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Saya lupa password. Apa yang bisa dilakukan?'**
+  String get passwordRecoveryFaqTitle;
+
+  /// No description provided for @passwordRecoveryFaqDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Aplikasi ini memakai login username tanpa pemulihan email. Jika lupa password, akun tidak dapat dipulihkan. Selalu gunakan Backup & Restore secara rutin untuk menyimpan salinan koleksimu.'**
+  String get passwordRecoveryFaqDesc;
+
+  /// No description provided for @loginFailedTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Login gagal'**
+  String get loginFailedTitle;
+
+  /// No description provided for @registerFailedTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Registrasi gagal'**
+  String get registerFailedTitle;
+
+  /// No description provided for @networkErrorTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Masalah koneksi'**
+  String get networkErrorTitle;
+
+  /// No description provided for @networkErrorDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Periksa koneksi internet Anda dan coba lagi.'**
+  String get networkErrorDesc;
+
+  /// No description provided for @timeoutErrorDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Server terlalu lama merespons. Coba lagi.'**
+  String get timeoutErrorDesc;
+
+  /// No description provided for @statusSuggestCompleted.
+  ///
+  /// In id, this message translates to:
+  /// **'Tandai Selesai?'**
+  String get statusSuggestCompleted;
+
+  /// No description provided for @statusSuggestCompletedDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Progres sudah mencapai total. Ubah status menjadi Selesai?'**
+  String get statusSuggestCompletedDesc;
+
+  /// No description provided for @yes.
+  ///
+  /// In id, this message translates to:
+  /// **'Ya'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak'**
+  String get no;
+
+  /// No description provided for @usernameLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// No description provided for @passwordLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Password'**
+  String get passwordLabel;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi Password'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @loginButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Masuk'**
+  String get loginButton;
+
+  /// No description provided for @registerButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar'**
+  String get registerButton;
+
+  /// No description provided for @processing.
+  ///
+  /// In id, this message translates to:
+  /// **'Memproses...'**
+  String get processing;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan password'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In id, this message translates to:
+  /// **'Sembunyikan password'**
+  String get hidePassword;
+
+  /// No description provided for @loginHeader.
+  ///
+  /// In id, this message translates to:
+  /// **'Masuk ke Tsuzuki'**
+  String get loginHeader;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Lanjutkan lacak tontonan dan bacaanmu.'**
+  String get loginSubtitle;
+
+  /// No description provided for @noAccountYet.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum punya akun?'**
+  String get noAccountYet;
+
+  /// No description provided for @haveAccount.
+  ///
+  /// In id, this message translates to:
+  /// **'Sudah punya akun?'**
+  String get haveAccount;
+
+  /// No description provided for @registerHeader.
+  ///
+  /// In id, this message translates to:
+  /// **'Buat Akun Tsuzuki'**
+  String get registerHeader;
+
+  /// No description provided for @registerSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Koleksimu akan tersimpan di akun dan bisa diakses dari perangkat lain.'**
+  String get registerSubtitle;
+
+  /// No description provided for @registerTerms.
+  ///
+  /// In id, this message translates to:
+  /// **'Dengan mendaftar, kamu menyetujui bahwa data koleksi disimpan secara aman dan hanya dapat diakses oleh akunmu.'**
+  String get registerTerms;
+
+  /// No description provided for @usernameHint.
+  ///
+  /// In id, this message translates to:
+  /// **'3–20 karakter: huruf, angka, underscore.'**
+  String get usernameHint;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Minimal 6 karakter.'**
+  String get passwordHint;
+
+  /// No description provided for @usernameRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Username wajib diisi.'**
+  String get usernameRequired;
+
+  /// No description provided for @usernameMinLength.
+  ///
+  /// In id, this message translates to:
+  /// **'Username minimal 3 karakter.'**
+  String get usernameMinLength;
+
+  /// No description provided for @usernameMaxLength.
+  ///
+  /// In id, this message translates to:
+  /// **'Username maksimal 20 karakter.'**
+  String get usernameMaxLength;
+
+  /// No description provided for @usernameInvalidChars.
+  ///
+  /// In id, this message translates to:
+  /// **'Hanya huruf, angka, dan underscore.'**
+  String get usernameInvalidChars;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Password wajib diisi.'**
+  String get passwordRequired;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In id, this message translates to:
+  /// **'Password minimal 6 karakter.'**
+  String get passwordMinLength;
+
+  /// No description provided for @confirmPasswordRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi password wajib diisi.'**
+  String get confirmPasswordRequired;
+
+  /// No description provided for @confirmPasswordNotMatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi password tidak cocok.'**
+  String get confirmPasswordNotMatch;
+
+  /// No description provided for @displayNameLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama Tampilan'**
+  String get displayNameLabel;
+
+  /// No description provided for @displayNameEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama tidak boleh kosong'**
+  String get displayNameEmpty;
+
+  /// No description provided for @displayNameMaxLength.
+  ///
+  /// In id, this message translates to:
+  /// **'Maksimal 30 karakter'**
+  String get displayNameMaxLength;
+
+  /// No description provided for @newPasswordLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Password Baru (Opsional)'**
+  String get newPasswordLabel;
+
+  /// No description provided for @newPasswordHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Biarkan kosong jika tidak ingin mengubah password'**
+  String get newPasswordHint;
+
+  /// No description provided for @chooseAvatar.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Avatar'**
+  String get chooseAvatar;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan Perubahan'**
+  String get saveChanges;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In id, this message translates to:
+  /// **'Profil berhasil diperbarui!'**
+  String get profileUpdated;
+
+  /// No description provided for @backupTitlesEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Koleksi kosong, tidak ada yang diekspor.'**
+  String get backupTitlesEmpty;
+
+  /// No description provided for @backupFileInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'File bukan JSON yang valid.'**
+  String get backupFileInvalid;
+
+  /// No description provided for @backupFormatInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'Format file tidak dikenali. Harus berupa array JSON atau objek berisi daftar items.'**
+  String get backupFormatInvalid;
+
+  /// No description provided for @backupEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'File kosong, tidak ada data untuk diimpor.'**
+  String get backupEmpty;
+
+  /// No description provided for @backupEntryInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'Entri #{n}: format tidak valid.'**
+  String backupEntryInvalid(Object n);
+
+  /// No description provided for @backupEntryMissing.
+  ///
+  /// In id, this message translates to:
+  /// **'Entri #{n}: \"{field}\" wajib diisi.'**
+  String backupEntryMissing(Object field, Object n);
+
+  /// No description provided for @backupEntryReadFail.
+  ///
+  /// In id, this message translates to:
+  /// **'Entri #{n}: gagal dibaca.'**
+  String backupEntryReadFail(Object n);
+
+  /// No description provided for @storageCacheImages.
+  ///
+  /// In id, this message translates to:
+  /// **'Cache Gambar'**
+  String get storageCacheImages;
+
+  /// No description provided for @storageCacheCollection.
+  ///
+  /// In id, this message translates to:
+  /// **'Data Koleksi'**
+  String get storageCacheCollection;
+
+  /// No description provided for @storageCacheTranslation.
+  ///
+  /// In id, this message translates to:
+  /// **'Cache Terjemahan'**
+  String get storageCacheTranslation;
+
+  /// No description provided for @storageClearSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Cache dihapus.'**
+  String get storageClearSuccess;
+
+  /// No description provided for @fieldStatus.
+  ///
+  /// In id, this message translates to:
+  /// **'Status'**
+  String get fieldStatus;
+
+  /// No description provided for @fieldProgressUnit.
+  ///
+  /// In id, this message translates to:
+  /// **'Progres ({unit})'**
+  String fieldProgressUnit(Object unit);
+
+  /// No description provided for @fieldTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Total'**
+  String get fieldTotal;
+
+  /// No description provided for @fieldRating.
+  ///
+  /// In id, this message translates to:
+  /// **'Rating (Opsional)'**
+  String get fieldRating;
+
+  /// No description provided for @fieldNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan (Opsional)'**
+  String get fieldNote;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Wajib diisi'**
+  String get fieldRequired;
+
+  /// No description provided for @fieldMustBeNumber.
+  ///
+  /// In id, this message translates to:
+  /// **'Harus angka'**
+  String get fieldMustBeNumber;
+
+  /// No description provided for @fieldNotNegative.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak boleh negatif'**
+  String get fieldNotNegative;
+
+  /// No description provided for @fieldExceedsTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Melebihi total'**
+  String get fieldExceedsTotal;
+
+  /// No description provided for @noFavoritesTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum Ada Favorit'**
+  String get noFavoritesTitle;
+
+  /// No description provided for @noFavoritesDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Tandai anime atau komik favoritmu dengan ikon hati.'**
+  String get noFavoritesDesc;
+
+  /// No description provided for @favoritesMarkHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Favorit'**
+  String get favoritesMarkHint;
+
+  /// No description provided for @gridView.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilan Grid'**
+  String get gridView;
+
+  /// No description provided for @listView.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilan Daftar'**
+  String get listView;
+
+  /// No description provided for @filterTooltip.
+  ///
+  /// In id, this message translates to:
+  /// **'Filter'**
+  String get filterTooltip;
 }
 
 class _AppLocalizationsDelegate

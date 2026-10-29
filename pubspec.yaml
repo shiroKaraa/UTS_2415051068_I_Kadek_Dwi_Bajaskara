@@ -26,6 +26,7 @@ dependencies:
   file_selector: ^1.0.3
   cached_network_image: ^3.3.1
   flutter_cache_manager: ^3.3.1
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:

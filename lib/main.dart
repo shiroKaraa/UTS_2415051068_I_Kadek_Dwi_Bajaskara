@@ -71,12 +71,11 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CatalogProvider()),
-        ChangeNotifierProxyProvider2<AuthProvider, SettingsProvider,
-            CollectionProvider>(
+        ChangeNotifierProxyProvider<AuthProvider, CollectionProvider>(
           create: (_) => CollectionProvider(
             CollectionRepository(SupabaseCollectionService()),
           ),
-          update: (context, auth, settings, previous) {
+          update: (context, auth, previous) {
             final provider = previous ??
                 CollectionProvider(
                   CollectionRepository(SupabaseCollectionService()),

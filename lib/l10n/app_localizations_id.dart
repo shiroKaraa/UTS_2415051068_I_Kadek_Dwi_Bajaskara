@@ -86,6 +86,20 @@ class AppLocalizationsId extends AppLocalizations {
       'Aplikasi pelacak progres tontonan Anime dan bacaan Komik favoritmu.';
 
   @override
+  String get onboardingSlide2Title => 'Lacak Progresmu';
+
+  @override
+  String get onboardingSlide2Desc =>
+      'Catat episode atau chapter yang sudah kamu tonton dan baca dengan mudah.';
+
+  @override
+  String get onboardingSlide3Title => 'Koleksi Pribadi';
+
+  @override
+  String get onboardingSlide3Desc =>
+      'Simpan judul favoritmu, beri rating, dan buat catatan pribadi.';
+
+  @override
   String get skip => 'Lewati';
 
   @override
@@ -263,15 +277,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get progressUnit => 'Satuan Progres (misal: Bagian, Halaman, Tugas)';
 
   @override
+  String get categoryUnitPrefix => 'Satuan:';
+
+  @override
   String get save => 'Simpan';
 
   @override
   String get deleteCategory => 'Hapus Kategori?';
 
   @override
-  String deleteCategoryDesc(Object name) {
-    return 'Menghapus kategori \"$name\" akan menghapus semua entri di dalamnya. Lanjutkan?';
-  }
+  String get deleteCategoryDesc =>
+      'Entri di kategori ini akan menjadi tanpa kategori.';
 
   @override
   String get categoryAdded => 'Kategori ditambahkan.';
@@ -290,6 +306,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get failedDeleteCategory => 'Gagal menghapus kategori';
+
+  @override
+  String get categoryGenericError => 'Terjadi kesalahan.';
+
+  @override
+  String get categoryDeleteFailed => 'Gagal menghapus.';
 
   @override
   String get deviceIdNotAvailable => 'ID Perangkat belum tersedia.';
@@ -389,6 +411,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get statusOngoing => 'Sedang';
+
+  @override
+  String get statusOngoingWatch => 'Sedang Menonton';
+
+  @override
+  String get statusOngoingRead => 'Sedang Membaca';
 
   @override
   String get statusCompleted => 'Selesai';
@@ -548,6 +576,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get filterYear => 'Tahun';
 
   @override
+  String get filterScore => 'Skor Minimum';
+
+  @override
   String get sortBy => 'Urutkan';
 
   @override
@@ -600,4 +631,332 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get progressRemoved => 'Progres -1 berhasil.';
+
+  @override
+  String get exportTitle => 'Ekspor Koleksi';
+
+  @override
+  String get exportDesc => 'Simpan koleksi Anda ke file JSON.';
+
+  @override
+  String get importTitle => 'Impor Koleksi';
+
+  @override
+  String get importDesc => 'Pulihkan koleksi Anda dari file backup.';
+
+  @override
+  String get importMerge => 'Gabungkan';
+
+  @override
+  String get importReplace => 'Ganti Semua';
+
+  @override
+  String get importMergeDesc => 'Tambahkan judul baru, lewati duplikat.';
+
+  @override
+  String get importReplaceDesc =>
+      'Hapus semua judul saat ini dan ganti dengan backup.';
+
+  @override
+  String get confirmDeleteAll => 'Ketik HAPUS SEMUA untuk konfirmasi';
+
+  @override
+  String get confirmDeleteAllHint => 'HAPUS SEMUA';
+
+  @override
+  String get deleteAllTitle => 'Hapus semua koleksi?';
+
+  @override
+  String get deleteAllDesc =>
+      'Semua judul tersimpan akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.';
+
+  @override
+  String get retryConnection => 'Coba Lagi';
+
+  @override
+  String get stillOffline => 'Masih offline. Periksa koneksi Anda.';
+
+  @override
+  String get duplicateTitleWarning =>
+      'Judul ini sudah ada di koleksimu. Tetap tambahkan?';
+
+  @override
+  String get addAnyway => 'Tetap Tambahkan';
+
+  @override
+  String get entryAdded => 'Ditambahkan ke koleksi.';
+
+  @override
+  String get entryUpdated => 'Entri diperbarui.';
+
+  @override
+  String get openCollection => 'Buka Koleksi';
+
+  @override
+  String get viewOriginal => 'Lihat Teks Asli';
+
+  @override
+  String get viewTranslation => 'Lihat Terjemahan';
+
+  @override
+  String get unsavedChangesTitle => 'Buang perubahan?';
+
+  @override
+  String get unsavedChangesDesc =>
+      'Ada perubahan yang belum disimpan. Yakin ingin keluar?';
+
+  @override
+  String get discard => 'Buang';
+
+  @override
+  String get imageCache => 'Cache Gambar';
+
+  @override
+  String get keepEditing => 'Lanjut Edit';
+
+  @override
+  String get confirmPasswordHint => 'Konfirmasi password baru';
+
+  @override
+  String get confirmPasswordMismatch => 'Password tidak cocok.';
+
+  @override
+  String get profileSavedPasswordFailed =>
+      'Profil diperbarui, tapi password gagal diubah.';
+
+  @override
+  String get profilePasswordSaved => 'Profil dan password diperbarui.';
+
+  @override
+  String get passwordOnlySaved => 'Password diperbarui.';
+
+  @override
+  String get noPasswordRecovery =>
+      'Catatan: Aplikasi ini memakai login berbasis username. Jika lupa password, akun tidak dapat dipulihkan. Sebaiknya gunakan Backup & Restore secara rutin untuk menyimpan salinan koleksimu.';
+
+  @override
+  String get passwordRecoveryFaqTitle =>
+      'Saya lupa password. Apa yang bisa dilakukan?';
+
+  @override
+  String get passwordRecoveryFaqDesc =>
+      'Aplikasi ini memakai login username tanpa pemulihan email. Jika lupa password, akun tidak dapat dipulihkan. Selalu gunakan Backup & Restore secara rutin untuk menyimpan salinan koleksimu.';
+
+  @override
+  String get loginFailedTitle => 'Login gagal';
+
+  @override
+  String get registerFailedTitle => 'Registrasi gagal';
+
+  @override
+  String get networkErrorTitle => 'Masalah koneksi';
+
+  @override
+  String get networkErrorDesc => 'Periksa koneksi internet Anda dan coba lagi.';
+
+  @override
+  String get timeoutErrorDesc => 'Server terlalu lama merespons. Coba lagi.';
+
+  @override
+  String get statusSuggestCompleted => 'Tandai Selesai?';
+
+  @override
+  String get statusSuggestCompletedDesc =>
+      'Progres sudah mencapai total. Ubah status menjadi Selesai?';
+
+  @override
+  String get yes => 'Ya';
+
+  @override
+  String get no => 'Tidak';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get passwordLabel => 'Password';
+
+  @override
+  String get confirmPasswordLabel => 'Konfirmasi Password';
+
+  @override
+  String get loginButton => 'Masuk';
+
+  @override
+  String get registerButton => 'Daftar';
+
+  @override
+  String get processing => 'Memproses...';
+
+  @override
+  String get showPassword => 'Tampilkan password';
+
+  @override
+  String get hidePassword => 'Sembunyikan password';
+
+  @override
+  String get loginHeader => 'Masuk ke Tsuzuki';
+
+  @override
+  String get loginSubtitle => 'Lanjutkan lacak tontonan dan bacaanmu.';
+
+  @override
+  String get noAccountYet => 'Belum punya akun?';
+
+  @override
+  String get haveAccount => 'Sudah punya akun?';
+
+  @override
+  String get registerHeader => 'Buat Akun Tsuzuki';
+
+  @override
+  String get registerSubtitle =>
+      'Koleksimu akan tersimpan di akun dan bisa diakses dari perangkat lain.';
+
+  @override
+  String get registerTerms =>
+      'Dengan mendaftar, kamu menyetujui bahwa data koleksi disimpan secara aman dan hanya dapat diakses oleh akunmu.';
+
+  @override
+  String get usernameHint => '3–20 karakter: huruf, angka, underscore.';
+
+  @override
+  String get passwordHint => 'Minimal 6 karakter.';
+
+  @override
+  String get usernameRequired => 'Username wajib diisi.';
+
+  @override
+  String get usernameMinLength => 'Username minimal 3 karakter.';
+
+  @override
+  String get usernameMaxLength => 'Username maksimal 20 karakter.';
+
+  @override
+  String get usernameInvalidChars => 'Hanya huruf, angka, dan underscore.';
+
+  @override
+  String get passwordRequired => 'Password wajib diisi.';
+
+  @override
+  String get passwordMinLength => 'Password minimal 6 karakter.';
+
+  @override
+  String get confirmPasswordRequired => 'Konfirmasi password wajib diisi.';
+
+  @override
+  String get confirmPasswordNotMatch => 'Konfirmasi password tidak cocok.';
+
+  @override
+  String get displayNameLabel => 'Nama Tampilan';
+
+  @override
+  String get displayNameEmpty => 'Nama tidak boleh kosong';
+
+  @override
+  String get displayNameMaxLength => 'Maksimal 30 karakter';
+
+  @override
+  String get newPasswordLabel => 'Password Baru (Opsional)';
+
+  @override
+  String get newPasswordHint =>
+      'Biarkan kosong jika tidak ingin mengubah password';
+
+  @override
+  String get chooseAvatar => 'Pilih Avatar';
+
+  @override
+  String get saveChanges => 'Simpan Perubahan';
+
+  @override
+  String get profileUpdated => 'Profil berhasil diperbarui!';
+
+  @override
+  String get backupTitlesEmpty => 'Koleksi kosong, tidak ada yang diekspor.';
+
+  @override
+  String get backupFileInvalid => 'File bukan JSON yang valid.';
+
+  @override
+  String get backupFormatInvalid =>
+      'Format file tidak dikenali. Harus berupa array JSON atau objek berisi daftar items.';
+
+  @override
+  String get backupEmpty => 'File kosong, tidak ada data untuk diimpor.';
+
+  @override
+  String backupEntryInvalid(Object n) {
+    return 'Entri #$n: format tidak valid.';
+  }
+
+  @override
+  String backupEntryMissing(Object field, Object n) {
+    return 'Entri #$n: \"$field\" wajib diisi.';
+  }
+
+  @override
+  String backupEntryReadFail(Object n) {
+    return 'Entri #$n: gagal dibaca.';
+  }
+
+  @override
+  String get storageCacheImages => 'Cache Gambar';
+
+  @override
+  String get storageCacheCollection => 'Data Koleksi';
+
+  @override
+  String get storageCacheTranslation => 'Cache Terjemahan';
+
+  @override
+  String get storageClearSuccess => 'Cache dihapus.';
+
+  @override
+  String get fieldStatus => 'Status';
+
+  @override
+  String fieldProgressUnit(Object unit) {
+    return 'Progres ($unit)';
+  }
+
+  @override
+  String get fieldTotal => 'Total';
+
+  @override
+  String get fieldRating => 'Rating (Opsional)';
+
+  @override
+  String get fieldNote => 'Catatan (Opsional)';
+
+  @override
+  String get fieldRequired => 'Wajib diisi';
+
+  @override
+  String get fieldMustBeNumber => 'Harus angka';
+
+  @override
+  String get fieldNotNegative => 'Tidak boleh negatif';
+
+  @override
+  String get fieldExceedsTotal => 'Melebihi total';
+
+  @override
+  String get noFavoritesTitle => 'Belum Ada Favorit';
+
+  @override
+  String get noFavoritesDesc =>
+      'Tandai anime atau komik favoritmu dengan ikon hati.';
+
+  @override
+  String get favoritesMarkHint => 'Favorit';
+
+  @override
+  String get gridView => 'Tampilan Grid';
+
+  @override
+  String get listView => 'Tampilan Daftar';
+
+  @override
+  String get filterTooltip => 'Filter';
 }

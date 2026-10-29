@@ -14,9 +14,9 @@ enum StatusKoleksi {
         return l10n?.statusPlanned ?? 'Direncanakan';
       case StatusKoleksi.sedang:
         if (jenis == JenisMedia.anime) {
-          return l10n?.statReading ?? 'Sedang Menonton';
+          return l10n?.statusOngoingWatch ?? 'Sedang Menonton';
         }
-        return l10n?.statReading ?? 'Sedang Membaca';
+        return l10n?.statusOngoingRead ?? 'Sedang Membaca';
       case StatusKoleksi.selesai:
         return l10n?.statusCompleted ?? 'Selesai';
       case StatusKoleksi.ditunda:

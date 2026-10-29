@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
+import '../../providers/collection_provider.dart';
 import '../../services/anilist_service.dart';
 import '../../services/translation_service.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/media_type_chip.dart';
+import '../collection/collection_detail_page.dart';
 import '../collection/entry_form_page.dart';
 
 class CatalogDetailPage extends StatefulWidget {
@@ -131,6 +134,15 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
         : (_sinopsisTerjemahan ?? _rawSinopsis);
     final sinopsisKosong = _rawSinopsis.isEmpty;
 
+    final existingEntry = context.select<CollectionProvider, EntriKoleksiView?>(
+      (p) {
+        final e = p.findByExternal('al:${item.anilistId}', item.jenis);
+        if (e == null) return null;
+        return EntriKoleksiView(id: e.id!, judul: e.judul);
+      },
+    );
+    final inCollection = existingEntry != null;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -182,6 +194,36 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                           dotColor: _getColorForType(item.jenis.label(l10n)),
                         ),
                       ),
+                      if (inCollection)
+                        Positioned(
+                          top: AppSizes.spacingS,
+                          right: AppSizes.spacingS,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryGreen
+                                  .withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle,
+                                    size: 14, color: Colors.black),
+                                const SizedBox(width: 4),
+                                Text(
+                                  l10n.inCollection,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -325,25 +367,45 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
             const SizedBox(height: AppSizes.spacingXl),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EntryFormPage(item: item),
+              child: inCollection
+                  ? OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CollectionDetailPage(
+                              id: existingEntry.id,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.collections_bookmark),
+                      label: Text(l10n.openCollection),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSizes.spacingM,
+                        ),
+                      ),
+                    )
+                  : ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EntryFormPage(item: item),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add),
+                      label: Text(l10n.addToCollection),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSizes.spacingM,
+                        ),
+                      ),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: Text(l10n.addToCollection),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppSizes.spacingM,
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: AppSizes.spacingL),
           ],
@@ -385,4 +447,21 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
       ),
     );
   }
+}
+
+class EntriKoleksiView {
+  final int id;
+  final String judul;
+  EntriKoleksiView({required this.id, required this.judul});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EntriKoleksiView &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          judul == other.judul;
+
+  @override
+  int get hashCode => id.hashCode ^ judul.hashCode;
 }

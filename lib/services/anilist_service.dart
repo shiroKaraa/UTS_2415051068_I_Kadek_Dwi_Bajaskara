@@ -152,13 +152,14 @@ class AniListService {
     String? status,
     String sort = 'POPULARITY_DESC',
     bool lite = true,
+    int? skorMin,
   }) async {
     final fields = lite ? _lightFields : _fullFields;
     final gql = '''
-      query (\$page: Int, \$perPage: Int, \$type: MediaType, \$country: CountryCode, \$sort: [MediaSort], \$search: String, \$genre_in: [String], \$startGreater: FuzzyDateInt, \$startLesser: FuzzyDateInt, \$status: MediaStatus, \$format_in: [MediaFormat]) {
+      query (\$page: Int, \$perPage: Int, \$type: MediaType, \$country: CountryCode, \$sort: [MediaSort], \$search: String, \$genre_in: [String], \$startGreater: FuzzyDateInt, \$startLesser: FuzzyDateInt, \$status: MediaStatus, \$format_in: [MediaFormat], \$scoreGreater: Int) {
         Page(page: \$page, perPage: \$perPage) {
           pageInfo { hasNextPage total }
-          media(type: \$type, countryOfOrigin: \$country, isAdult: false, sort: \$sort, search: \$search, genre_in: \$genre_in, startDate_greater: \$startGreater, startDate_lesser: \$startLesser, status: \$status, format_in: \$format_in) {
+          media(type: \$type, countryOfOrigin: \$country, isAdult: false, sort: \$sort, search: \$search, genre_in: \$genre_in, startDate_greater: \$startGreater, startDate_lesser: \$startLesser, status: \$status, format_in: \$format_in, averageScore_greater: \$scoreGreater) {
             $fields
           }
         }
@@ -184,6 +185,8 @@ class AniListService {
       vars['startGreater'] = (tahun * 10000) - 1;
       vars['startLesser'] = (tahun + 1) * 10000;
     }
+
+    if (skorMin != null) vars['scoreGreater'] = (skorMin * 10) - 1;
 
     return _query(gql, vars);
   }

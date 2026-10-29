@@ -349,12 +349,28 @@ class _StatsSection extends StatelessWidget {
           childAspectRatio: 2.8,
           children: [
             if (showAnime) ...[
-              _StatSecondaryCard(title: 'Hari Ditonton', value: stats.daysWatched.toStringAsFixed(1), icon: Icons.access_time),
-              _StatSecondaryCard(title: 'Episode', value: stats.totalEpisodes.toString(), icon: Icons.tv),
+              _StatSecondaryCard(
+                title: l10n.statDaysWatched,
+                value: stats.daysWatched.toStringAsFixed(1),
+                icon: Icons.access_time,
+              ),
+              _StatSecondaryCard(
+                title: l10n.statEpisodes,
+                value: stats.totalEpisodes.toString(),
+                icon: Icons.tv,
+              ),
             ],
             if (showManga) ...[
-              _StatSecondaryCard(title: 'Chapter', value: stats.totalChapters.toString(), icon: Icons.auto_stories),
-              _StatSecondaryCard(title: 'Volume', value: stats.volumesRead.toString(), icon: Icons.library_books),
+              _StatSecondaryCard(
+                title: l10n.statChapters,
+                value: stats.totalChapters.toString(),
+                icon: Icons.auto_stories,
+              ),
+              _StatSecondaryCard(
+                title: l10n.statVolumes,
+                value: stats.volumesRead.toString(),
+                icon: Icons.library_books,
+              ),
             ],
           ],
         ),
@@ -521,21 +537,33 @@ class _EmptyProfileState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSizes.spacingXl),
         child: Column(
           children: [
-            Icon(Icons.collections_bookmark_outlined, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(Icons.collections_bookmark_outlined,
+                size: 64,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(height: AppSizes.spacingM),
-            Text('Koleksimu Masih Kosong', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(l10n.emptyCollection,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: AppSizes.spacingS),
-            Text('Mulai tambahkan anime pertamamu!', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            Text(l10n.emptyCollectionPrompt,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
             const SizedBox(height: AppSizes.spacingL),
             ElevatedButton(
               onPressed: onLihatKatalog,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.black),
-              child: const Text('Cari Anime'),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryGreen,
+                  foregroundColor: Colors.black),
+              child: Text(l10n.searchNow),
             ),
           ],
         ),
@@ -583,19 +611,25 @@ class _LogoutButtonState extends State<_LogoutButton> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: _isLoading ? null : _handleLogout,
-        icon: _isLoading 
-            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+        icon: _isLoading
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
         label: Text(
-          _isLoading ? 'Memproses...' : 'Keluar Akun',
+          _isLoading ? l10n.processing : l10n.logoutConfirmBtn,
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5)),
+          side: BorderSide(
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5)),
           padding: const EdgeInsets.symmetric(vertical: 14),
         ),
       ),

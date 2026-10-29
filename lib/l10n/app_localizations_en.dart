@@ -85,6 +85,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingDesc => 'Track your favorite Anime and Comic progress.';
 
   @override
+  String get onboardingSlide2Title => 'Track Your Progress';
+
+  @override
+  String get onboardingSlide2Desc =>
+      'Easily log episodes or chapters you have watched and read.';
+
+  @override
+  String get onboardingSlide3Title => 'Personal Collection';
+
+  @override
+  String get onboardingSlide3Desc =>
+      'Save your favorite titles, give ratings, and add personal notes.';
+
+  @override
   String get skip => 'Skip';
 
   @override
@@ -262,15 +276,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressUnit => 'Progress Unit (e.g., Part, Page, Task)';
 
   @override
+  String get categoryUnitPrefix => 'Unit:';
+
+  @override
   String get save => 'Save';
 
   @override
   String get deleteCategory => 'Delete Category?';
 
   @override
-  String deleteCategoryDesc(Object name) {
-    return 'Deleting category \"$name\" will remove all entries in it. Continue?';
-  }
+  String get deleteCategoryDesc =>
+      'Entries in this category will become uncategorized.';
 
   @override
   String get categoryAdded => 'Category added.';
@@ -289,6 +305,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedDeleteCategory => 'Failed to delete category';
+
+  @override
+  String get categoryGenericError => 'An error occurred.';
+
+  @override
+  String get categoryDeleteFailed => 'Failed to delete.';
 
   @override
   String get deviceIdNotAvailable => 'Device ID not available.';
@@ -388,6 +410,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusOngoing => 'Ongoing';
+
+  @override
+  String get statusOngoingWatch => 'Watching';
+
+  @override
+  String get statusOngoingRead => 'Reading';
 
   @override
   String get statusCompleted => 'Completed';
@@ -547,6 +575,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterYear => 'Year';
 
   @override
+  String get filterScore => 'Minimum Score';
+
+  @override
   String get sortBy => 'Sort by';
 
   @override
@@ -599,4 +630,333 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get progressRemoved => 'Progress -1 successful.';
+
+  @override
+  String get exportTitle => 'Export Collection';
+
+  @override
+  String get exportDesc => 'Save your collection to a JSON file.';
+
+  @override
+  String get importTitle => 'Import Collection';
+
+  @override
+  String get importDesc => 'Restore your collection from a backup file.';
+
+  @override
+  String get importMerge => 'Merge';
+
+  @override
+  String get importReplace => 'Replace All';
+
+  @override
+  String get importMergeDesc => 'Add new titles, skip duplicates.';
+
+  @override
+  String get importReplaceDesc =>
+      'Delete all current titles and replace with the backup.';
+
+  @override
+  String get confirmDeleteAll => 'Type DELETE ALL to confirm';
+
+  @override
+  String get confirmDeleteAllHint => 'DELETE ALL';
+
+  @override
+  String get deleteAllTitle => 'Delete all collections?';
+
+  @override
+  String get deleteAllDesc =>
+      'This will permanently remove all your saved titles. This action cannot be undone.';
+
+  @override
+  String get retryConnection => 'Retry Connection';
+
+  @override
+  String get stillOffline => 'Still offline. Check your connection.';
+
+  @override
+  String get duplicateTitleWarning =>
+      'This title already exists in your collection. Add anyway?';
+
+  @override
+  String get addAnyway => 'Add Anyway';
+
+  @override
+  String get entryAdded => 'Added to collection.';
+
+  @override
+  String get entryUpdated => 'Entry updated.';
+
+  @override
+  String get openCollection => 'Open Collection';
+
+  @override
+  String get viewOriginal => 'View Original Text';
+
+  @override
+  String get viewTranslation => 'View Translation';
+
+  @override
+  String get unsavedChangesTitle => 'Discard changes?';
+
+  @override
+  String get unsavedChangesDesc =>
+      'You have unsaved changes. Are you sure you want to leave?';
+
+  @override
+  String get discard => 'Discard';
+
+  @override
+  String get imageCache => 'Image Cache';
+
+  @override
+  String get keepEditing => 'Keep Editing';
+
+  @override
+  String get confirmPasswordHint => 'Confirm new password';
+
+  @override
+  String get confirmPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get profileSavedPasswordFailed =>
+      'Profile updated, but password change failed.';
+
+  @override
+  String get profilePasswordSaved => 'Profile and password updated.';
+
+  @override
+  String get passwordOnlySaved => 'Password updated.';
+
+  @override
+  String get noPasswordRecovery =>
+      'Note: This app uses a username-based login. If you forget your password, you may lose access to your account. We recommend using Backup & Restore to save a copy of your collection.';
+
+  @override
+  String get passwordRecoveryFaqTitle => 'I forgot my password. What can I do?';
+
+  @override
+  String get passwordRecoveryFaqDesc =>
+      'This app uses username-only login without email recovery. If you forget your password, the account cannot be recovered. Always use Backup & Restore regularly to keep a safe copy of your collection.';
+
+  @override
+  String get loginFailedTitle => 'Login failed';
+
+  @override
+  String get registerFailedTitle => 'Registration failed';
+
+  @override
+  String get networkErrorTitle => 'Connection problem';
+
+  @override
+  String get networkErrorDesc =>
+      'Please check your internet connection and try again.';
+
+  @override
+  String get timeoutErrorDesc =>
+      'The server took too long to respond. Try again.';
+
+  @override
+  String get statusSuggestCompleted => 'Mark as Completed?';
+
+  @override
+  String get statusSuggestCompletedDesc =>
+      'Progress has reached the total. Update status to Completed?';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get passwordLabel => 'Password';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm Password';
+
+  @override
+  String get loginButton => 'Log In';
+
+  @override
+  String get registerButton => 'Register';
+
+  @override
+  String get processing => 'Processing...';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get loginHeader => 'Log In to Tsuzuki';
+
+  @override
+  String get loginSubtitle => 'Continue tracking your anime and comics.';
+
+  @override
+  String get noAccountYet => 'Don\'t have an account?';
+
+  @override
+  String get haveAccount => 'Already have an account?';
+
+  @override
+  String get registerHeader => 'Create Tsuzuki Account';
+
+  @override
+  String get registerSubtitle =>
+      'Your collection will be saved to your account and accessible from other devices.';
+
+  @override
+  String get registerTerms =>
+      'By registering, you agree that your collection data is stored securely and only accessible by your account.';
+
+  @override
+  String get usernameHint => '3–20 characters: letters, numbers, underscore.';
+
+  @override
+  String get passwordHint => 'At least 6 characters.';
+
+  @override
+  String get usernameRequired => 'Username is required.';
+
+  @override
+  String get usernameMinLength => 'Username must be at least 3 characters.';
+
+  @override
+  String get usernameMaxLength => 'Username can be at most 20 characters.';
+
+  @override
+  String get usernameInvalidChars =>
+      'Only letters, numbers, and underscore allowed.';
+
+  @override
+  String get passwordRequired => 'Password is required.';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 6 characters.';
+
+  @override
+  String get confirmPasswordRequired => 'Password confirmation is required.';
+
+  @override
+  String get confirmPasswordNotMatch => 'Passwords do not match.';
+
+  @override
+  String get displayNameLabel => 'Display Name';
+
+  @override
+  String get displayNameEmpty => 'Name cannot be empty';
+
+  @override
+  String get displayNameMaxLength => 'Maximum 30 characters';
+
+  @override
+  String get newPasswordLabel => 'New Password (Optional)';
+
+  @override
+  String get newPasswordHint => 'Leave blank to keep current password';
+
+  @override
+  String get chooseAvatar => 'Choose Avatar';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get profileUpdated => 'Profile updated successfully!';
+
+  @override
+  String get backupTitlesEmpty => 'Collection is empty, nothing to export.';
+
+  @override
+  String get backupFileInvalid => 'File is not valid JSON.';
+
+  @override
+  String get backupFormatInvalid =>
+      'Invalid file format. Must be a JSON array or an object containing an items list.';
+
+  @override
+  String get backupEmpty => 'File is empty, no data to import.';
+
+  @override
+  String backupEntryInvalid(Object n) {
+    return 'Entry #$n: invalid format.';
+  }
+
+  @override
+  String backupEntryMissing(Object field, Object n) {
+    return 'Entry #$n: \"$field\" is required.';
+  }
+
+  @override
+  String backupEntryReadFail(Object n) {
+    return 'Entry #$n: failed to read.';
+  }
+
+  @override
+  String get storageCacheImages => 'Image Cache';
+
+  @override
+  String get storageCacheCollection => 'Collection Data';
+
+  @override
+  String get storageCacheTranslation => 'Translation Cache';
+
+  @override
+  String get storageClearSuccess => 'Cache cleared.';
+
+  @override
+  String get fieldStatus => 'Status';
+
+  @override
+  String fieldProgressUnit(Object unit) {
+    return 'Progress ($unit)';
+  }
+
+  @override
+  String get fieldTotal => 'Total';
+
+  @override
+  String get fieldRating => 'Rating (Optional)';
+
+  @override
+  String get fieldNote => 'Note (Optional)';
+
+  @override
+  String get fieldRequired => 'Required';
+
+  @override
+  String get fieldMustBeNumber => 'Must be a number';
+
+  @override
+  String get fieldNotNegative => 'Cannot be negative';
+
+  @override
+  String get fieldExceedsTotal => 'Exceeds total';
+
+  @override
+  String get noFavoritesTitle => 'No Favorites Yet';
+
+  @override
+  String get noFavoritesDesc =>
+      'Mark your favorite anime or comics with the heart icon.';
+
+  @override
+  String get favoritesMarkHint => 'Favorited';
+
+  @override
+  String get gridView => 'Grid View';
+
+  @override
+  String get listView => 'List View';
+
+  @override
+  String get filterTooltip => 'Filter';
 }

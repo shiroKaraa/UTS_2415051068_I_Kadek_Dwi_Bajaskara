@@ -1,5 +1,6 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
@@ -37,13 +38,13 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     try {
       final path = await _backupService.exportToJson(collection.allEntries);
       if (!mounted) return;
-      _snack('${l10n.backupRestore}: ${path.split('/').last}');
+      _snack('${l10n.exportTitle}: ${p.basename(path)}');
     } on BackupException catch (e) {
       if (!mounted) return;
       _snack(e.message);
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      _snack('${l10n.errorLoadData}: $e');
+      _snack(l10n.errorLoadData);
     } finally {
       if (mounted) {
         setState(() {
@@ -56,20 +57,19 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
   Future<void> _imporData(AppLocalizations l10n) async {
     final collection = context.read<CollectionProvider>();
-    const typeGroup =
-        XTypeGroup(label: 'JSON', extensions: ['json']);
+    const typeGroup = XTypeGroup(label: 'JSON', extensions: ['json']);
     final XFile? pickedFile;
     try {
       pickedFile = await openFile(acceptedTypeGroups: [typeGroup]);
-    } catch (e) {
-      _snack('${l10n.errorLoadData}: $e');
+    } catch (_) {
+      _snack(l10n.errorLoadData);
       return;
     }
     if (pickedFile == null) return;
 
     setState(() {
       _isProcessing = true;
-      _progressText = l10n.backupRestore;
+      _progressText = l10n.importTitle;
     });
 
     List<EntriKoleksi> parsed;
@@ -84,9 +84,9 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
         _progressText = null;
       });
       return;
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      _snack('${l10n.errorLoadData}: $e');
+      _snack(l10n.errorLoadData);
       setState(() {
         _isProcessing = false;
         _progressText = null;
@@ -106,12 +106,11 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     List<EntriKoleksi> toImport = parsed;
     int skipped = 0;
     if (mode == _ImportMode.merge) {
-      final existingKeys = collection.allEntries
-          .map(_backupService.entryKey)
-          .toSet();
-      toImport = parsed.where((e) {
-        return !existingKeys.contains(_backupService.entryKey(e));
-      }).toList();
+      final existingKeys =
+          collection.allEntries.map(_backupService.entryKey).toSet();
+      toImport = parsed
+          .where((e) => !existingKeys.contains(_backupService.entryKey(e)))
+          .toList();
       skipped = parsed.length - toImport.length;
     }
 
@@ -120,14 +119,26 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       return;
     }
 
+    String? autoBackupPath;
     if (mode == _ImportMode.replace) {
       final yakin = await _konfirmasiReplace(parsed.length, l10n);
       if (yakin != true) return;
+
+      try {
+        autoBackupPath =
+            await _backupService.exportToJson(collection.allEntries);
+      } on BackupException catch (e) {
+        _snack('${l10n.errorLoadData}: ${e.message}');
+        return;
+      } catch (_) {
+        _snack(l10n.errorLoadData);
+        return;
+      }
     }
 
     setState(() {
       _isProcessing = true;
-      _progressText = l10n.backupRestore;
+      _progressText = l10n.importTitle;
     });
 
     try {
@@ -138,13 +149,10 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
           return;
         }
         if (!mounted) return;
-        setState(() {
-          _progressText = l10n.delete;
-        });
+        setState(() => _progressText = l10n.importReplace);
       }
 
       final inserted = await collection.createEntries(toImport);
-
       if (!mounted) return;
 
       if (inserted == 0 && collection.errorMessage != null) {
@@ -153,7 +161,6 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       }
 
       await collection.refresh();
-
       if (!mounted) return;
 
       final parts = <String>['+$inserted'];
@@ -161,9 +168,13 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       _snack(parts.join(', '));
 
       Navigator.pop(context);
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      _snack('${l10n.errorLoadData}: $e');
+      if (autoBackupPath != null) {
+        _snack('${l10n.errorLoadData} (${p.basename(autoBackupPath)})');
+      } else {
+        _snack(l10n.errorLoadData);
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -178,7 +189,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     return showDialog<_ImportMode>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.backupRestore),
+        title: Text(l10n.importTitle),
         content: Text('$totalEntri ${l10n.navCollection}'),
         actions: [
           TextButton(
@@ -187,13 +198,12 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, _ImportMode.merge),
-            child: Text(l10n.apply),
+            child: Text(l10n.importMerge),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, _ImportMode.replace),
-            style:
-                TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: Text(l10n.delete),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: Text(l10n.importReplace),
           ),
         ],
       ),
@@ -201,25 +211,57 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
   }
 
   Future<bool?> _konfirmasiReplace(int totalEntri, AppLocalizations l10n) async {
-    return showDialog<bool>(
+    final controller = TextEditingController();
+    final result = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.delete),
-        content: Text('$totalEntri ${l10n.navCollection}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style:
-                TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx2, setLocalState) {
+            final expected = l10n.confirmDeleteAllHint;
+            final matches = controller.text.trim() == expected;
+            return AlertDialog(
+              title: Text(l10n.deleteAllTitle),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.deleteAllDesc),
+                  const SizedBox(height: 12),
+                  Text(l10n.confirmDeleteAll,
+                      style: const TextStyle(fontSize: 12)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      hintText: expected,
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onChanged: (_) => setLocalState(() {}),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: matches
+                      ? () => Navigator.pop(ctx, true)
+                      : null,
+                  style: TextButton.styleFrom(
+                      foregroundColor: Colors.redAccent),
+                  child: Text(l10n.importReplace),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+    controller.dispose();
+    return result;
   }
 
   void _snack(String msg) {
@@ -249,13 +291,13 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                       size: 64, color: AppColors.primaryGreen),
                   const SizedBox(height: AppSizes.spacingM),
                   Text(
-                    l10n.backupRestore,
+                    l10n.exportTitle,
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSizes.spacingS),
                   Text(
-                    l10n.backupDesc,
+                    l10n.exportDesc,
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 13),
                   ),
@@ -267,9 +309,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                           _isProcessing ? null : () => _eksporData(l10n),
                       icon: const Icon(Icons.upload_file),
                       label: Text(
-                        '${l10n.backupRestore} '
-                        '(${collection.allEntries.length})',
-                      ),
+                          '${l10n.exportTitle} (${collection.allEntries.length})'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
                         foregroundColor: Colors.black,
@@ -294,13 +334,13 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                       size: 64, color: AppColors.infoBlue),
                   const SizedBox(height: AppSizes.spacingM),
                   Text(
-                    l10n.backupRestore,
+                    l10n.importTitle,
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSizes.spacingS),
                   Text(
-                    l10n.backupDesc,
+                    l10n.importDesc,
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 13),
                   ),
@@ -311,11 +351,10 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                       onPressed:
                           _isProcessing ? null : () => _imporData(l10n),
                       icon: const Icon(Icons.file_open),
-                      label: Text(l10n.backupRestore),
+                      label: Text(l10n.importTitle),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.infoBlue,
-                        side:
-                            const BorderSide(color: AppColors.infoBlue),
+                        side: const BorderSide(color: AppColors.infoBlue),
                         padding:
                             const EdgeInsets.symmetric(vertical: 12),
                       ),

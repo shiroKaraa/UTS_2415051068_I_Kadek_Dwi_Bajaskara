@@ -5,23 +5,26 @@ import '../../core/app_colors.dart';
 class ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
+  final bool scrollable;
 
   const ErrorView({
     super.key,
     required this.message,
     this.onRetry,
+    this.scrollable = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    
-    return Center(
+
+    final content = Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(24),
@@ -58,13 +61,32 @@ class ErrorView extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen,
                   foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
                 ),
               ),
             ],
           ],
         ),
       ),
+    );
+
+    if (!scrollable) return content;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight.isFinite
+                  ? constraints.maxHeight
+                  : 0,
+            ),
+            child: content,
+          ),
+        );
+      },
     );
   }
 }

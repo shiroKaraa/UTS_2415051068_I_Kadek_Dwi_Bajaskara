@@ -144,7 +144,7 @@ class _StoragePageState extends State<StoragePage> {
                       children: [
                         const Icon(Icons.pie_chart_outline, size: 48, color: AppColors.primaryGreen),
                         const SizedBox(height: AppSizes.spacingS),
-                        Text(l10n.storage, style: const TextStyle(fontSize: 14)),
+                        Text(l10n.imageCache, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: AppSizes.spacingXs),
                         Text(_formatBytes(totalSize), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                       ],
@@ -159,7 +159,7 @@ class _StoragePageState extends State<StoragePage> {
                   color: theme.cardColor,
                   child: ListTile(
                     leading: const Icon(Icons.image_outlined, color: AppColors.infoBlue),
-                    title: Text(l10n.storage),
+                    title: Text(l10n.imageCache),
                     subtitle: Text(_formatBytes(_imageCacheSize)),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.redAccent),

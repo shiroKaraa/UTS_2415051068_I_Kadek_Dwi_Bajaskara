@@ -31,10 +31,15 @@ class CatalogProvider extends ChangeNotifier {
   String _query = '';
   int _requestGeneration = 0;
 
+  bool _isListView = false;
+  bool get isListView => _isListView;
+
   List<String> _filterGenres = [];
   int? _filterTahun;
   String? _filterStatus;
   UrutanKatalog _urutan = UrutanKatalog.populer;
+  int? _filterSkorMin;
+  int? get filterSkorMin => _filterSkorMin;
 
   List<String> _availableGenres = [];
   bool _isLoadingGenres = false;
@@ -70,7 +75,10 @@ class CatalogProvider extends ChangeNotifier {
   String? get popularError => _popularError;
 
   bool get hasActiveFilters =>
-      _filterGenres.isNotEmpty || _filterTahun != null || _filterStatus != null;
+    _filterGenres.isNotEmpty ||
+    _filterTahun != null ||
+    _filterStatus != null ||
+    _filterSkorMin != null;
   bool get hasQuery => _query.isNotEmpty;
 
   CatalogProvider();
@@ -140,6 +148,7 @@ class CatalogProvider extends ChangeNotifier {
         tahun: _filterTahun,
         status: _filterStatus,
         sort: _getSortParam(),
+        skorMin: _filterSkorMin,
       );
       if (gen != _requestGeneration) return;
 
@@ -341,6 +350,11 @@ class CatalogProvider extends ChangeNotifier {
     fetchCatalog();
   }
 
+  void toggleView() {
+    _isListView = !_isListView;
+    notifyListeners();
+  }
+
   void setQuery(String query) {
     final trimmed = query.trim();
     if (_query == trimmed) return;
@@ -353,6 +367,7 @@ class CatalogProvider extends ChangeNotifier {
     int? tahun,
     String? status,
     UrutanKatalog? urutan,
+    int? skorMin,
   }) {
     bool changed = false;
     if (genres != null && !_listEquals(genres, _filterGenres)) {
@@ -371,6 +386,10 @@ class CatalogProvider extends ChangeNotifier {
       _urutan = urutan;
       changed = true;
     }
+    if (skorMin != _filterSkorMin) {
+      _filterSkorMin = skorMin;
+      changed = true;
+    }
 
     if (changed) fetchCatalog();
   }
@@ -379,6 +398,7 @@ class CatalogProvider extends ChangeNotifier {
     _filterGenres = [];
     _filterTahun = null;
     _filterStatus = null;
+    _filterSkorMin = null;
     _urutan = UrutanKatalog.populer;
     fetchCatalog();
   }
@@ -387,6 +407,7 @@ class CatalogProvider extends ChangeNotifier {
     _filterGenres = [];
     _filterTahun = null;
     _filterStatus = null;
+    _filterSkorMin = null;
     _query = '';
     _urutan = UrutanKatalog.populer;
     fetchCatalog();

@@ -35,11 +35,13 @@ class SettingsPage extends StatelessWidget {
               },
               items: [
                 DropdownMenuItem(value: ThemeMode.dark, child: Text(l10n.dark)),
-                DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.light)),
-                DropdownMenuItem(value: ThemeMode.system, child: Text(l10n.system)),
+                DropdownMenuItem(
+                    value: ThemeMode.light, child: Text(l10n.light)),
+                DropdownMenuItem(
+                    value: ThemeMode.system, child: Text(l10n.system)),
               ],
             ),
-          ),      
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.language),

@@ -15,6 +15,7 @@ import '../../widgets/cover_image.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/shimmer_loading.dart';
+import '../../widgets/progress_bar.dart';
 import '../catalog/catalog_detail_page.dart';
 import '../collection/collection_detail_page.dart';
 import '../collection/collection_page.dart';
@@ -144,15 +145,29 @@ class _HomePageState extends State<HomePage> {
             Container(
               width: double.infinity,
               color: AppColors.goldPrimary.withValues(alpha: 0.2),
-              padding:
-                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Row(
                 children: [
                   const Icon(Icons.wifi_off,
                       size: 16, color: AppColors.goldPrimary),
                   const SizedBox(width: 8),
-                  Text(l10n.offlineBanner,
-                      style: const TextStyle(fontSize: 12)),
+                  Expanded(
+                    child: Text(l10n.offlineBanner,
+                        style: const TextStyle(fontSize: 12)),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final provider = context.read<CollectionProvider>();
+                      final messenger = ScaffoldMessenger.of(context);
+                      final ok = await provider.retryConnection();
+                      if (!context.mounted) return;
+                      messenger.showSnackBar(SnackBar(
+                        content: Text(ok ? l10n.progressAdded : l10n.stillOffline),
+                      ));
+                    },
+                    child: Text(l10n.retryConnection,
+                        style: const TextStyle(fontSize: 12)),
+                  ),
                 ],
               ),
             ),
@@ -413,13 +428,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                   Text(
                       '${e.progres} / ${e.total ?? "?"} ${e.jenis.satuanProgres(l10n)}'),
                   const SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    color: AppColors.primaryGreen,
-                    minHeight: 4,
-                  ),
+                  ProgressBar(value: progress),
                 ],
               ),
               trailing: IconButton.filledTonal(
@@ -536,7 +545,8 @@ class _PopularSection extends StatelessWidget {
           const EmptyView(
               title: 'Belum Ada Data',
               subtitle: 'Data populer tidak dapat dimuat.',
-              icon: Icons.inbox_outlined)
+              icon: Icons.inbox_outlined,
+              scrollable: false)
         else
           SizedBox(
             height: listHeight,

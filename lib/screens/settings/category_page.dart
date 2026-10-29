@@ -9,9 +9,11 @@ import '../../providers/category_provider.dart';
 class CategoryPage extends StatelessWidget {
   const CategoryPage({super.key});
 
-  void _showFormDialog(BuildContext context, AppLocalizations l10n, [KategoriKustom? category]) {
+  void _showFormDialog(BuildContext context, AppLocalizations l10n,
+      [KategoriKustom? category]) {
     final namaController = TextEditingController(text: category?.nama ?? '');
-    final satuanController = TextEditingController(text: category?.satuanProgres ?? 'Bagian');
+    final satuanController =
+        TextEditingController(text: category?.satuanProgres ?? 'Bagian');
     final provider = context.read<CategoryProvider>();
 
     showDialog(
@@ -39,13 +41,14 @@ class CategoryPage extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (namaController.text.trim().isEmpty || satuanController.text.trim().isEmpty) {
+              if (namaController.text.trim().isEmpty ||
+                  satuanController.text.trim().isEmpty) {
                 return;
               }
               bool success;
               if (category == null) {
                 success = await provider.createCategory(
-                  namaController.text.trim(), 
+                  namaController.text.trim(),
                   satuanController.text.trim(),
                 );
               } else {
@@ -60,11 +63,16 @@ class CategoryPage extends StatelessWidget {
               if (success) {
                 Navigator.pop(dialogCtx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(category == null ? l10n.categoryAdded : l10n.categoryUpdated)),
+                  SnackBar(
+                      content: Text(category == null
+                          ? l10n.categoryAdded
+                          : l10n.categoryUpdated)),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(provider.errorMessage ?? 'Terjadi kesalahan.')),
+                  SnackBar(
+                      content: Text(provider.errorMessage ??
+                          l10n.categoryGenericError)),
                 );
               }
             },
@@ -75,13 +83,14 @@ class CategoryPage extends StatelessWidget {
     );
   }
 
-  Future<void> _konfirmasiHapus(BuildContext context, AppLocalizations l10n, KategoriKustom category) async {
+  Future<void> _konfirmasiHapus(
+      BuildContext context, AppLocalizations l10n, KategoriKustom category) async {
     final provider = context.read<CategoryProvider>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: Text(l10n.deleteCategory),
-        content: Text(l10n.deleteCategoryDesc(category.nama)),
+        content: Text(l10n.deleteCategoryDesc),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
@@ -105,7 +114,9 @@ class CategoryPage extends StatelessWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.errorMessage ?? 'Gagal menghapus.')),
+        SnackBar(
+            content:
+                Text(provider.errorMessage ?? l10n.categoryDeleteFailed)),
       );
     }
   }
@@ -129,19 +140,25 @@ class CategoryPage extends StatelessWidget {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
-                        leading: const Icon(Icons.folder_outlined, color: AppColors.primaryGreen),
+                        leading: const Icon(Icons.folder_outlined,
+                            color: AppColors.primaryGreen),
                         title: Text(category.nama),
-                        subtitle: Text('Satuan: ${category.satuanProgres}'),
+                        subtitle: Text(
+                            '${l10n.categoryUnitPrefix} ${category.satuanProgres}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit, color: AppColors.infoBlue),
-                              onPressed: () => _showFormDialog(context, l10n, category),
+                              icon: const Icon(Icons.edit,
+                                  color: AppColors.infoBlue),
+                              onPressed: () =>
+                                  _showFormDialog(context, l10n, category),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.redAccent),
-                              onPressed: () => _konfirmasiHapus(context, l10n, category),
+                              icon: const Icon(Icons.delete,
+                                  color: Colors.redAccent),
+                              onPressed: () =>
+                                  _konfirmasiHapus(context, l10n, category),
                             ),
                           ],
                         ),
