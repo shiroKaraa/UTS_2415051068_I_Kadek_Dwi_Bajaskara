@@ -12,4 +12,6 @@ class CollectionRepository {
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri) => _dataSource.updateEntry(entri);
   Future<void> deleteEntry(int id) => _dataSource.deleteEntry(id);
   Future<void> deleteAll(String userId) => _dataSource.deleteAll(userId);
+  Future<int> countClaimableCollections(String deviceId) => _dataSource.countClaimableCollections(deviceId);
+  Future<bool> pingServer() => _dataSource.pingServer();
 }

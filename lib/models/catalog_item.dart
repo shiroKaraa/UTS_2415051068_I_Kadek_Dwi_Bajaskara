@@ -68,7 +68,7 @@ class ItemKatalog {
       malId: json['idMal'] as int?,
       judul: titleObj?['romaji'] as String? ?? 'Tanpa Judul',
       judulInggris: titleObj?['english'] as String?,
-      coverUrl: coverObj?['extraLarge'] as String? ?? coverObj?['large'] as String?,
+      coverUrl: coverObj?['large'] as String? ?? coverObj?['extraLarge'] as String?,
       bannerUrl: json['bannerImage'] as String?,
       sinopsis: json['description'] as String?,
       skor: skor,

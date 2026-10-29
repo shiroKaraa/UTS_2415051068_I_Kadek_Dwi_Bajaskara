@@ -38,6 +38,11 @@ class AuthProvider extends ChangeNotifier {
     _sub = _service.onAuthStateChange.listen((state) async {
       final user = state.session?.user;
       if (user != null) {
+        if (_user?.id == user.id && _username != null) {
+          _status = AuthStatus.authenticated;
+          notifyListeners();
+          return;
+        }
         _user = user;
         _status = AuthStatus.authenticated;
         await _loadProfile();

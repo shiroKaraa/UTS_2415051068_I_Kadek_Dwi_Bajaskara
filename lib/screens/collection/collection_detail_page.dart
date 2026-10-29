@@ -66,10 +66,10 @@ class CollectionDetailPage extends StatelessWidget {
     final entri = context.select<CollectionProvider, EntriKoleksi?>((p) => p.findById(id));
     
     if (entri == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pop();
-      });
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text(l10n.errorEmptyData)),
+      );
     }
 
     final progress = (entri.total != null && entri.total! > 0)

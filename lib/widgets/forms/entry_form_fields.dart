@@ -9,8 +9,6 @@ class EntryFormFields extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final StatusKoleksi status;
   final ValueChanged<StatusKoleksi> onStatusChanged;
-  final int progres;
-  final ValueChanged<int> onProgresChanged;
   final TextEditingController progresController;
   final TextEditingController totalController;
   final int? rating;
@@ -26,8 +24,6 @@ class EntryFormFields extends StatelessWidget {
     required this.formKey,
     required this.status,
     required this.onStatusChanged,
-    required this.progres,
-    required this.onProgresChanged,
     required this.progresController,
     required this.totalController,
     required this.rating,
@@ -75,17 +71,13 @@ class EntryFormFields extends StatelessWidget {
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
-                  onChanged: (val) =>
-                      onProgresChanged(int.tryParse(val) ?? 0),
                   validator: (val) {
                     if (val == null || val.isEmpty) return 'Wajib diisi';
                     final num = int.tryParse(val);
                     if (num == null) return 'Harus angka';
                     if (num < 0) return 'Tidak boleh negatif';
                     final total = int.tryParse(totalController.text);
-                    if (total != null && num > total) {
-                      return 'Melebihi total';
-                    }
+                    if (total != null && num > total) return 'Melebihi total';
                     return null;
                   },
                 ),
@@ -119,7 +111,7 @@ class EntryFormFields extends StatelessWidget {
               border: OutlineInputBorder(),
             ),
             items: [
-              DropdownMenuItem(value: null, child: Text(l10n.noNotes)),
+              const DropdownMenuItem(value: null, child: Text('-')),
               ...List.generate(5, (i) => i + 1).map((val) {
                 return DropdownMenuItem(
                   value: val,

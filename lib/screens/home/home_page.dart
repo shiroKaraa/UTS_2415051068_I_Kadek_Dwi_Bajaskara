@@ -29,8 +29,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+  final GlobalKey<RefreshIndicatorState> _refreshKey =
+      GlobalKey<RefreshIndicatorState>();
   bool _claimChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<CatalogProvider>().fetchPopularHome();
+      }
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -51,8 +62,12 @@ class _HomePageState extends State<HomePage> {
     final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
     final deviceId = settings.deviceId;
-    
-    if (!auth.isAuthenticated || auth.username == null || deviceId == null || deviceId.isEmpty || collection.isOffline) {
+
+    if (!auth.isAuthenticated ||
+        auth.username == null ||
+        deviceId == null ||
+        deviceId.isEmpty ||
+        collection.isOffline) {
       return;
     }
 
@@ -64,10 +79,14 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: Text(l10n.claimTitle),
-        content: Text(l10n.claimDesc(count, auth.username!)), 
+        content: Text(l10n.claimDesc(count, auth.username!)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: Text(l10n.cancel)),
-          TextButton(onPressed: () => Navigator.pop(dialogCtx, true), child: Text(l10n.claimBtn)),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, true),
+              child: Text(l10n.claimBtn)),
         ],
       ),
     );
@@ -78,12 +97,16 @@ class _HomePageState extends State<HomePage> {
       final claimed = await collection.claimDeviceCollections(deviceId);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(claimed > 0 ? l10n.claimSuccess(claimed) : l10n.claimFailed)),
+        SnackBar(
+            content: Text(
+                claimed > 0 ? l10n.claimSuccess(claimed) : l10n.claimFailed)),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.claimFailed), backgroundColor: Theme.of(context).colorScheme.error),
+        SnackBar(
+            content: Text(l10n.claimFailed),
+            backgroundColor: Theme.of(context).colorScheme.error),
       );
     }
   }
@@ -91,23 +114,18 @@ class _HomePageState extends State<HomePage> {
   Future<void> _onRefresh() async {
     final catalog = context.read<CatalogProvider>();
     final collection = context.read<CollectionProvider>();
-    
+
     await Future.wait([
       collection.refresh(),
-      catalog.fetchPopularHome(),
+      catalog.fetchPopularHome(forceRefresh: true),
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isOffline = context.select<CollectionProvider, bool>((c) => c.isOffline);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<CatalogProvider>().fetchPopularHome();
-      }
-    });
+    final isOffline =
+        context.select<CollectionProvider, bool>((c) => c.isOffline);
 
     return Scaffold(
       appBar: AppBar(
@@ -126,12 +144,15 @@ class _HomePageState extends State<HomePage> {
             Container(
               width: double.infinity,
               color: AppColors.goldPrimary.withValues(alpha: 0.2),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Row(
                 children: [
-                  const Icon(Icons.wifi_off, size: 16, color: AppColors.goldPrimary),
+                  const Icon(Icons.wifi_off,
+                      size: 16, color: AppColors.goldPrimary),
                   const SizedBox(width: 8),
-                  Text(l10n.offlineBanner, style: const TextStyle(fontSize: 12)),
+                  Text(l10n.offlineBanner,
+                      style: const TextStyle(fontSize: 12)),
                 ],
               ),
             ),
@@ -209,13 +230,15 @@ class _WelcomeHeader extends StatelessWidget {
             children: [
               Text(
                 '$greeting, $displayName 👋',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
                 l10n.greetingSubtitle,
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -230,16 +253,29 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stats = context.select<CollectionProvider, ProfileStats>((c) => c.stats);
+    final stats =
+        context.select<CollectionProvider, ProfileStats>((c) => c.stats);
     final l10n = AppLocalizations.of(context)!;
 
     return Row(
       children: [
-        _StatCard(title: l10n.statTotal, value: stats.totalEntries, icon: Icons.collections_bookmark, color: AppColors.infoBlue),
+        _StatCard(
+            title: l10n.statTotal,
+            value: stats.totalEntries,
+            icon: Icons.collections_bookmark,
+            color: AppColors.infoBlue),
         const SizedBox(width: AppSizes.spacingS),
-        _StatCard(title: l10n.statReading, value: stats.totalOngoing, icon: Icons.play_circle_outline, color: AppColors.primaryGreen),
+        _StatCard(
+            title: l10n.statReading,
+            value: stats.totalOngoing,
+            icon: Icons.play_circle_outline,
+            color: AppColors.primaryGreen),
         const SizedBox(width: AppSizes.spacingS),
-        _StatCard(title: l10n.statCompleted, value: stats.totalCompleted, icon: Icons.check_circle_outline, color: AppColors.goldPrimary),
+        _StatCard(
+            title: l10n.statCompleted,
+            value: stats.totalCompleted,
+            icon: Icons.check_circle_outline,
+            color: AppColors.goldPrimary),
       ],
     );
   }
@@ -251,7 +287,12 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final Color color;
 
-  const _StatCard({required this.title, required this.value, required this.icon, required this.color});
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -264,13 +305,21 @@ class _StatCard extends StatelessWidget {
           side: BorderSide(color: color.withValues(alpha: 0.3)),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingM, horizontal: AppSizes.spacingS),
+          padding: const EdgeInsets.symmetric(
+              vertical: AppSizes.spacingM, horizontal: AppSizes.spacingS),
           child: Column(
             children: [
               Icon(icon, color: color, size: 24),
               const SizedBox(height: AppSizes.spacingS),
-              Text('$value', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              Text(title, style: Theme.of(context).textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text('$value',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(title,
+                  style: Theme.of(context).textTheme.labelSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
@@ -292,7 +341,9 @@ class _ContinueSectionState extends State<_ContinueSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final items = context.select<CollectionProvider, List<EntriKoleksi>>((c) => c.continueWatching);
+    final items = context
+        .select<CollectionProvider, List<EntriKoleksi>>(
+            (c) => c.continueWatching);
 
     if (items.isEmpty) {
       return Card(
@@ -301,11 +352,18 @@ class _ContinueSectionState extends State<_ContinueSection> {
           padding: const EdgeInsets.all(AppSizes.spacingL),
           child: Column(
             children: [
-              Icon(Icons.play_circle_outline, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(Icons.play_circle_outline,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(height: AppSizes.spacingM),
-              Text(l10n.noTrackedYet, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(l10n.noTrackedYet,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: AppSizes.spacingS),
-              Text(l10n.searchFirst, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(l10n.searchFirst,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color:
+                          Theme.of(context).colorScheme.onSurfaceVariant)),
             ],
           ),
         ),
@@ -318,16 +376,23 @@ class _ContinueSectionState extends State<_ContinueSection> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(l10n.continueWatching, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(l10n.continueWatching,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             TextButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CollectionPage())),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const CollectionPage())),
               child: Text(l10n.seeAll),
             ),
           ],
         ),
         const SizedBox(height: AppSizes.spacingS),
         ...items.map((e) {
-          final progress = (e.total != null && e.total! > 0) ? (e.progres / e.total!).clamp(0.0, 1.0) : 0.0;
+          final progress = (e.total != null && e.total! > 0)
+              ? (e.progres / e.total!).clamp(0.0, 1.0)
+              : 0.0;
           final isProcessing = _processingIds.contains(e.id);
 
           return Card(
@@ -336,31 +401,45 @@ class _ContinueSectionState extends State<_ContinueSection> {
             child: ListTile(
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: SizedBox(width: 40, height: 60, child: CoverImage(url: e.coverUrl)),
+                child: CoverImage(url: e.coverUrl, width: 40, height: 60),
               ),
-              title: Text(e.judul, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(e.judul,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${e.progres} / ${e.total ?? "?"} ${e.jenis.satuanProgres(l10n)}'),
+                  Text(
+                      '${e.progres} / ${e.total ?? "?"} ${e.jenis.satuanProgres(l10n)}'),
                   const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                     color: AppColors.primaryGreen,
                     minHeight: 4,
                   ),
                 ],
               ),
               trailing: IconButton.filledTonal(
-                icon: isProcessing 
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                icon: isProcessing
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child:
+                            CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.add),
-                onPressed: (e.total != null && e.progres >= e.total!) || isProcessing
-                    ? null
-                    : () => _handleIncrement(e),
+                onPressed:
+                    (e.total != null && e.progres >= e.total!) || isProcessing
+                        ? null
+                        : () => _handleIncrement(e),
               ),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionDetailPage(id: e.id!))),
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          CollectionDetailPage(id: e.id!))),
             ),
           );
         }),
@@ -382,13 +461,16 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
     final l10n = AppLocalizations.of(context)!;
     if (result == HasilIncrement.ok) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+      messenger
+          .showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
     } else if (result == HasilIncrement.offline) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
     } else if (result == HasilIncrement.alreadyCompleted) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.congratsCompleted)));
     } else {
-      messenger.showSnackBar(SnackBar(content: Text(provider.errorMessage ?? l10n.errorLoadData)));
+      messenger.showSnackBar(SnackBar(
+          content: Text(provider.errorMessage ?? l10n.errorLoadData)));
     }
   }
 }
@@ -398,16 +480,21 @@ class _PopularSection extends StatelessWidget {
   final bool isAnime;
   final Function(int)? onNavigateTab;
 
-  const _PopularSection({required this.title, required this.isAnime, this.onNavigateTab});
+  const _PopularSection({
+    required this.title,
+    required this.isAnime,
+    this.onNavigateTab,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     final items = context.select<CatalogProvider, List<ItemKatalog>>(
       (c) => isAnime ? c.topAnime : c.topManga,
     );
-    final isLoading = context.select<CatalogProvider, bool>((c) => c.isLoadingPopular);
+    final isLoading =
+        context.select<CatalogProvider, bool>((c) => c.isLoadingPopular);
 
     const cardWidth = 130.0;
     const aspectRatio = 2 / 3;
@@ -421,7 +508,11 @@ class _PopularSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             TextButton(
               onPressed: () => onNavigateTab?.call(1),
               child: Text(l10n.seeAll),
@@ -442,7 +533,10 @@ class _PopularSection extends StatelessWidget {
             ),
           )
         else if (items.isEmpty)
-          const EmptyView(title: 'Belum Ada Data', subtitle: 'Data populer tidak dapat dimuat.', icon: Icons.inbox_outlined)
+          const EmptyView(
+              title: 'Belum Ada Data',
+              subtitle: 'Data populer tidak dapat dimuat.',
+              icon: Icons.inbox_outlined)
         else
           SizedBox(
             height: listHeight,
@@ -460,7 +554,11 @@ class _PopularSection extends StatelessWidget {
                       item: item,
                       width: cardWidth,
                       heroTag: 'home_${item.anilistId}',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CatalogDetailPage(item: item))),
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  CatalogDetailPage(item: item))),
                     ),
                   ),
                 );

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/catalog_item.dart';
 import '../../models/media_type_enum.dart';
 import '../../services/anilist_service.dart';
@@ -10,28 +12,32 @@ enum TipeError { network, rateLimit, api, unknown }
 
 class CatalogProvider extends ChangeNotifier {
   final AniListService _service = AniListService();
-  
+
+  static const String _cacheKeyPopular = 'cache_popular_home';
+  static const Duration _cacheTtl = Duration(minutes: 30);
+
   List<ItemKatalog> _items = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _hasNextPage = true;
   int _currentPage = 1;
   int _totalResults = 0;
-  
+
   TipeError? _errorType;
   String? _errorMessage;
   String? _loadMoreError;
-  
+
   JenisMedia _selectedJenis = JenisMedia.anime;
   String _query = '';
   int _requestGeneration = 0;
-  
+
   List<String> _filterGenres = [];
   int? _filterTahun;
   String? _filterStatus;
   UrutanKatalog _urutan = UrutanKatalog.populer;
 
   List<String> _availableGenres = [];
+  bool _isLoadingGenres = false;
 
   List<ItemKatalog> _popularAnime = [];
   List<ItemKatalog> _popularManga = [];
@@ -56,18 +62,18 @@ class CatalogProvider extends ChangeNotifier {
   String? get filterStatus => _filterStatus;
   UrutanKatalog get urutan => _urutan;
   List<String> get availableGenres => _availableGenres;
+  bool get isLoadingGenres => _isLoadingGenres;
 
   List<ItemKatalog> get topAnime => _popularAnime;
   List<ItemKatalog> get topManga => _popularManga;
   bool get isLoadingPopular => _isLoadingPopular;
   String? get popularError => _popularError;
 
-  bool get hasActiveFilters => _filterGenres.isNotEmpty || _filterTahun != null || _filterStatus != null;
+  bool get hasActiveFilters =>
+      _filterGenres.isNotEmpty || _filterTahun != null || _filterStatus != null;
   bool get hasQuery => _query.isNotEmpty;
 
-  CatalogProvider() {
-    _fetchAvailableGenres();
-  }
+  CatalogProvider();
 
   @override
   void dispose() {
@@ -80,21 +86,36 @@ class CatalogProvider extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
-  Future<void> _fetchAvailableGenres() async {
-    if (_availableGenres.isNotEmpty) return;
-    _availableGenres = await _service.fetchGenres();
+  Future<void> ensureGenres() async {
+    if (_availableGenres.isNotEmpty || _isLoadingGenres) return;
+    _isLoadingGenres = true;
     _safeNotify();
+    try {
+      _availableGenres = await _service.fetchGenres();
+    } catch (_) {
+      _availableGenres = [];
+    } finally {
+      _isLoadingGenres = false;
+      _safeNotify();
+    }
   }
 
   String _getSortParam() {
-    if (_query.isNotEmpty && _urutan == UrutanKatalog.populer) return 'SEARCH_MATCH';
-    
+    if (_query.isNotEmpty && _urutan == UrutanKatalog.populer) {
+      return 'SEARCH_MATCH';
+    }
+
     switch (_urutan) {
-      case UrutanKatalog.populer: return 'POPULARITY_DESC';
-      case UrutanKatalog.skor: return 'SCORE_DESC';
-      case UrutanKatalog.terbaru: return 'START_DATE_DESC';
-      case UrutanKatalog.judul: return 'TITLE_ROMAJI';
-      case UrutanKatalog.relevan: return 'SEARCH_MATCH';
+      case UrutanKatalog.populer:
+        return 'POPULARITY_DESC';
+      case UrutanKatalog.skor:
+        return 'SCORE_DESC';
+      case UrutanKatalog.terbaru:
+        return 'START_DATE_DESC';
+      case UrutanKatalog.judul:
+        return 'TITLE_ROMAJI';
+      case UrutanKatalog.relevan:
+        return 'SEARCH_MATCH';
     }
   }
 
@@ -121,8 +142,10 @@ class CatalogProvider extends ChangeNotifier {
         sort: _getSortParam(),
       );
       if (gen != _requestGeneration) return;
-      
-      _items = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
+
+      _items = result.media
+          .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
+          .toList();
       _hasNextPage = result.hasNextPage;
       _totalResults = result.total;
     } catch (e) {
@@ -139,12 +162,14 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasNextPage || _isLoading || _loadMoreError != null) return;
+    if (_isLoadingMore || !_hasNextPage || _isLoading || _loadMoreError != null) {
+      return;
+    }
 
     final gen = _requestGeneration;
     _isLoadingMore = true;
     _safeNotify();
-    
+
     try {
       final nextPage = _currentPage + 1;
       final result = await _service.fetchPage(
@@ -162,9 +187,12 @@ class CatalogProvider extends ChangeNotifier {
         _hasNextPage = false;
       } else {
         _currentPage = nextPage;
-        final newItems = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
+        final newItems = result.media
+            .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
+            .toList();
         final existingIds = _items.map((e) => e.anilistId).toSet();
-        final uniqueNewItems = newItems.where((e) => !existingIds.contains(e.anilistId)).toList();
+        final uniqueNewItems =
+            newItems.where((e) => !existingIds.contains(e.anilistId)).toList();
         _items.addAll(uniqueNewItems);
         _hasNextPage = result.hasNextPage;
       }
@@ -211,9 +239,65 @@ class CatalogProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> _loadPopularFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cacheKeyPopular);
+      if (raw == null || raw.isEmpty) return false;
+
+      final obj = jsonDecode(raw) as Map<String, dynamic>;
+      final ts = DateTime.tryParse(obj['ts'] as String? ?? '');
+      if (ts == null || DateTime.now().difference(ts) > _cacheTtl) {
+        return false;
+      }
+
+      final animeJson = (obj['anime'] as List<dynamic>?) ?? [];
+      final mangaJson = (obj['manga'] as List<dynamic>?) ?? [];
+
+      _popularAnime = animeJson
+          .cast<Map<String, dynamic>>()
+          .map((j) => ItemKatalog.fromAniList(j, JenisMedia.anime))
+          .toList();
+      _popularManga = mangaJson
+          .cast<Map<String, dynamic>>()
+          .map((j) => ItemKatalog.fromAniList(j, JenisMedia.manga))
+          .toList();
+      _hasFetchedPopular = _popularAnime.isNotEmpty || _popularManga.isNotEmpty;
+      return _hasFetchedPopular;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _savePopularToCache(
+    List<Map<String, dynamic>> anime,
+    List<Map<String, dynamic>> manga,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _cacheKeyPopular,
+        jsonEncode({
+          'ts': DateTime.now().toIso8601String(),
+          'anime': anime,
+          'manga': manga,
+        }),
+      );
+    } catch (_) {}
+  }
+
   Future<void> fetchPopularHome({bool forceRefresh = false}) async {
     if (forceRefresh) _hasFetchedPopular = false;
-    if (_hasFetchedPopular || _isLoadingPopular) return;
+
+    if (!forceRefresh &&
+        !_hasFetchedPopular &&
+        _popularAnime.isEmpty &&
+        _popularManga.isEmpty) {
+      final ok = await _loadPopularFromCache();
+      if (ok) _safeNotify();
+    }
+
+    if (_isLoadingPopular) return;
 
     _isLoadingPopular = true;
     _popularError = null;
@@ -221,17 +305,27 @@ class CatalogProvider extends ChangeNotifier {
 
     try {
       final results = await Future.wait([
-        _service.fetchPage(jenis: JenisMedia.anime, page: 1).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
-        _service.fetchPage(jenis: JenisMedia.manga, page: 1).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service
+            .fetchPage(jenis: JenisMedia.anime, page: 1)
+            .catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service
+            .fetchPage(jenis: JenisMedia.manga, page: 1)
+            .catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
       ]);
-      
-      _popularAnime = results[0].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
-      _popularManga = results[1].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
-      
+
+      final newAnime = results[0].media;
+      final newManga = results[1].media;
+
+      _popularAnime =
+          newAnime.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
+      _popularManga =
+          newManga.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
+
       if (_popularAnime.isEmpty && _popularManga.isEmpty) {
         _popularError = 'Gagal memuat data populer.';
       } else {
         _hasFetchedPopular = true;
+        await _savePopularToCache(newAnime, newManga);
       }
     } catch (e) {
       _popularError = 'Gagal memuat data populer.';
@@ -261,11 +355,23 @@ class CatalogProvider extends ChangeNotifier {
     UrutanKatalog? urutan,
   }) {
     bool changed = false;
-    if (genres != null && !_listEquals(genres, _filterGenres)) { _filterGenres = genres; changed = true; }
-    if (tahun != _filterTahun) { _filterTahun = tahun; changed = true; }
-    if (status != _filterStatus) { _filterStatus = status; changed = true; }
-    if (urutan != null && urutan != _urutan) { _urutan = urutan; changed = true; }
-    
+    if (genres != null && !_listEquals(genres, _filterGenres)) {
+      _filterGenres = genres;
+      changed = true;
+    }
+    if (tahun != _filterTahun) {
+      _filterTahun = tahun;
+      changed = true;
+    }
+    if (status != _filterStatus) {
+      _filterStatus = status;
+      changed = true;
+    }
+    if (urutan != null && urutan != _urutan) {
+      _urutan = urutan;
+      changed = true;
+    }
+
     if (changed) fetchCatalog();
   }
 
@@ -292,7 +398,9 @@ class CatalogProvider extends ChangeNotifier {
 
   bool _listEquals(List<String> a, List<String> b) {
     if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) { if (a[i] != b[i]) return false; }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
     return true;
   }
 }

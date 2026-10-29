@@ -6,17 +6,21 @@ class CategoryProvider extends ChangeNotifier {
   final CategoryService _service = CategoryService();
   List<KategoriKustom> _categories = [];
   bool _isLoading = false;
+  bool _hasLoaded = false;
   String? _errorMessage;
   String? _deviceId;
 
   List<KategoriKustom> get categories => _categories;
   bool get isLoading => _isLoading;
+  bool get hasLoaded => _hasLoaded;
   String? get errorMessage => _errorMessage;
 
   void bindDevice(String? id) {
     if (_deviceId == id) return;
     _deviceId = id;
     _categories = [];
+    _hasLoaded = false;
+    _errorMessage = null;
     if (id != null) {
       Future.microtask(() => fetchCategories());
     }
@@ -34,6 +38,7 @@ class CategoryProvider extends ChangeNotifier {
       _errorMessage = 'Gagal memuat kategori: $e';
     } finally {
       _isLoading = false;
+      _hasLoaded = true;
       notifyListeners();
     }
   }

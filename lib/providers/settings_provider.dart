@@ -36,19 +36,21 @@ class SettingsProvider extends ChangeNotifier {
       if (savedLang != null) {
         _locale = Locale(savedLang);
       }
-
-      final persistentId = await PersistentDeviceId.getDeviceId();
-      if (persistentId != null && persistentId.isNotEmpty) {
-        _deviceId = persistentId;
-      } else {
-        _deviceId = null;
-      }
     } catch (e) {
       debugPrint('Gagal memuat settings: $e');
-      _deviceId = null;
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+
+    try {
+      final persistentId = await PersistentDeviceId.getDeviceId();
+      if (persistentId != null && persistentId.isNotEmpty) {
+        _deviceId = persistentId;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Gagal memuat device ID: $e');
     }
   }
 

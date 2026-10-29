@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
@@ -35,15 +36,14 @@ class _StoragePageState extends State<StoragePage> {
 
     final prefs = await SharedPreferences.getInstance();
     for (final key in prefs.getKeys()) {
+      final isColl = key.startsWith('cache_koleksi_');
+      final isTr = key.startsWith('tr_id_');
+      if (!isColl && !isTr) continue;
       final value = prefs.getString(key);
-      if (value == null) continue;
-
+      if (value == null || value.isEmpty) continue;
       final byteSize = utf8.encode(value).length;
-      if (key.startsWith('cache_koleksi_')) {
-        collectionSize += byteSize;
-      } else if (key.startsWith('tr_id_')) {
-        translationSize += byteSize;
-      }
+      if (isColl) collectionSize += byteSize;
+      if (isTr) translationSize += byteSize;
     }
 
     if (!mounted) return;
@@ -66,6 +66,9 @@ class _StoragePageState extends State<StoragePage> {
   Future<void> _hapusCacheGambar(AppLocalizations l10n) async {
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
+    try {
+      await DefaultCacheManager().emptyCache();
+    } catch (_) {}
     await _hitungUkuran();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -84,10 +87,7 @@ class _StoragePageState extends State<StoragePage> {
         title: Text(l10n.delete),
         content: Text(l10n.storageDataDesc),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx, false),
-            child: Text(l10n.cancel),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
@@ -127,11 +127,7 @@ class _StoragePageState extends State<StoragePage> {
       appBar: AppBar(
         title: Text(l10n.storage),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-            onPressed: _hitungUkuran,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), tooltip: 'Refresh', onPressed: _hitungUkuran),
         ],
       ),
       body: _isLoading
@@ -146,54 +142,29 @@ class _StoragePageState extends State<StoragePage> {
                     padding: const EdgeInsets.all(AppSizes.spacingM),
                     child: Column(
                       children: [
-                        const Icon(
-                          Icons.pie_chart_outline,
-                          size: 48,
-                          color: AppColors.primaryGreen,
-                        ),
+                        const Icon(Icons.pie_chart_outline, size: 48, color: AppColors.primaryGreen),
                         const SizedBox(height: AppSizes.spacingS),
-                        Text(
-                          l10n.storage,
-                          style: const TextStyle(fontSize: 14),
-                        ),
+                        Text(l10n.storage, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: AppSizes.spacingXs),
-                        Text(
-                          _formatBytes(totalSize),
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        Text(_formatBytes(totalSize), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSizes.spacingL),
-                Text(
-                  l10n.activityDetails,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
+                Text(l10n.activityDetails, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: AppSizes.spacingS),
                 Card(
                   elevation: 0,
                   color: theme.cardColor,
                   child: ListTile(
-                    leading: const Icon(
-                      Icons.image_outlined,
-                      color: AppColors.infoBlue,
-                    ),
+                    leading: const Icon(Icons.image_outlined, color: AppColors.infoBlue),
                     title: Text(l10n.storage),
                     subtitle: Text(_formatBytes(_imageCacheSize)),
                     trailing: IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                      ),
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                       tooltip: l10n.delete,
-                      onPressed: _imageCacheSize > 0
-                          ? () => _hapusCacheGambar(l10n)
-                          : null,
+                      onPressed: _imageCacheSize > 0 ? () => _hapusCacheGambar(l10n) : null,
                     ),
                   ),
                 ),
@@ -201,24 +172,14 @@ class _StoragePageState extends State<StoragePage> {
                   elevation: 0,
                   color: theme.cardColor,
                   child: ListTile(
-                    leading: const Icon(
-                      Icons.storage_outlined,
-                      color: AppColors.goldPrimary,
-                    ),
+                    leading: const Icon(Icons.storage_outlined, color: AppColors.goldPrimary),
                     title: Text(l10n.storageData),
                     subtitle: Text(_formatBytes(_collectionDataSize)),
                     trailing: IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                      ),
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                       tooltip: l10n.delete,
                       onPressed: _collectionDataSize > 0
-                          ? () => _hapusCacheData(
-                                l10n,
-                                includeCollection: true,
-                                includeTranslation: false,
-                              )
+                          ? () => _hapusCacheData(l10n, includeCollection: true, includeTranslation: false)
                           : null,
                     ),
                   ),
@@ -227,24 +188,14 @@ class _StoragePageState extends State<StoragePage> {
                   elevation: 0,
                   color: theme.cardColor,
                   child: ListTile(
-                    leading: const Icon(
-                      Icons.translate,
-                      color: AppColors.typeManhua,
-                    ),
+                    leading: const Icon(Icons.translate, color: AppColors.typeManhua),
                     title: Text(l10n.synopsis),
                     subtitle: Text(_formatBytes(_translationDataSize)),
                     trailing: IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                      ),
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                       tooltip: l10n.delete,
                       onPressed: _translationDataSize > 0
-                          ? () => _hapusCacheData(
-                                l10n,
-                                includeCollection: false,
-                                includeTranslation: true,
-                              )
+                          ? () => _hapusCacheData(l10n, includeCollection: false, includeTranslation: true)
                           : null,
                     ),
                   ),

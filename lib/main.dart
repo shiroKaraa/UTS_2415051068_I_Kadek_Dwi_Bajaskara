@@ -24,9 +24,41 @@ Future<void> main() async {
       publishableKey: KonfigurasiApp.supabaseAnonKey,
     );
   } catch (e) {
-    debugPrint('Gagal inisialisasi: $e');
+    debugPrint('Gagal inisialisasi Supabase: $e');
+    runApp(const _InitializationErrorApp());
+    return;
   }
   runApp(const MyApp());
+}
+
+class _InitializationErrorApp extends StatelessWidget {
+  const _InitializationErrorApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Gagal terhubung ke server.\nPeriksa koneksi internet Anda dan restart aplikasi.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -53,7 +85,6 @@ class MyApp extends StatelessWidget {
             return provider;
           },
         ),
-
         ChangeNotifierProxyProvider<SettingsProvider, CategoryProvider>(
           create: (_) => CategoryProvider(),
           update: (_, settings, previous) {
@@ -65,14 +96,6 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
-          if (settings.isLoading) {
-            return const MaterialApp(
-              home: Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              ),
-            );
-          }
-
           return MaterialApp(
             title: 'Tsuzuki',
             debugShowCheckedModeBanner: false,

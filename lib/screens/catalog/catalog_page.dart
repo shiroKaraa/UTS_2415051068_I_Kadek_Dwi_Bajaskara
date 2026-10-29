@@ -69,6 +69,7 @@ class _CatalogPageState extends State<CatalogPage> {
 
   void _showFilterSheet(BuildContext context, AppLocalizations l10n) {
     final catalog = context.read<CatalogProvider>();
+    catalog.ensureGenres();
     
     List<String> tempGenres = List.from(catalog.filterGenres);
     int? tempTahun = catalog.filterTahun;
@@ -96,26 +97,34 @@ class _CatalogPageState extends State<CatalogPage> {
                     
                     Text(l10n.filterGenre, style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingS),
-                    Wrap(
-                      spacing: AppSizes.spacingS,
-                      runSpacing: AppSizes.spacingS,
-                      children: catalog.availableGenres.map((genre) {
-                        final isSelected = tempGenres.contains(genre);
-                        return FilterChip(
-                          label: Text(genre),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                tempGenres.add(genre);
-                              } else {
-                                tempGenres.remove(genre);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
+                    if (catalog.isLoadingGenres)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else
+                      Wrap(
+                        spacing: AppSizes.spacingS,
+                        runSpacing: AppSizes.spacingS,
+                        children: catalog.availableGenres.map((genre) {
+                          final isSelected = tempGenres.contains(genre);
+                          return FilterChip(
+                            label: Text(genre),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  tempGenres.add(genre);
+                                } else {
+                                  tempGenres.remove(genre);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
                     const SizedBox(height: AppSizes.spacingL),
 
                     Text(l10n.filterStatus, style: const TextStyle(fontWeight: FontWeight.bold)),

@@ -117,7 +117,7 @@ class CategoryPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.manageCategories)),
-      body: provider.isLoading
+      body: (!provider.hasLoaded && provider.isLoading)
           ? const Center(child: CircularProgressIndicator())
           : provider.categories.isEmpty
               ? Center(child: Text(l10n.noCategory))

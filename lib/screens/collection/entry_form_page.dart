@@ -22,7 +22,6 @@ class EntryFormPage extends StatefulWidget {
 class _EntryFormPageState extends State<EntryFormPage> {
   final _formKey = GlobalKey<FormState>();
   late StatusKoleksi _status;
-  late int _progres;
   late TextEditingController _progresController;
   late TextEditingController _totalController;
   late TextEditingController _catatanController;
@@ -32,7 +31,6 @@ class _EntryFormPageState extends State<EntryFormPage> {
   void initState() {
     super.initState();
     _status = StatusKoleksi.direncanakan;
-    _progres = 0;
     _progresController = TextEditingController(text: '0');
     _totalController =
         TextEditingController(text: widget.item.total?.toString() ?? '');
@@ -54,21 +52,16 @@ class _EntryFormPageState extends State<EntryFormPage> {
     final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
 
-    if (settings.deviceId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.deviceIdNotAvailable)),
-      );
-      return;
-    }
+    final progresBaru = int.tryParse(_progresController.text) ?? 0;
 
     final entriBaru = EntriKoleksi(
-      deviceId: settings.deviceId!,
+      deviceId: settings.deviceId,
       jenis: widget.item.jenis,
-      externalId: widget.item.anilistId.toString(),
+      externalId: 'al:${widget.item.anilistId}',
       judul: widget.item.displayTitle,
       coverUrl: widget.item.coverUrl,
       status: _status,
-      progres: _progres,
+      progres: progresBaru,
       total: int.tryParse(_totalController.text),
       rating: _rating,
       catatan: _catatanController.text.trim().isEmpty
@@ -77,12 +70,11 @@ class _EntryFormPageState extends State<EntryFormPage> {
     );
 
     final berhasil = await collection.createEntry(entriBaru);
-
     if (!mounted) return;
 
     if (berhasil) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.categoryAdded)),
+        SnackBar(content: Text(l10n.addToCollection)),
       );
       Navigator.pop(context);
     } else {
@@ -95,8 +87,8 @@ class _EntryFormPageState extends State<EntryFormPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final collection = context.watch<CollectionProvider>();
-    final isSaving = collection.isSaving;
+    final isSaving =
+        context.select<CollectionProvider, bool>((c) => c.isSaving);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.addToCollection)),
@@ -126,8 +118,6 @@ class _EntryFormPageState extends State<EntryFormPage> {
               formKey: _formKey,
               status: _status,
               onStatusChanged: (val) => setState(() => _status = val),
-              progres: _progres,
-              onProgresChanged: (val) => setState(() => _progres = val),
               progresController: _progresController,
               totalController: _totalController,
               rating: _rating,

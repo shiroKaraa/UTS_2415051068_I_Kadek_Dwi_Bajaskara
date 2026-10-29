@@ -20,7 +20,6 @@ class EditEntryPage extends StatefulWidget {
 class _EditEntryPageState extends State<EditEntryPage> {
   final _formKey = GlobalKey<FormState>();
   late StatusKoleksi _status;
-  late int _progres;
   late TextEditingController _progresController;
   late TextEditingController _totalController;
   late TextEditingController _catatanController;
@@ -30,10 +29,12 @@ class _EditEntryPageState extends State<EditEntryPage> {
   void initState() {
     super.initState();
     _status = widget.entri.status;
-    _progres = widget.entri.progres;
-    _progresController = TextEditingController(text: widget.entri.progres.toString());
-    _totalController = TextEditingController(text: widget.entri.total?.toString() ?? '');
-    _catatanController = TextEditingController(text: widget.entri.catatan ?? '');
+    _progresController =
+        TextEditingController(text: widget.entri.progres.toString());
+    _totalController =
+        TextEditingController(text: widget.entri.total?.toString() ?? '');
+    _catatanController =
+        TextEditingController(text: widget.entri.catatan ?? '');
     _rating = widget.entri.rating;
   }
 
@@ -51,12 +52,15 @@ class _EditEntryPageState extends State<EditEntryPage> {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.read<CollectionProvider>();
 
+    final progresBaru = int.tryParse(_progresController.text) ?? 0;
     final totalBaru = int.tryParse(_totalController.text);
-    final catatanBaru = _catatanController.text.trim().isEmpty ? null : _catatanController.text.trim();
+    final catatanBaru = _catatanController.text.trim().isEmpty
+        ? null
+        : _catatanController.text.trim();
 
     final entriUpdate = widget.entri.copyWith(
       status: _status,
-      progres: _progres,
+      progres: progresBaru,
       total: totalBaru,
       clearTotal: totalBaru == null,
       rating: _rating,
@@ -67,22 +71,25 @@ class _EditEntryPageState extends State<EditEntryPage> {
     );
 
     final berhasil = await collection.updateEntry(entriUpdate);
-
     if (!mounted) return;
 
     if (berhasil) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.categoryUpdated)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.save)),
+      );
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final collection = context.watch<CollectionProvider>();
-    final isSaving = collection.isSaving;
+    final isSaving =
+        context.select<CollectionProvider, bool>((c) => c.isSaving);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.edit)),
@@ -93,9 +100,17 @@ class _EditEntryPageState extends State<EditEntryPage> {
           children: [
             Card(
               child: ListTile(
-                leading: SizedBox(width: 40, height: 60, child: CoverImage(url: widget.entri.coverUrl)),
+                leading: SizedBox(
+                  width: 40,
+                  height: 60,
+                  child: CoverImage(url: widget.entri.coverUrl),
+                ),
                 title: Text(widget.entri.judul),
-                subtitle: Text('${widget.entri.jenis.label(l10n)} • ${widget.entri.total ?? "?"} ${widget.entri.jenis.satuanProgres(l10n)}'),
+                subtitle: Text(
+                  '${widget.entri.jenis.label(l10n)} • '
+                  '${widget.entri.total ?? "?"} '
+                  '${widget.entri.jenis.satuanProgres(l10n)}',
+                ),
               ),
             ),
             const SizedBox(height: AppSizes.spacingM),
@@ -104,8 +119,6 @@ class _EditEntryPageState extends State<EditEntryPage> {
               formKey: _formKey,
               status: _status,
               onStatusChanged: (val) => setState(() => _status = val),
-              progres: _progres,
-              onProgresChanged: (val) => setState(() => _progres = val),
               progresController: _progresController,
               totalController: _totalController,
               rating: _rating,

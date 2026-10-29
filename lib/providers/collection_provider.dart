@@ -34,7 +34,9 @@ class CollectionProvider extends ChangeNotifier {
   
   ProfileStats? _cachedStats;
   List<EntriKoleksi>? _filteredCache;
+  List<EntriKoleksi>? _continueCache;
   Map<String, EntriKoleksi>? _externalIndex;
+  Timer? _cacheTimer;
 
   bool get isOffline => _isOffline;
   bool get isListView => _isListView;
@@ -60,40 +62,53 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   List<EntriKoleksi> get continueWatching {
-    final list = _entries.where((e) => e.status == StatusKoleksi.sedang).toList();
+    if (_continueCache != null) return _continueCache!;
+    final list = _entries
+        .where((e) => e.status == StatusKoleksi.sedang)
+        .toList(growable: false);
     final fallback = DateTime.fromMillisecondsSinceEpoch(0);
-    list.sort((a, b) => (b.updatedAt ?? fallback).compareTo(a.updatedAt ?? fallback));
-    return list.take(3).toList();
+    list.sort((a, b) =>
+        (b.updatedAt ?? fallback).compareTo(a.updatedAt ?? fallback));
+    _continueCache = list.take(3).toList(growable: false);
+    return _continueCache!;
   }
 
   List<EntriKoleksi> get entries {
     if (_filteredCache != null) return _filteredCache!;
-    
-    var filtered = List<EntriKoleksi>.from(_entries);
-    if (_query.isNotEmpty) {
-      final q = _query.toLowerCase();
-      filtered = filtered.where((e) {
+
+    final q = _query.toLowerCase();
+    final hasQuery = q.isNotEmpty;
+
+    final filtered = <EntriKoleksi>[];
+    for (final e in _entries) {
+      if (hasQuery) {
         final matchJudul = e.judul.toLowerCase().contains(q);
-        final matchCatatan = e.catatan?.toLowerCase().contains(q) ?? false;
-        return matchJudul || matchCatatan;
-      }).toList();
+        final matchCatatan =
+            e.catatan?.toLowerCase().contains(q) ?? false;
+        if (!matchJudul && !matchCatatan) continue;
+      }
+      if (_filterStatus != null && e.status != _filterStatus) continue;
+      if (_filterJenis != null && e.jenis != _filterJenis) continue;
+      if (_filterRating != null && e.rating != _filterRating) continue;
+      if (_filterFavorit && !e.isFavorite) continue;
+      filtered.add(e);
     }
-    if (_filterStatus != null) filtered = filtered.where((e) => e.status == _filterStatus).toList();
-    if (_filterJenis != null) filtered = filtered.where((e) => e.jenis == _filterJenis).toList();
-    if (_filterRating != null) filtered = filtered.where((e) => e.rating == _filterRating).toList();
-    if (_filterFavorit) filtered = filtered.where((e) => e.isFavorite).toList();
 
     final fallback = DateTime.fromMillisecondsSinceEpoch(0);
-    if (_urutan == UrutanKoleksi.terbaru) {
-      filtered.sort((a, b) => (b.updatedAt ?? fallback).compareTo(a.updatedAt ?? fallback));
-    } else if (_urutan == UrutanKoleksi.judul) {
-      filtered.sort((a, b) => a.judul.toLowerCase().compareTo(b.judul.toLowerCase()));
-    } else if (_urutan == UrutanKoleksi.progres) {
-      filtered.sort((a, b) => b.progres.compareTo(a.progres));
-    } else if (_urutan == UrutanKoleksi.rating) {
-      filtered.sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+    switch (_urutan) {
+      case UrutanKoleksi.terbaru:
+        filtered.sort((a, b) =>
+            (b.updatedAt ?? fallback).compareTo(a.updatedAt ?? fallback));
+      case UrutanKoleksi.judul:
+        filtered.sort((a, b) =>
+            a.judul.toLowerCase().compareTo(b.judul.toLowerCase()));
+      case UrutanKoleksi.progres:
+        filtered.sort((a, b) => b.progres.compareTo(a.progres));
+      case UrutanKoleksi.rating:
+        filtered.sort((a, b) =>
+            (b.rating ?? 0).compareTo(a.rating ?? 0));
     }
-    
+
     _filteredCache = filtered;
     return _filteredCache!;
   }
@@ -101,10 +116,17 @@ class CollectionProvider extends ChangeNotifier {
   CollectionProvider(this._repository);
 
   @override
-  void notifyListeners() {
+  void dispose() {
+    _cacheTimer?.cancel();
+    super.dispose();
+  }
+
+  void _notifyDataChanged() {
     _cachedStats = null;
     _filteredCache = null;
-    super.notifyListeners();
+    _continueCache = null;
+    _externalIndex = null;
+    notifyListeners();
   }
 
   void bindUser(String? userId) {
@@ -115,22 +137,28 @@ class CollectionProvider extends ChangeNotifier {
     _isOffline = false;
     _isLoading = false;
     _isSaving = false;
-    _externalIndex = null;
+    _notifyDataChanged();
 
     if (userId != null) {
       fetchCollection();
-    } else {
-      notifyListeners();
     }
   }
 
   String _cacheKeyFor(String userId) => 'cache_koleksi_$userId';
 
+  void _scheduleSaveCache() {
+    if (_userId == null) return;
+    _cacheTimer?.cancel();
+    _cacheTimer = Timer(const Duration(seconds: 1), _saveCache);
+  }
+
   Future<void> _saveCache() async {
     if (_userId == null) return;
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = jsonEncode(_entries.map((e) => e.toCacheJson()).toList());
-    await prefs.setString(_cacheKeyFor(_userId!), jsonString);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = jsonEncode(_entries.map((e) => e.toCacheJson()).toList());
+      await prefs.setString(_cacheKeyFor(_userId!), jsonString);
+    } catch (_) {}
   }
 
   Future<void> fetchCollection() async {
@@ -148,7 +176,8 @@ class CollectionProvider extends ChangeNotifier {
 
       _entries = data;
       _isOffline = false;
-      await _saveCache();
+      _scheduleSaveCache();
+      _notifyDataChanged();
     } catch (e) {
       if (gen != _fetchGen) return;
 
@@ -169,6 +198,7 @@ class CollectionProvider extends ChangeNotifier {
         _isOffline = false;
         _errorMessage = 'Gagal memuat koleksi. Periksa koneksi internet Anda.';
       }
+      _notifyDataChanged();
     } finally {
       if (gen == _fetchGen) {
         _isLoading = false;
@@ -205,14 +235,13 @@ class CollectionProvider extends ChangeNotifier {
     }
 
     if (_isOffline) {
-      try {
-        await _repository.getCollection(_userId!);
-        _isOffline = false;
-      } catch (_) {
+      final isOnline = await _repository.pingServer();
+      if (!isOnline) {
         _errorMessage = 'Tidak dapat menambah data saat offline.';
         notifyListeners();
         return false;
       }
+      _isOffline = false;
     }
 
     _isSaving = true;
@@ -222,8 +251,8 @@ class CollectionProvider extends ChangeNotifier {
     try {
       final newEntry = await _repository.createEntry(entri);
       _entries.insert(0, newEntry);
-      _externalIndex = null;
-      await _saveCache();
+      _scheduleSaveCache();
+      _notifyDataChanged();
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -243,8 +272,8 @@ class CollectionProvider extends ChangeNotifier {
     try {
       final newEntries = await _repository.createEntries(entries);
       _entries.insertAll(0, newEntries);
-      _externalIndex = null;
-      await _saveCache();
+      _scheduleSaveCache();
+      _notifyDataChanged();
       return newEntries.length;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -269,8 +298,8 @@ class CollectionProvider extends ChangeNotifier {
       final updated = await _repository.updateEntry(entri);
       final index = _entries.indexWhere((e) => e.id == updated.id);
       if (index != -1) _entries[index] = updated;
-      _externalIndex = null;
-      await _saveCache();
+      _scheduleSaveCache();
+      _notifyDataChanged();
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -294,8 +323,8 @@ class CollectionProvider extends ChangeNotifier {
     try {
       await _repository.deleteEntry(entri.id!);
       _entries.removeWhere((e) => e.id == entri.id);
-      _externalIndex = null;
-      await _saveCache();
+      _scheduleSaveCache();
+      _notifyDataChanged();
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -321,8 +350,8 @@ class CollectionProvider extends ChangeNotifier {
       final count = _entries.length;
       await _repository.deleteAll(_userId!);
       _entries.clear();
-      _externalIndex = null;
-      await _saveCache();
+      _scheduleSaveCache();
+      _notifyDataChanged();
       return count;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -335,10 +364,13 @@ class CollectionProvider extends ChangeNotifier {
 
   Future<HasilIncrement> incrementProgress(EntriKoleksi entri) async {
     if (_isOffline) return HasilIncrement.offline;
-    if (_isSaving) return HasilIncrement.error;
     if (entri.status == StatusKoleksi.selesai) return HasilIncrement.alreadyCompleted;
     if (entri.total != null && entri.progres >= entri.total!) return HasilIncrement.alreadyCompleted;
 
+    final index = _entries.indexWhere((e) => e.id == entri.id);
+    if (index == -1) return HasilIncrement.error;
+    
+    final old = _entries[index];
     final newProgres = entri.progres + 1;
     final isSelesai = entri.total != null && newProgres >= entri.total!;
     
@@ -354,9 +386,23 @@ class CollectionProvider extends ChangeNotifier {
       status: newStatus,
       updatedAt: DateTime.now(),
     );
-    
-    final success = await updateEntry(updated);
-    return success ? HasilIncrement.ok : HasilIncrement.error;
+
+    _entries[index] = updated;
+    _notifyDataChanged();
+
+    try {
+      final saved = await _repository.updateEntry(updated);
+      final i = _entries.indexWhere((e) => e.id == saved.id);
+      if (i != -1) _entries[i] = saved;
+      _scheduleSaveCache();
+      _notifyDataChanged();
+      return HasilIncrement.ok;
+    } catch (_) {
+      final i = _entries.indexWhere((e) => e.id == old.id);
+      if (i != -1) _entries[i] = old;
+      _notifyDataChanged();
+      return HasilIncrement.error;
+    }
   }
 
   Future<bool> decrementProgress(EntriKoleksi entri) async {
@@ -382,8 +428,7 @@ class CollectionProvider extends ChangeNotifier {
 
   Future<int> countClaimableCollections(String deviceId) async {
     try {
-      final res = await _repository.getCollection(_userId!);
-      return res.length;
+      return await _repository.countClaimableCollections(deviceId);
     } catch (_) {
       return 0;
     }
@@ -413,32 +458,32 @@ class CollectionProvider extends ChangeNotifier {
   void setFilterFavorit(bool value) {
     if (_filterFavorit == value) return;
     _filterFavorit = value;
-    notifyListeners();
+    _notifyDataChanged();
   }
 
   void setUrutan(UrutanKoleksi urutan) {
     if (_urutan == urutan) return;
     _urutan = urutan;
-    notifyListeners();
+    _notifyDataChanged();
   }
 
   void setFilterStatus(StatusKoleksi? status) {
     if (_filterStatus == status) return;
     _filterStatus = status;
-    notifyListeners();
+    _notifyDataChanged();
   }
 
   void setQuery(String query) {
     if (_query == query) return;
     _query = query;
-    notifyListeners();
+    _notifyDataChanged();
   }
 
   void setFilters({JenisMedia? jenis, int? rating, StatusKoleksi? status}) {
     _filterJenis = jenis;
     _filterRating = rating;
     _filterStatus = status;
-    notifyListeners();
+    _notifyDataChanged();
   }
 
   void clearFilters() {
@@ -447,7 +492,7 @@ class CollectionProvider extends ChangeNotifier {
     _filterStatus = null;
     _query = '';
     _filterFavorit = false;
-    notifyListeners();
+    _notifyDataChanged();
   }
 
   void toggleView() {

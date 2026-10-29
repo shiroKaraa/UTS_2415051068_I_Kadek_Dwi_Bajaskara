@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -25,6 +26,7 @@ class CollectionPage extends StatefulWidget {
 
 class _CollectionPageState extends State<CollectionPage> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _CollectionPageState extends State<CollectionPage> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -66,51 +69,62 @@ class _CollectionPageState extends State<CollectionPage> {
                   controller: scrollController,
                   padding: const EdgeInsets.all(AppSizes.spacingM),
                   children: [
-                    Text(l10n.activeFilter, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(l10n.activeFilter,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingM),
-                    
                     DropdownButtonFormField<JenisMedia>(
                       initialValue: tempJenis,
-                      decoration: InputDecoration(labelText: l10n.filterType, border: const OutlineInputBorder(), isDense: true),
+                      decoration: InputDecoration(
+                          labelText: l10n.filterType,
+                          border: const OutlineInputBorder(),
+                          isDense: true),
                       items: [
                         DropdownMenuItem(value: null, child: Text(l10n.all)),
-                        ...JenisMedia.values.map((j) => DropdownMenuItem(value: j, child: Text(j.label(l10n)))),
+                        ...JenisMedia.values.map((j) => DropdownMenuItem(
+                            value: j, child: Text(j.label(l10n)))),
                       ],
                       onChanged: (val) => setState(() => tempJenis = val),
                     ),
                     const SizedBox(height: AppSizes.spacingM),
-                    
                     DropdownButtonFormField<int>(
                       initialValue: tempRating,
-                      decoration: const InputDecoration(labelText: 'Rating', border: OutlineInputBorder(), isDense: true),
+                      decoration: const InputDecoration(
+                          labelText: 'Rating',
+                          border: OutlineInputBorder(),
+                          isDense: true),
                       items: [
                         DropdownMenuItem(value: null, child: Text(l10n.all)),
-                        ...List.generate(5, (i) => i + 1).map((val) => DropdownMenuItem(value: val, child: Text('⭐' * val))),
+                        ...List.generate(5, (i) => i + 1).map((val) =>
+                            DropdownMenuItem(
+                                value: val, child: Text('⭐' * val))),
                       ],
                       onChanged: (val) => setState(() => tempRating = val),
                     ),
                     const SizedBox(height: AppSizes.spacingM),
-                    
                     DropdownButtonFormField<StatusKoleksi>(
                       initialValue: tempStatus,
-                      decoration: InputDecoration(labelText: l10n.filterStatus, border: const OutlineInputBorder(), isDense: true),
+                      decoration: InputDecoration(
+                          labelText: l10n.filterStatus,
+                          border: const OutlineInputBorder(),
+                          isDense: true),
                       items: [
                         DropdownMenuItem(value: null, child: Text(l10n.all)),
-                        ...StatusKoleksi.values.map((s) => DropdownMenuItem(value: s, child: Text(s.netralLabel(l10n)))),
+                        ...StatusKoleksi.values.map((s) => DropdownMenuItem(
+                            value: s, child: Text(s.netralLabel(l10n)))),
                       ],
                       onChanged: (val) => setState(() => tempStatus = val),
                     ),
                     const SizedBox(height: AppSizes.spacingM),
-                    
                     SwitchListTile(
                       title: Text(l10n.onlyFavorites),
-                      secondary: const Icon(Icons.favorite, color: Colors.redAccent),
+                      secondary: const Icon(Icons.favorite,
+                          color: Colors.redAccent),
                       value: tempFavorit,
                       onChanged: (val) => setState(() => tempFavorit = val),
                       contentPadding: EdgeInsets.zero,
                     ),
                     const SizedBox(height: AppSizes.spacingL),
-                    
                     Row(
                       children: [
                         Expanded(
@@ -126,7 +140,10 @@ class _CollectionPageState extends State<CollectionPage> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              collection.setFilters(jenis: tempJenis, rating: tempRating, status: tempStatus);
+                              collection.setFilters(
+                                  jenis: tempJenis,
+                                  rating: tempRating,
+                                  status: tempStatus);
                               collection.setFilterFavorit(tempFavorit);
                               Navigator.pop(sheetCtx);
                             },
@@ -163,7 +180,8 @@ class _CollectionPageState extends State<CollectionPage> {
             onPressed: () => _showFilterSheet(context, l10n),
           ),
           IconButton(
-            icon: Icon(collection.isListView ? Icons.grid_view : Icons.view_list),
+            icon: Icon(
+                collection.isListView ? Icons.grid_view : Icons.view_list),
             tooltip: collection.isListView ? 'Grid View' : 'List View',
             onPressed: () => collection.toggleView(),
           ),
@@ -172,10 +190,14 @@ class _CollectionPageState extends State<CollectionPage> {
             tooltip: l10n.sortBy,
             onSelected: (value) => collection.setUrutan(value),
             itemBuilder: (context) => [
-              _buildSortItem(l10n.sortNewest, UrutanKoleksi.terbaru, collection.urutan),
-              _buildSortItem(l10n.sortTitle, UrutanKoleksi.judul, collection.urutan),
-              _buildSortItem(l10n.sortProgress, UrutanKoleksi.progres, collection.urutan),
-              _buildSortItem(l10n.sortRating, UrutanKoleksi.rating, collection.urutan),
+              _buildSortItem(l10n.sortNewest, UrutanKoleksi.terbaru,
+                  collection.urutan),
+              _buildSortItem(
+                  l10n.sortTitle, UrutanKoleksi.judul, collection.urutan),
+              _buildSortItem(l10n.sortProgress, UrutanKoleksi.progres,
+                  collection.urutan),
+              _buildSortItem(
+                  l10n.sortRating, UrutanKoleksi.rating, collection.urutan),
             ],
           ),
         ],
@@ -183,10 +205,20 @@ class _CollectionPageState extends State<CollectionPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(AppSizes.spacingM, AppSizes.spacingS, AppSizes.spacingM, 0),
+            padding: const EdgeInsets.fromLTRB(
+                AppSizes.spacingM, AppSizes.spacingS, AppSizes.spacingM, 0),
             child: TextField(
               controller: _searchController,
-              onChanged: (val) => collection.setQuery(val.trim()),
+              onChanged: (val) {
+                _debounceTimer?.cancel();
+                _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+                  if (mounted) collection.setQuery(val.trim());
+                });
+              },
+              onSubmitted: (val) {
+                _debounceTimer?.cancel();
+                collection.setQuery(val.trim());
+              },
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: l10n.searchInCollection,
@@ -199,6 +231,7 @@ class _CollectionPageState extends State<CollectionPage> {
                         ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
+                              _debounceTimer?.cancel();
                               _searchController.clear();
                               collection.setQuery('');
                             },
@@ -206,46 +239,59 @@ class _CollectionPageState extends State<CollectionPage> {
                         : const SizedBox.shrink();
                   },
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM, vertical: AppSizes.spacingS),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.spacingM, vertical: AppSizes.spacingS),
             child: Row(
               children: [
                 _buildStatusChip(context, l10n.all, null, collection),
-                ...StatusKoleksi.values.map((status) => _buildStatusChip(context, status.netralLabel(l10n), status, collection)),
+                ...StatusKoleksi.values.map((status) => _buildStatusChip(
+                    context, status.netralLabel(l10n), status, collection)),
               ],
             ),
           ),
-          if (!collection.isLoading && collection.errorMessage == null && collection.entries.isNotEmpty)
+          if (!collection.isLoading &&
+              collection.errorMessage == null &&
+              collection.entries.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingM),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   '${collection.entries.length} ${l10n.trackedTitles('').trim()}',
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant),
                 ),
               ),
             ),
-
           if (collection.isOffline)
             Container(
               width: double.infinity,
               color: AppColors.goldPrimary.withValues(alpha: 0.2),
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Row(
                 children: [
-                  const Icon(Icons.wifi_off, size: 16, color: AppColors.goldPrimary),
+                  const Icon(Icons.wifi_off,
+                      size: 16, color: AppColors.goldPrimary),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(l10n.offlineBanner, style: const TextStyle(fontSize: 12))),
+                  Expanded(
+                    child: Text(l10n.offlineBanner,
+                        style: const TextStyle(fontSize: 12)),
+                  ),
                 ],
               ),
             ),
-            
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => collection.refresh(),
@@ -257,7 +303,8 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildStatusChip(BuildContext context, String label, StatusKoleksi? status, CollectionProvider collection) {
+  Widget _buildStatusChip(BuildContext context, String label,
+      StatusKoleksi? status, CollectionProvider collection) {
     final isSelected = collection.filterStatus == status;
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
@@ -271,7 +318,8 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  PopupMenuItem<UrutanKoleksi> _buildSortItem(String label, UrutanKoleksi value, UrutanKoleksi current) {
+  PopupMenuItem<UrutanKoleksi> _buildSortItem(
+      String label, UrutanKoleksi value, UrutanKoleksi current) {
     return PopupMenuItem(
       value: value,
       child: Row(
@@ -284,7 +332,8 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
+  Widget _buildContent(BuildContext context, CollectionProvider collection,
+      AppLocalizations l10n) {
     if (collection.isLoading && collection.allEntries.isEmpty) {
       if (collection.isListView) {
         return ListView.builder(
@@ -323,20 +372,25 @@ class _CollectionPageState extends State<CollectionPage> {
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: EmptyView(
                 title: isFiltered ? l10n.noResults : l10n.emptyCollection,
-                subtitle: isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
-                icon: isFiltered ? Icons.search_off : Icons.collections_bookmark_outlined,
+                subtitle:
+                    isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
+                icon: isFiltered
+                    ? Icons.search_off
+                    : Icons.collections_bookmark_outlined,
                 actionLabel: isFiltered ? l10n.resetFilter : l10n.searchNow,
-                onAction: isFiltered 
-                    ? () => collection.clearFilters() 
+                onAction: isFiltered
+                    ? () => collection.clearFilters()
                     : () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Silakan buka tab Katalog untuk mencari.')),
+                          const SnackBar(
+                              content: Text(
+                                  'Silakan buka tab Katalog untuk mencari.')),
                         );
                       },
               ),
             ),
           );
-        }
+        },
       );
     }
 
@@ -347,7 +401,8 @@ class _CollectionPageState extends State<CollectionPage> {
     }
   }
 
-  Widget _buildGridView(BuildContext context, CollectionProvider collection) {
+  Widget _buildGridView(
+      BuildContext context, CollectionProvider collection) {
     return GridView.builder(
       padding: const EdgeInsets.all(AppSizes.spacingM),
       physics: const AlwaysScrollableScrollPhysics(),
@@ -361,6 +416,7 @@ class _CollectionPageState extends State<CollectionPage> {
       itemBuilder: (context, index) {
         final entri = collection.entries[index];
         return CollectionCard(
+          key: ValueKey(entri.id),
           entri: entri,
           onTap: () {
             Navigator.push(
@@ -378,7 +434,8 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildListView(BuildContext context, CollectionProvider collection, AppLocalizations l10n) {
+  Widget _buildListView(BuildContext context,
+      CollectionProvider collection, AppLocalizations l10n) {
     return ListView.builder(
       padding: const EdgeInsets.all(AppSizes.spacingM),
       physics: const AlwaysScrollableScrollPhysics(),
@@ -388,20 +445,27 @@ class _CollectionPageState extends State<CollectionPage> {
         final isSelesai = entri.status == StatusKoleksi.selesai;
 
         return Card(
+          key: ValueKey(entri.id),
           margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
           child: ListTile(
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CoverImage(url: entri.coverUrl, width: 50, height: 70),
             ),
-            title: Text(entri.judul, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(entri.judul,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
                 Text(
                   '${entri.status.netralLabel(l10n)} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres(l10n)}',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant),
                 ),
               ],
             ),
@@ -412,18 +476,25 @@ class _CollectionPageState extends State<CollectionPage> {
                     onPressed: () async {
                       final provider = context.read<CollectionProvider>();
                       final messenger = ScaffoldMessenger.of(context);
-                      final result = await provider.incrementProgress(entri);
+                      final result =
+                          await provider.incrementProgress(entri);
 
                       if (!context.mounted) return;
 
                       if (result == HasilIncrement.ok) {
-                        messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+                        messenger.showSnackBar(SnackBar(
+                            content: Text(l10n.progressAdded)));
                       } else if (result == HasilIncrement.offline) {
-                        messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
-                      } else if (result == HasilIncrement.alreadyCompleted) {
-                        messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
+                        messenger.showSnackBar(SnackBar(
+                            content: Text(l10n.offlineMode)));
+                      } else if (result ==
+                          HasilIncrement.alreadyCompleted) {
+                        messenger.showSnackBar(SnackBar(
+                            content: Text(l10n.congratsCompleted)));
                       } else {
-                        messenger.showSnackBar(SnackBar(content: Text(provider.errorMessage ?? l10n.errorLoadData)));
+                        messenger.showSnackBar(SnackBar(
+                            content: Text(provider.errorMessage ??
+                                l10n.errorLoadData)));
                       }
                     },
                   )
@@ -470,8 +541,10 @@ class _CollectionPageState extends State<CollectionPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete, color: Colors.redAccent),
-              title: Text(l10n.delete, style: const TextStyle(color: Colors.redAccent)),
+              leading:
+                  const Icon(Icons.delete, color: Colors.redAccent),
+              title: Text(l10n.delete,
+                  style: const TextStyle(color: Colors.redAccent)),
               onTap: () async {
                 Navigator.pop(sheetCtx);
                 final confirmed = await showDialog<bool>(
@@ -480,10 +553,14 @@ class _CollectionPageState extends State<CollectionPage> {
                     title: Text(l10n.delete),
                     content: Text('${l10n.delete} "${entri.judul}"?'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: Text(l10n.cancel)),
+                      TextButton(
+                          onPressed: () =>
+                              Navigator.pop(dialogCtx, false),
+                          child: Text(l10n.cancel)),
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                        style: TextButton.styleFrom(
+                            foregroundColor: Colors.redAccent),
                         child: Text(l10n.delete),
                       ),
                     ],
@@ -505,7 +582,9 @@ class _CollectionPageState extends State<CollectionPage> {
                   );
                 } else {
                   messenger.showSnackBar(
-                    SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)),
+                    SnackBar(
+                        content: Text(collection.errorMessage ??
+                            l10n.errorLoadData)),
                   );
                 }
               },

@@ -79,4 +79,34 @@ class SupabaseCollectionService implements CollectionDataSource {
   Future<void> deleteAll(String userId) async {
     await _supabase.from('koleksi').delete().eq('user_id', userId);
   }
+
+  @override
+  Future<int> countClaimableCollections(String deviceId) async {
+    try {
+      final response = await _supabase
+          .from('koleksi')
+          .select('id')
+          .eq('device_id', deviceId)
+          .isFilter('user_id', null)
+          .count(CountOption.exact)
+          .timeout(const Duration(seconds: 5));
+      return response.count;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  @override
+  Future<bool> pingServer() async {
+    try {
+      await _supabase
+          .from('koleksi')
+          .select('id')
+          .limit(1)
+          .timeout(const Duration(seconds: 3));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

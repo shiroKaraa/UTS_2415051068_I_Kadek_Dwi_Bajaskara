@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/screen_breakpoints.dart';
 import 'home/home_page.dart';
@@ -16,9 +17,11 @@ class ResponsiveShell extends StatefulWidget {
 
 class _ResponsiveShellState extends State<ResponsiveShell> {
   int _currentIndex = 0;
+  final Set<int> _built = {0};
+  final GlobalKey _stackKey = GlobalKey();
 
-  final List<Widget> _pages = [
-    const HomePage(),
+  late final List<Widget> _pages = [
+    HomePage(onNavigateTab: _onNavigateTab),
     const CatalogPage(),
     const CollectionPage(),
     const OtherPage(),
@@ -28,6 +31,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
   void _onNavigateTab(int index) {
     setState(() {
       _currentIndex = index;
+      _built.add(index);
     });
   }
 
@@ -77,8 +81,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         if (didPop) return;
         
         if (_currentIndex != 0) {
-          setState(() => _currentIndex = 0);
+          _onNavigateTab(0);
         } else {
+          SystemNavigator.pop();
         }
       },
       child: LayoutBuilder(
@@ -129,10 +134,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: _pages,
-            ),
+            child: _buildLazyStack(),
           ),
         ],
       ),
@@ -141,15 +143,23 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
 
   Widget _buildBottomNavLayout(List<NavigationDestination> destinations) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: _buildLazyStack(),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: _onNavigateTab,
         destinations: destinations,
       ),
+    );
+  }
+
+  Widget _buildLazyStack() {
+    return IndexedStack(
+      key: _stackKey,
+      index: _currentIndex,
+      children: [
+        for (var i = 0; i < _pages.length; i++)
+          _built.contains(i) ? _pages[i] : const SizedBox.shrink(),
+      ],
     );
   }
 }
