@@ -17,8 +17,6 @@ class CollectionDetailPage extends StatelessWidget {
   Future<void> _konfirmasiHapus(
       BuildContext context, AppLocalizations l10n, EntriKoleksi entri) async {
     final collection = context.read<CollectionProvider>();
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -41,25 +39,35 @@ class CollectionDetailPage extends StatelessWidget {
     if (confirmed != true) return;
     if (!context.mounted) return;
 
-    final berhasil = await collection.deleteEntry(entri);
-    if (!context.mounted) return;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    navigator.pop();
 
-    if (berhasil) {
-      navigator.pop();
+    final berhasil = await collection.deleteEntry(entri);
+    if (!berhasil) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.entryDeleted),
-          action: SnackBarAction(
-            label: l10n.undo,
-            onPressed: () async => await collection.createEntry(entri),
-          ),
-        ),
+            content: Text(collection.errorMessage ?? l10n.errorLoadData)),
       );
-    } else {
-      messenger.showSnackBar(
-        SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)),
-      );
+      return;
     }
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.entryDeleted),
+        action: SnackBarAction(
+          label: l10n.undo,
+          onPressed: () async {
+            final ok = await collection.createEntry(entri);
+            if (!ok && collection.errorMessage != null) {
+              messenger.showSnackBar(
+                SnackBar(content: Text(collection.errorMessage!)),
+              );
+            }
+          },
+        ),
+      ),
+    );
   }
 
   @override

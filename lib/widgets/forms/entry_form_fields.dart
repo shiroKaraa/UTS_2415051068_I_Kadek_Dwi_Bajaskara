@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/app_sizes.dart';
 import '../../../models/status_collection_enum.dart';
@@ -17,6 +18,7 @@ class EntryFormFields extends StatelessWidget {
   final bool isSaving;
   final VoidCallback onSimpan;
   final String buttonText;
+  final VoidCallback? onDirty;
 
   const EntryFormFields({
     super.key,
@@ -32,6 +34,7 @@ class EntryFormFields extends StatelessWidget {
     required this.isSaving,
     required this.onSimpan,
     required this.buttonText,
+    this.onDirty
   });
 
   @override
@@ -40,6 +43,8 @@ class EntryFormFields extends StatelessWidget {
 
     return Form(
       key: formKey,
+      onChanged: onDirty,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -71,6 +76,10 @@ class EntryFormFields extends StatelessWidget {
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(7),
+                  ],
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return l10n.fieldRequired;
@@ -95,12 +104,15 @@ class EntryFormFields extends StatelessWidget {
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(7),
+                  ],
                   validator: (val) {
-                    if (val != null &&
-                        val.isNotEmpty &&
-                        int.tryParse(val) == null) {
-                      return l10n.fieldMustBeNumber;
-                    }
+                    if (val == null || val.isEmpty) return null;
+                    final num = int.tryParse(val);
+                    if (num == null) return l10n.fieldMustBeNumber;
+                    if (num < 1) return l10n.fieldMustBeNumber;
                     return null;
                   },
                 ),

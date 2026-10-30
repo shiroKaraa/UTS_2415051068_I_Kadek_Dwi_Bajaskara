@@ -17,9 +17,11 @@ class CategoryService {
   }
 
   Future<KategoriKustom> createCategory(KategoriKustom category) async {
+    final payload = category.toJson();
+    payload.remove('user_id');
     final response = await _supabase
         .from('kategori_kustom')
-        .insert(category.toJson())
+        .insert(payload)
         .select()
         .single();
     return KategoriKustom.fromJson(response);

@@ -1,12 +1,12 @@
 class KategoriKustom {
   final int? id;
-  final String deviceId;
+  final String userId;
   final String nama;
   final String satuanProgres;
 
   KategoriKustom({
     this.id,
-    required this.deviceId,
+    required this.userId,
     required this.nama,
     this.satuanProgres = 'Bagian',
   });
@@ -14,7 +14,7 @@ class KategoriKustom {
   factory KategoriKustom.fromJson(Map<String, dynamic> json) {
     return KategoriKustom(
       id: json['id'] as int?,
-      deviceId: json['device_id'] as String,
+      userId: json['user_id'] as String,
       nama: json['nama'] as String,
       satuanProgres: json['satuan_progres'] as String? ?? 'Bagian',
     );
@@ -22,7 +22,6 @@ class KategoriKustom {
 
   Map<String, dynamic> toJson() {
     return {
-      'device_id': deviceId,
       'nama': nama,
       'satuan_progres': satuanProgres,
     };
@@ -30,13 +29,13 @@ class KategoriKustom {
 
   KategoriKustom copyWith({
     int? id,
-    String? deviceId,
+    String? userId,
     String? nama,
     String? satuanProgres,
   }) {
     return KategoriKustom(
       id: id ?? this.id,
-      deviceId: deviceId ?? this.deviceId,
+      userId: userId ?? this.userId,
       nama: nama ?? this.nama,
       satuanProgres: satuanProgres ?? this.satuanProgres,
     );

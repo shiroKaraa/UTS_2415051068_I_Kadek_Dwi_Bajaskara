@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/collection_entry.dart';
 import 'collection_data_source.dart';
@@ -25,19 +27,24 @@ class SupabaseCollectionService implements CollectionDataSource {
           .select()
           .eq('user_id', userId)
           .order('updated_at', ascending: false)
+          .order('id', ascending: false)
           .range(from, from + _pageSize - 1)
           .timeout(_timeout,
-              onTimeout: () => throw Exception('Koneksi lambat / Offline'));
+              onTimeout: () => throw TimeoutException('Koneksi lambat / Offline'));
 
-      final batch = (response as List)
-          .map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final batch = <EntriKoleksi>[];
+      for (final json in response as List) {
+        try {
+          batch.add(EntriKoleksi.fromJson(json as Map<String, dynamic>));
+        } catch (e) {
+          debugPrint('Baris koleksi dilewati karena format tidak valid: $e');
+        }
+      }
 
       all.addAll(batch);
       if (batch.length < _pageSize) break;
       from += _pageSize;
     }
-
     return all;
   }
 
@@ -60,28 +67,30 @@ class SupabaseCollectionService implements CollectionDataSource {
     if (entries.isEmpty) return [];
     final userId = _requireUserId();
     final payload = entries.map((e) => {...e.toJson(), 'user_id': userId}).toList();
-
     try {
       final response = await _supabase.from('koleksi').insert(payload).select();
       return (response as List).map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>)).toList();
     } on PostgrestException catch (e) {
-      if (e.code == '23505') throw Exception('Beberapa data sudah ada di koleksi dan dilewati.');
+      if (e.code == '23505') {
+        throw Exception('Impor gagal: Ada judul yang sudah ada di koleksi. Tidak ada data yang tersimpan.');
+      }
       rethrow;
     }
   }
 
   @override
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri) async {
+    final id = entri.id;
+    if (id == null) throw Exception('Gagal update: Entri belum tersimpan (ID kosong).'); 
     final userId = _requireUserId();
-    final payload = entri.toJson()..remove('user_id');
+    final payload = entri.toJson()..remove('user_id');   
     final response = await _supabase
         .from('koleksi')
         .update(payload)
-        .eq('id', entri.id!)
+        .eq('id', id)
         .eq('user_id', userId)
         .select()
         .single();
-
     return EntriKoleksi.fromJson(response);
   }
 

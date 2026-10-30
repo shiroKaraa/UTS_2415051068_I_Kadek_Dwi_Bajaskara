@@ -959,4 +959,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get filterTooltip => 'Filter';
+
+  @override
+  String get reconnected => 'Koneksi pulih.';
 }

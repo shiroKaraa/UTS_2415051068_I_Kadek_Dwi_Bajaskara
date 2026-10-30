@@ -8,32 +8,36 @@ class CategoryProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _hasLoaded = false;
   String? _errorMessage;
-  String? _deviceId;
-
+  String? _userId;
+  
   List<KategoriKustom> get categories => _categories;
   bool get isLoading => _isLoading;
   bool get hasLoaded => _hasLoaded;
   String? get errorMessage => _errorMessage;
+  String? get userId => _userId;
 
-  void bindDevice(String? id) {
-    if (_deviceId == id) return;
-    _deviceId = id;
+  void bindUser(String? userId) {
+    if (_userId == userId) return;
+    _userId = userId;
     _categories = [];
     _hasLoaded = false;
     _errorMessage = null;
-    if (id != null) {
+    notifyListeners();
+    if (userId != null) {
       Future.microtask(() => fetchCategories());
     }
   }
 
   Future<void> fetchCategories() async {
-    if (_deviceId == null) return;
+    final userId = _userId;
+    if (userId == null) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _categories = await _service.getCategories(_deviceId!);
+      _categories = await _service.getCategories(userId);
     } catch (e) {
       _errorMessage = 'Gagal memuat kategori: $e';
     } finally {
@@ -44,10 +48,15 @@ class CategoryProvider extends ChangeNotifier {
   }
 
   Future<bool> createCategory(String nama, String satuan) async {
-    if (_deviceId == null) return false;
+    final userId = _userId;
+    if (userId == null) return false;
     try {
       final newCategory = await _service.createCategory(
-        KategoriKustom(deviceId: _deviceId!, nama: nama, satuanProgres: satuan),
+        KategoriKustom(
+          userId: userId,
+          nama: nama,
+          satuanProgres: satuan,
+        ),
       );
       _categories.add(newCategory);
       _categories.sort((a, b) => a.nama.compareTo(b.nama));
@@ -78,9 +87,12 @@ class CategoryProvider extends ChangeNotifier {
   }
 
   Future<bool> deleteCategory(KategoriKustom category) async {
+    final id = category.id;
+    if (id == null) return false;
+
     try {
-      await _service.deleteCategory(category.id!);
-      _categories.removeWhere((c) => c.id == category.id);
+      await _service.deleteCategory(id);
+      _categories.removeWhere((c) => c.id == id);
       notifyListeners();
       return true;
     } catch (e) {

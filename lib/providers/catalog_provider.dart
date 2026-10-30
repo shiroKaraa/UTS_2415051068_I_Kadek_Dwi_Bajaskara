@@ -269,9 +269,18 @@ class CatalogProvider extends ChangeNotifier {
 
       final animeJson = (obj['anime'] as List<dynamic>?) ?? [];
       final mangaJson = (obj['manga'] as List<dynamic>?) ?? [];
+      final manhwaJson = (obj['manhwa'] as List<dynamic>?) ?? [];
+      final manhuaJson = (obj['manhua'] as List<dynamic>?) ?? [];
 
       _popularAnime = animeJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.anime)).toList();
-      _popularManga = mangaJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.manga)).toList();
+      
+      final cachedComics = <ItemKatalog>[
+        ...mangaJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.manga)),
+        ...manhwaJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.manhwa)),
+        ...manhuaJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.manhua)),
+      ];
+      
+      _popularManga = cachedComics;
       _hasFetchedPopular = _popularAnime.isNotEmpty || _popularManga.isNotEmpty;
       return _hasFetchedPopular;
     } catch (_) {
@@ -279,12 +288,23 @@ class CatalogProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _savePopularToCache(List<Map<String, dynamic>> anime, List<Map<String, dynamic>> manga) async {
+  Future<void> _savePopularToCache(
+    List<Map<String, dynamic>> anime, 
+    List<Map<String, dynamic>> manga,
+    List<Map<String, dynamic>> manhwa,
+    List<Map<String, dynamic>> manhua,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
         _cacheKeyPopular,
-        jsonEncode({'ts': DateTime.now().toIso8601String(), 'anime': anime, 'manga': manga}),
+        jsonEncode({
+          'ts': DateTime.now().toIso8601String(), 
+          'anime': anime, 
+          'manga': manga,
+          'manhwa': manhwa,
+          'manhua': manhua,
+        }),
       );
     } catch (_) {}
   }
@@ -312,11 +332,14 @@ class CatalogProvider extends ChangeNotifier {
       ]);
 
       final newAnime = results[0].media;
-      final mangaRaw = [...results[1].media, ...results[2].media, ...results[3].media];
+      final mangaItems = results[1].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
+      final manhwaItems = results[2].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manhwa)).toList();
+      final manhuaItems = results[3].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manhua)).toList();
 
       _popularAnime = newAnime.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
       
-      final allComics = mangaRaw.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
+      final allComics = [...mangaItems, ...manhwaItems, ...manhuaItems];
+      
       allComics.sort((a, b) => (b.skor ?? 0).compareTo(a.skor ?? 0));
       _popularManga = allComics.take(10).toList();
 
@@ -324,7 +347,12 @@ class CatalogProvider extends ChangeNotifier {
         _popularError = 'Gagal memuat data populer.';
       } else {
         _hasFetchedPopular = true;
-        await _savePopularToCache(newAnime, mangaRaw);
+        await _savePopularToCache(
+          newAnime,
+          results[1].media,
+          results[2].media,
+          results[3].media,
+        );
       }
     } catch (e) {
       _popularError = 'Gagal memuat data populer.';

@@ -23,6 +23,7 @@ class CollectionProvider extends ChangeNotifier {
   String? _errorMessage;
   String? _userId;
   int _fetchGen = 0;
+  final Set<int> _inFlight = {};
 
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
   StatusKoleksi? _filterStatus;
@@ -126,6 +127,7 @@ class CollectionProvider extends ChangeNotifier {
   void dispose() {
     _cacheTimer?.cancel();
     _reconnectTimer?.cancel();
+    _inFlight.clear();
     super.dispose();
   }
 
@@ -137,10 +139,46 @@ class CollectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  EntriKoleksi _reconcileStatus(EntriKoleksi entri) {
+    if (entri.total == null) return entri;
+
+    final isFull = entri.progres >= entri.total!;
+
+    if (isFull && entri.status != StatusKoleksi.selesai) {
+      return entri.copyWith(status: StatusKoleksi.selesai);
+    }
+    else if (!isFull && entri.status == StatusKoleksi.selesai) {
+      return entri.copyWith(status: StatusKoleksi.sedang);
+    }
+    else if (entri.progres > 0 && entri.status == StatusKoleksi.direncanakan) {
+      return entri.copyWith(status: StatusKoleksi.sedang);
+    }
+    return entri;
+  }
+
+  Future<T> _runSaving<T>(
+    Future<T> Function() action, {
+    required T onError,
+  }) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      return await action();
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      return onError;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   void bindUser(String? userId) {
     if (_userId == userId) return;
     _userId = userId;
     _entries = [];
+    _inFlight.clear();
     _errorMessage = null;
     _isOffline = false;
     _isLoading = false;
@@ -190,25 +228,36 @@ class CollectionProvider extends ChangeNotifier {
       _notifyDataChanged();
     } catch (e) {
       if (gen != _fetchGen) return;
+      final bool isNetworkError = e is TimeoutException ||
+          e.toString().contains('SocketException') ||
+          e.toString().contains('ClientException');
 
-      final prefs = await SharedPreferences.getInstance();
-      final cachedData = prefs.getString(_cacheKeyFor(userId));
-      if (cachedData != null && cachedData.isNotEmpty) {
-        try {
-          final List<dynamic> decoded = jsonDecode(cachedData);
-          _entries =
-              decoded.map((json) => EntriKoleksi.fromJson(json)).toList();
-          _isOffline = true;
-          _errorMessage = null;
-          _scheduleReconnectCheck();
-        } catch (_) {
+      if (isNetworkError) {
+        final prefs = await SharedPreferences.getInstance();
+        final cachedData = prefs.getString(_cacheKeyFor(userId));
+        if (cachedData != null && cachedData.isNotEmpty) {
+          try {
+            final List<dynamic> decoded = jsonDecode(cachedData);
+            _entries = decoded
+                .map((json) => EntriKoleksi.fromJson(json))
+                .toList();
+            _isOffline = true;
+            _errorMessage = null;
+            _scheduleReconnectCheck();
+          } catch (_) {
+            _entries = [];
+            _errorMessage = 'Gagal membaca cache lokal.';
+          }
+        } else {
           _entries = [];
-          _errorMessage = 'Gagal membaca cache lokal.';
+          _isOffline = false;
+          _errorMessage =
+              'Gagal memuat koleksi. Periksa koneksi internet Anda.';
         }
       } else {
-        _entries = [];
         _isOffline = false;
-        _errorMessage = 'Gagal memuat koleksi. Periksa koneksi internet Anda.';
+        _errorMessage =
+            'Terjadi kesalahan sistem: ${e.toString().replaceAll('Exception: ', '')}';
       }
       _notifyDataChanged();
     } finally {
@@ -299,7 +348,7 @@ class CollectionProvider extends ChangeNotifier {
 
     try {
       final toInsert = entri.id != null ? entri.copyWith(clearId: true) : entri;
-      final newEntry = await _repository.createEntry(toInsert);
+      final newEntry = await _repository.createEntry(_reconcileStatus(toInsert));
       _entries.insert(0, newEntry);
       _scheduleSaveCache();
       _notifyDataChanged();
@@ -320,7 +369,8 @@ class CollectionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final newEntries = await _repository.createEntries(entries);
+      final normalized = entries.map(_reconcileStatus).toList();
+      final newEntries = await _repository.createEntries(normalized);
       _entries.insertAll(0, newEntries);
       _scheduleSaveCache();
       _notifyDataChanged();
@@ -342,51 +392,34 @@ class CollectionProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    _isSaving = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final updated = await _repository.updateEntry(entri);
+    return _runSaving(() async {
+      final updated = await _repository.updateEntry(_reconcileStatus(entri));
       final index = _entries.indexWhere((e) => e.id == updated.id);
       if (index != -1) _entries[index] = updated;
       _scheduleSaveCache();
       _notifyDataChanged();
       return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      return false;
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
+    }, onError: false);
   }
 
   Future<bool> deleteEntry(EntriKoleksi entri) async {
     if (_userId == null || _isOffline) {
       _errorMessage = _isOffline
           ? 'Tidak dapat menghapus data saat offline.'
-          : 'ID Perangkat tidak valid.';
+          : 'ID tidak valid.';
       notifyListeners();
       return false;
     }
-    _isSaving = true;
-    _errorMessage = null;
-    notifyListeners();
+    final id = entri.id;
+    if (id == null) return false;
 
-    try {
-      await _repository.deleteEntry(entri.id!);
-      _entries.removeWhere((e) => e.id == entri.id);
+    return _runSaving(() async {
+      await _repository.deleteEntry(id);
+      _entries.removeWhere((e) => e.id == id);
       _scheduleSaveCache();
       _notifyDataChanged();
       return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      return false;
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
+    }, onError: false);
   }
 
   Future<int> deleteAll() async {
@@ -398,74 +431,72 @@ class CollectionProvider extends ChangeNotifier {
       return 0;
     }
 
-    _isSaving = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
+    return _runSaving(() async {
       final count = _entries.length;
       await _repository.deleteAll(_userId!);
       _entries.clear();
       _scheduleSaveCache();
       _notifyDataChanged();
       return count;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      return 0;
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
+    }, onError: 0);
   }
 
   Future<HasilIncrement> incrementProgress(EntriKoleksi entri) async {
+    final id = entri.id;
+    if (id == null) return HasilIncrement.error;
     if (_isOffline) return HasilIncrement.offline;
     if (entri.status == StatusKoleksi.selesai) {
       return HasilIncrement.alreadyCompleted;
     }
-
-    final current = findById(entri.id!);
-    if (current == null) return HasilIncrement.error;
-
-    if (current.total != null && current.progres >= current.total!) {
-      return HasilIncrement.alreadyCompleted;
-    }
-
-    final index = _entries.indexWhere((e) => e.id == current.id);
-    if (index == -1) return HasilIncrement.error;
-
-    final old = _entries[index];
-    final newProgres = current.progres + 1;
-    final isSelesai = current.total != null && newProgres >= current.total!;
-
-    StatusKoleksi newStatus = current.status;
-    if (isSelesai) {
-      newStatus = StatusKoleksi.selesai;
-    } else if (current.status == StatusKoleksi.direncanakan) {
-      newStatus = StatusKoleksi.sedang;
-    }
-
-    final updated = current.copyWith(
-      progres: newProgres,
-      status: newStatus,
-      updatedAt: DateTime.now(),
-    );
-
-    _entries[index] = updated;
-    _notifyDataChanged();
-
+    if (!_inFlight.add(id)) return HasilIncrement.error;
     try {
-      final saved = await _repository.updateEntry(updated);
-      final i = _entries.indexWhere((e) => e.id == saved.id);
-      if (i != -1) _entries[i] = saved;
-      _scheduleSaveCache();
+      final current = findById(id);
+      if (current == null) return HasilIncrement.error;
+
+      if (current.total != null && current.progres >= current.total!) {
+        return HasilIncrement.alreadyCompleted;
+      }
+
+      final index = _entries.indexWhere((e) => e.id == id);
+      if (index == -1) return HasilIncrement.error;
+
+      final old = _entries[index];
+      final newProgres = current.progres + 1;
+      final isSelesai =
+          current.total != null && newProgres >= current.total!;
+
+      StatusKoleksi newStatus = current.status;
+      if (isSelesai) {
+        newStatus = StatusKoleksi.selesai;
+      } else if (current.status == StatusKoleksi.direncanakan) {
+        newStatus = StatusKoleksi.sedang;
+      }
+
+      final updated = _reconcileStatus(current.copyWith(
+        progres: newProgres,
+        status: newStatus,
+        updatedAt: DateTime.now(),
+      ));
+
+      _entries[index] = updated;
       _notifyDataChanged();
-      return HasilIncrement.ok;
-    } catch (_) {
-      final i = _entries.indexWhere((e) => e.id == old.id);
-      if (i != -1) _entries[i] = old;
-      _notifyDataChanged();
-      return HasilIncrement.error;
+
+      try {
+        final saved = await _repository.updateEntry(updated);
+        final i = _entries.indexWhere((e) => e.id == saved.id);
+        if (i != -1) _entries[i] = saved;
+        _scheduleSaveCache();
+        _notifyDataChanged();
+        return HasilIncrement.ok;
+      } catch (_) {
+        final i = _entries
+            .indexWhere((e) => e.id == old.id && e.progres == newProgres);
+        if (i != -1) _entries[i] = old;
+        _notifyDataChanged();
+        return HasilIncrement.error;
+      }
+    } finally {
+      _inFlight.remove(id);
     }
   }
 
@@ -474,18 +505,25 @@ class CollectionProvider extends ChangeNotifier {
     if (entri.progres <= 0) return false;
 
     final newProgres = entri.progres - 1;
-    final updated = entri.copyWith(
+
+    StatusKoleksi newStatus = entri.status;
+    if (newProgres == 0) {
+      newStatus = StatusKoleksi.direncanakan;
+    } else if (entri.status == StatusKoleksi.selesai &&
+        (entri.total == null || newProgres < entri.total!)) {
+      newStatus = StatusKoleksi.sedang;
+    }
+
+    final updated = _reconcileStatus(entri.copyWith(
       progres: newProgres,
-      status: newProgres == 0 ? StatusKoleksi.direncanakan : entri.status,
+      status: newStatus,
       updatedAt: DateTime.now(),
-    );
+    ));
     return updateEntry(updated);
   }
 
   Future<bool> toggleFavorite(EntriKoleksi entri) async {
-    final updated = entri.copyWith(
-      isFavorite: !entri.isFavorite,
-    );
+    final updated = entri.copyWith(isFavorite: !entri.isFavorite);
     return updateEntryPreserveUpdatedAt(updated, entri.updatedAt);
   }
 
@@ -500,28 +538,20 @@ class CollectionProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    _isSaving = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final updated = await _repository.updateEntry(entri);
+    return _runSaving(() async {
+      final updated =
+          await _repository.updateEntry(_reconcileStatus(entri));
       final index = _entries.indexWhere((e) => e.id == updated.id);
       if (index != -1) {
-        _entries[index] = updated.updatedAt == null && preserveUpdatedAt != null
-            ? updated.copyWith(updatedAt: preserveUpdatedAt)
-            : updated;
+        _entries[index] =
+            updated.updatedAt == null && preserveUpdatedAt != null
+                ? updated.copyWith(updatedAt: preserveUpdatedAt)
+                : updated;
       }
       _scheduleSaveCache();
       _notifyDataChanged();
       return true;
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      return false;
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
+    }, onError: false);
   }
 
   Future<int> countClaimableCollections(String deviceId) async {

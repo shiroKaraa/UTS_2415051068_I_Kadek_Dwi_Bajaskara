@@ -66,7 +66,7 @@ class EntriKoleksi {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson({bool touch = true}) {
     return {
       'device_id': deviceId,
       'jenis': jenis.name,
@@ -80,7 +80,7 @@ class EntriKoleksi {
       'rating': rating,
       'catatan': catatan,
       'is_favorite': isFavorite,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
+      if (touch) 'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
   }
 

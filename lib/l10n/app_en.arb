@@ -306,5 +306,6 @@
 
   "gridView": "Grid View",
   "listView": "List View",
-  "filterTooltip": "Filter"
+  "filterTooltip": "Filter",
+  "reconnected": "Connection restored."
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/app_sizes.dart';
+import '../../../core/profile_backgrounds.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/auth_provider.dart';
 
@@ -19,6 +20,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _confirmController;
 
   String _selectedEmoji = '👤';
+  String _selectedBgPreset = 'default';
   final List<String> _emojis = [
     '👤', '🐱', '🐶', '🦊', '🐼', '🦁', '🐧', '🐲', '🌸', '🍀'
   ];
@@ -33,6 +35,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _passwordController = TextEditingController();
     _confirmController = TextEditingController();
     _selectedEmoji = auth.avatarEmoji ?? '👤';
+    _selectedBgPreset = auth.bgPreset;
   }
 
   @override
@@ -50,6 +53,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final auth = context.read<AuthProvider>();
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+
+    if (auth.bgPreset != _selectedBgPreset) {
+      await auth.setBgPreset(_selectedBgPreset);
+    }
 
     final profileOk = await auth.updateProfile(
       displayName: _nameController.text.trim(),
@@ -144,6 +151,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   );
                 }).toList(),
               ),
+              const SizedBox(height: AppSizes.spacingL),
+              const Text('Warna Latar Profil',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: AppSizes.spacingS),
+              Wrap(
+                spacing: AppSizes.spacingS,
+                runSpacing: AppSizes.spacingS,
+                children:
+                    ProfileBackgrounds.presets.entries.map((entry) {
+                  final isSelected = _selectedBgPreset == entry.key;
+                  return GestureDetector(
+                    onTap: () =>
+                        setState(() => _selectedBgPreset = entry.key),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: entry.value),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primaryGreen
+                              : Colors.transparent,
+                          width: 3,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+
               const SizedBox(height: AppSizes.spacingL),
               TextFormField(
                 controller: _nameController,

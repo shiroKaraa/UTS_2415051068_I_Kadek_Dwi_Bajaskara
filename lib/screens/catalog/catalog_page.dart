@@ -465,11 +465,11 @@ class _CatalogPageState extends State<CatalogPage> {
       }
       return GridView.builder(
         padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 180,
-          childAspectRatio: 0.55,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
+          mainAxisExtent: 180 * 1.5 + (56 * MediaQuery.textScalerOf(context).scale(1.0)),
         ),
         itemCount: 12,
         itemBuilder: (context, index) => const SkeletonGridCard(),
@@ -575,11 +575,11 @@ class _CatalogPageState extends State<CatalogPage> {
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 180,
-              childAspectRatio: 0.55,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
+              mainAxisExtent: 180 * 1.5 + (56 * MediaQuery.textScalerOf(context).scale(1.0)),
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {

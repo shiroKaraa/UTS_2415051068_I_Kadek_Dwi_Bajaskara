@@ -8,8 +8,6 @@ class SettingsProvider extends ChangeNotifier {
   bool _isLoading = true;
   bool _hasSeenOnboarding = false;
   Locale _locale = const Locale('id'); 
-  
-  // State Baru
   bool _limitImageCache = false;
   bool _enableNsfw = false;
 

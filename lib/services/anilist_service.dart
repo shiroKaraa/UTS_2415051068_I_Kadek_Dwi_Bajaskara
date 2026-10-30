@@ -86,7 +86,10 @@ class AniListService {
         throw ApiException('AniList: ${body['errors'][0]['message']}');
       }
 
-      final pageData = body['data']['Page'];
+      final pageData = body['data']?['Page'] as Map<String, dynamic>?;
+      if (pageData == null) {
+        throw ApiException('Format respons AniList tidak valid.');
+      }
       final media = (pageData['media'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
       final pageInfo = pageData['pageInfo'] as Map<String, dynamic>? ?? {};
 
@@ -118,8 +121,15 @@ class AniListService {
   }
 
   List<String>? _format(JenisMedia jenis) {
-    if (jenis == JenisMedia.manga) return ['MANGA', 'ONE_SHOT'];
-    return null;
+    switch (jenis) {
+      case JenisMedia.manga:
+        return ['MANGA', 'ONE_SHOT'];
+      case JenisMedia.manhwa:
+      case JenisMedia.manhua:
+        return ['MANGA', 'ONE_SHOT'];
+      default:
+        return null;
+    }
   }
 
   Future<AniListResult> fetchPage({

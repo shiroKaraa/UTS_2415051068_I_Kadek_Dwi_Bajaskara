@@ -382,11 +382,11 @@ class _CollectionPageState extends State<CollectionPage> {
       }
       return GridView.builder(
         padding: const EdgeInsets.all(AppSizes.spacingM),
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 180,
-          childAspectRatio: 0.6,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
+          mainAxisExtent: 180 * 1.5 + (72 * MediaQuery.textScalerOf(context).scale(1.0)),
         ),
         itemCount: 6,
         itemBuilder: (context, index) => const SkeletonGridCard(),
@@ -433,11 +433,11 @@ class _CollectionPageState extends State<CollectionPage> {
     return GridView.builder(
       padding: const EdgeInsets.all(AppSizes.spacingM),
       physics: const AlwaysScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 180,
-        childAspectRatio: 0.6,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
+        mainAxisExtent: 180 * 1.5 + (72 * MediaQuery.textScalerOf(context).scale(1.0)),
       ),
       itemCount: collection.entries.length,
       itemBuilder: (context, index) {
@@ -595,25 +595,32 @@ class _CollectionPageState extends State<CollectionPage> {
                 );
 
                 if (confirmed != true) return;
+                if (!context.mounted) return;
                 final berhasil = await collection.deleteEntry(entri);
-
-                if (berhasil) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.entryDeleted),
-                      action: SnackBarAction(
-                        label: l10n.undo,
-                        onPressed: () => collection.createEntry(entri),
-                      ),
-                    ),
-                  );
-                } else {
+                if (!berhasil) {
                   messenger.showSnackBar(
                     SnackBar(
                         content: Text(collection.errorMessage ??
                             l10n.errorLoadData)),
                   );
+                  return;
                 }
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.entryDeleted),
+                    action: SnackBarAction(
+                      label: l10n.undo,
+                      onPressed: () async {
+                        final ok = await collection.createEntry(entri);
+                        if (!ok && collection.errorMessage != null) {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text(collection.errorMessage!)),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                );
               },
             ),
           ],

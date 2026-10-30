@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
+import '../../core/profile_backgrounds.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../models/profile_stats.dart';
@@ -16,7 +16,8 @@ import '../settings/settings_page.dart';
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
-  Future<bool> _konfirmasiLogout(BuildContext context, AppLocalizations l10n) async {
+  Future<bool> _konfirmasiLogout(
+      BuildContext context, AppLocalizations l10n) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -29,7 +30,8 @@ class ProfilePage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(dialogCtx).colorScheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(dialogCtx).colorScheme.error),
             child: Text(l10n.logoutConfirmBtn),
           ),
         ],
@@ -41,9 +43,12 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final stats = context.select<CollectionProvider, ProfileStats>((c) => c.stats);
-    final isLoading = context.select<CollectionProvider, bool>((c) => c.isLoading);
-    final isEmpty = context.select<CollectionProvider, bool>((c) => c.allEntries.isEmpty);
+    final stats =
+        context.select<CollectionProvider, ProfileStats>((c) => c.stats);
+    final isLoading =
+        context.select<CollectionProvider, bool>((c) => c.isLoading);
+    final isEmpty = context
+        .select<CollectionProvider, bool>((c) => c.allEntries.isEmpty);
 
     return Scaffold(
       body: RefreshIndicator(
@@ -52,25 +57,28 @@ class ProfilePage extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             const _ProfileHeader(),
-            
+
             SliverPadding(
               padding: const EdgeInsets.all(AppSizes.spacingM),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   if (isEmpty && !isLoading)
                     _EmptyProfileState(onLihatKatalog: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CollectionPage()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const CollectionPage()));
                     })
                   else ...[
-                    _SectionTitle(title: l10n.statistics, icon: Icons.insights_outlined),
+                    _SectionTitle(
+                        title: l10n.statistics,
+                        icon: Icons.insights_outlined),
                     const SizedBox(height: AppSizes.spacingS),
-                    if (isLoading && isEmpty) 
+                    if (isLoading && isEmpty)
                       const _ShimmerStats()
-                    else 
+                    else
                       _StatsSection(stats: stats),
-
                     const SizedBox(height: AppSizes.spacingL),
-                    
                     const _QuickMenu(),
                   ],
                 ]),
@@ -101,73 +109,99 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = context.select<AuthProvider, String?>((a) => a.displayName);
-    final username = context.select<AuthProvider, String?>((a) => a.username);
-    final avatar = context.select<AuthProvider, String?>((a) => a.avatarEmoji);
-    
+    final auth = context.watch<AuthProvider>();
+    final displayName = auth.displayName;
+    final username = auth.username;
+    final avatar = auth.avatarEmoji;
+    final bgPreset = auth.bgPreset;
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    
     final name = displayName ?? username ?? 'Pengguna';
     final avatarEmoji = avatar ?? '👤';
+    final colors = ProfileBackgrounds.getGradient(bgPreset);
+    final brightness = ThemeData.estimateBrightnessForColor(colors.first);
+    final onBg = brightness == Brightness.dark ? Colors.white : Colors.black87;
+    final onBgShadow = brightness == Brightness.dark ? Colors.black26 : Colors.transparent;
 
     return SliverAppBar(
       pinned: true,
-      expandedHeight: 200,
-      backgroundColor: theme.scaffoldBackgroundColor,
-      title: Text(l10n.profile, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      expandedHeight: 240,
+      backgroundColor: colors[0],
+      foregroundColor: onBg,
+      elevation: 0,
+      title: Text(
+        l10n.profile,
+        style: theme.textTheme.titleMedium
+            ?.copyWith(fontWeight: FontWeight.bold, color: onBg),
+      ),
       flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.pin,
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                AppColors.primaryGreen.withValues(alpha: 0.35),
-                theme.colorScheme.surface,
-              ],
+              colors: colors,
             ),
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 56, 24, 16),
+              padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Semantics(
                         button: true,
                         label: l10n.editProfile,
                         child: InkWell(
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage())),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const EditProfilePage()),
+                          ),
                           customBorder: const CircleBorder(),
                           child: Container(
                             padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.primaryGreen.withValues(alpha: 0.2),
-                              border: Border.all(color: AppColors.primaryGreen, width: 3),
+                              color: onBg.withValues(alpha: 0.1),
+                              border: Border.all(color: onBg, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: onBgShadow,
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: Stack(
                               alignment: Alignment.bottomRight,
                               children: [
                                 CircleAvatar(
-                                  radius: 32,
+                                  radius: 36,
                                   backgroundColor: theme.cardColor,
-                                  child: Text(avatarEmoji, style: const TextStyle(fontSize: 32)),
+                                  child: Text(avatarEmoji,
+                                      style: const TextStyle(fontSize: 36)),
                                 ),
                                 Positioned(
                                   bottom: 0,
                                   right: 0,
                                   child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.primaryGreen,
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: onBg,
                                       shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: colors[0],
+                                        width: 2,
+                                      ),
                                     ),
-                                    child: const Icon(Icons.edit, size: 16, color: Colors.black),
+                                    child: Icon(Icons.edit,
+                                        size: 16, color: colors[0]),
                                   ),
                                 ),
                               ],
@@ -175,20 +209,28 @@ class _ProfileHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               l10n.greeting(name),
-                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                              maxLines: 1,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: onBg,
+                                fontSize: 22,
+                              ),
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
+                            const SizedBox(height: 4),
                             Text(
                               '@${username ?? '-'}',
-                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: onBg.withValues(alpha: 0.9),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -217,7 +259,11 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 8),
-        Text(title, style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Text(title,
+            style: Theme.of(context)
+                .textTheme
+                .labelLarge
+                ?.copyWith(fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -236,7 +282,10 @@ class _QuickMenu extends StatelessWidget {
             icon: Icons.favorite,
             color: AppColors.typeManga,
             title: l10n.favoriteTitle,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesPage())),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const FavoritesPage())),
           ),
         ),
         const SizedBox(width: AppSizes.spacingS),
@@ -245,7 +294,10 @@ class _QuickMenu extends StatelessWidget {
             icon: Icons.settings,
             color: AppColors.typeManhua,
             title: l10n.settings,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const SettingsPage())),
           ),
         ),
       ],
@@ -259,11 +311,18 @@ class _QuickMenuCard extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _QuickMenuCard({required this.icon, required this.color, required this.title, required this.onTap});
+  const _QuickMenuCard(
+      {required this.icon,
+      required this.color,
+      required this.title,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.radiusM)),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppSizes.radiusM),
         onTap: onTap,
@@ -281,7 +340,13 @@ class _QuickMenuCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                child: Text(title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
               ),
             ],
           ),
@@ -301,8 +366,11 @@ class _StatsSection extends StatelessWidget {
     final showAnime = stats.totalAnime > 0;
     final showManga = stats.totalManga > 0;
     final total = stats.totalAnime + stats.totalManga;
-    final animePercent = total > 0 ? (stats.totalAnime / total * 100).round() : 0;
-    final mangaPercent = total > 0 ? (stats.totalManga / total * 100).round() : 0;
+    final animePercent =
+        total > 0 ? (stats.totalAnime / total * 100).round() : 0;
+    final mangaPercent =
+        total > 0 ? (stats.totalManga / total * 100).round() : 0;
+
     final secondaryItems = <Widget>[
       if (showAnime)
         _StatSecondaryCard(
@@ -386,13 +454,15 @@ class _StatsSection extends StatelessWidget {
                     ? secondaryItems[i + 1]
                     : const SizedBox.shrink();
                 rows.add(
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(width: itemWidth, child: left),
-                      const SizedBox(width: spacing),
-                      SizedBox(width: itemWidth, child: right),
-                    ],
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(width: itemWidth, child: left),
+                        const SizedBox(width: spacing),
+                        SizedBox(width: itemWidth, child: right),
+                      ],
+                    ),
                   ),
                 );
                 if (i + 2 < secondaryItems.length) {
@@ -421,7 +491,10 @@ class _LegendItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 4),
         Text(label, style: Theme.of(context).textTheme.labelSmall),
       ],
@@ -443,8 +516,14 @@ class _RatioBar extends StatelessWidget {
         height: 8,
         child: Row(
           children: [
-            if (anime > 0) Expanded(flex: anime, child: Container(color: AppColors.infoBlue)),
-            if (manga > 0) Expanded(flex: manga, child: Container(color: AppColors.typeManga)),
+            if (anime > 0)
+              Expanded(
+                  flex: anime,
+                  child: Container(color: AppColors.infoBlue)),
+            if (manga > 0)
+              Expanded(
+                  flex: manga,
+                  child: Container(color: AppColors.typeManga)),
           ],
         ),
       ),
@@ -458,13 +537,18 @@ class _StatHighlightCard extends StatelessWidget {
   final IconData icon;
   final Color color;
 
-  const _StatHighlightCard({required this.title, required this.value, required this.icon, required this.color});
+  const _StatHighlightCard(
+      {required this.title,
+      required this.value,
+      required this.icon,
+      required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: '$title: $value',
       child: Card(
+        elevation: 0,
         color: color.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
@@ -479,7 +563,12 @@ class _StatHighlightCard extends StatelessWidget {
               TweenAnimationBuilder<int>(
                 tween: IntTween(begin: 0, end: value),
                 duration: const Duration(milliseconds: 800),
-                builder: (context, val, child) => Text('$val', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                builder: (context, val, child) => Text('$val',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineMedium
+                        ?.copyWith(
+                            fontWeight: FontWeight.bold, color: color)),
               ),
               Text(title, style: Theme.of(context).textTheme.labelSmall),
             ],
@@ -533,9 +622,8 @@ class _StatSecondaryCard extends StatelessWidget {
                       child: Text(
                         value,
                         maxLines: 1,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -581,7 +669,10 @@ class _ShimmerStats extends StatelessWidget {
           crossAxisSpacing: AppSizes.spacingS,
           childAspectRatio: 2.8,
           children: const [
-            ShimmerLoading(), ShimmerLoading(), ShimmerLoading(), ShimmerLoading(),
+            ShimmerLoading(),
+            ShimmerLoading(),
+            ShimmerLoading(),
+            ShimmerLoading(),
           ],
         ),
       ],
@@ -646,10 +737,10 @@ class _LogoutButtonState extends State<_LogoutButton> {
   Future<void> _handleLogout() async {
     final confirmed = await widget.onConfirm();
     if (!confirmed) return;
-    
+
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
+
     try {
       await widget.onSignOut();
     } catch (e) {
@@ -683,12 +774,21 @@ class _LogoutButtonState extends State<_LogoutButton> {
             : Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
         label: Text(
           _isLoading ? l10n.processing : l10n.logoutConfirmBtn,
-          style: TextStyle(color: Theme.of(context).colorScheme.error),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         style: OutlinedButton.styleFrom(
           side: BorderSide(
-              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5)),
-          padding: const EdgeInsets.symmetric(vertical: 14),
+              color: Theme.of(context)
+                  .colorScheme
+                  .error
+                  .withValues(alpha: 0.4)),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusM),
+          ),
         ),
       ),
     );

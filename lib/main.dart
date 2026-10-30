@@ -45,12 +45,26 @@ class _InitializationErrorApp extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const Icon(
+                  Icons.settings_suggest,
+                  size: 64,
+                  color: Colors.orangeAccent,
+                ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Gagal terhubung ke server.\nPeriksa koneksi internet Anda dan restart aplikasi.',
+                  'Gagal Memuat Konfigurasi',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'File .env atau kredensial Supabase tidak ditemukan. '
+                  'Pastikan konfigurasi sudah benar.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => main(),
+                  child: const Text('Coba Lagi'),
                 ),
               ],
             ),
@@ -84,11 +98,11 @@ class MyApp extends StatelessWidget {
             return provider;
           },
         ),
-        ChangeNotifierProxyProvider<SettingsProvider, CategoryProvider>(
+        ChangeNotifierProxyProvider<AuthProvider, CategoryProvider>(
           create: (_) => CategoryProvider(),
-          update: (_, settings, previous) {
+          update: (context, auth, previous) {
             final provider = previous ?? CategoryProvider();
-            provider.bindDevice(settings.deviceId);
+            provider.bindUser(auth.userId);
             return provider;
           },
         ),

@@ -15,9 +15,12 @@ class MediaTypeChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: dotColor.withValues(alpha: 0.15),
+        color: Colors.black.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: dotColor.withValues(alpha: 0.5), width: 1),
+        border: Border.all(
+          color: dotColor.withValues(alpha: 0.8), 
+          width: 1.2,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -33,10 +36,11 @@ class MediaTypeChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(
-              color: dotColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
             ),
           ),
         ],

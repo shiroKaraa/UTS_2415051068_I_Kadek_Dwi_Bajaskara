@@ -24,6 +24,9 @@ class AuthGate extends StatelessWidget {
     }
 
     if (auth.status == AuthStatus.unknown) {
+      if (auth.user != null) {
+        return const ResponsiveShell(key: ValueKey('main_shell_guest'));
+      }
       return const _SplashScreen();
     }
 

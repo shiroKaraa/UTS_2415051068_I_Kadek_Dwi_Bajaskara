@@ -306,5 +306,6 @@
 
   "gridView": "Tampilan Grid",
   "listView": "Tampilan Daftar",
-  "filterTooltip": "Filter"
+  "filterTooltip": "Filter",
+  "reconnected": "Koneksi pulih."
 }

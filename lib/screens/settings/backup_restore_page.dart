@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
@@ -102,6 +106,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
     final mode = await _pilihMode(parsed.length, l10n);
     if (mode == null) return;
+    if (!mounted) return;
 
     List<EntriKoleksi> toImport = parsed;
     int skipped = 0;
@@ -114,26 +119,19 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       skipped = parsed.length - toImport.length;
     }
 
+    final seen = <String>{};
+    toImport =
+        toImport.where((e) => seen.add(_backupService.entryKey(e))).toList();
+
     if (toImport.isEmpty) {
       _snack('${l10n.noResults}: ${parsed.length}');
       return;
     }
 
-    String? autoBackupPath;
     if (mode == _ImportMode.replace) {
       final yakin = await _konfirmasiReplace(parsed.length, l10n);
       if (yakin != true) return;
-
-      try {
-        autoBackupPath =
-            await _backupService.exportToJson(collection.allEntries);
-      } on BackupException catch (e) {
-        _snack('${l10n.errorLoadData}: ${e.message}');
-        return;
-      } catch (_) {
-        _snack(l10n.errorLoadData);
-        return;
-      }
+      if (!mounted) return;
     }
 
     setState(() {
@@ -142,14 +140,37 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     });
 
     try {
+      String? preImportBackupPath;
       if (mode == _ImportMode.replace) {
+        try {
+          final dir = await getApplicationDocumentsDirectory();
+          final backupFile = File(p.join(
+            dir.path,
+            'pre_import_${DateTime.now().millisecondsSinceEpoch}.json',
+          ));
+          await backupFile.writeAsString(
+            jsonEncode(collection.allEntries
+                .map((e) => e.toBackupJson())
+                .toList()),
+          );
+          preImportBackupPath = backupFile.path;
+        } catch (e) {
+          if (!mounted) return;
+          _snack('${l10n.errorLoadData}: $e');
+          return;
+        }
+
+        if (!mounted) return;
+        setState(() => _progressText = l10n.importReplace);
+
         await collection.deleteAll();
         if (collection.errorMessage != null) {
           _snack(collection.errorMessage!);
           return;
         }
         if (!mounted) return;
-        setState(() => _progressText = l10n.importReplace);
+        setState(() => _progressText = l10n.importTitle);
+        debugPrint('Pre-import backup tersimpan di: $preImportBackupPath');
       }
 
       final inserted = await collection.createEntries(toImport);
@@ -157,6 +178,9 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
       if (inserted == 0 && collection.errorMessage != null) {
         _snack(collection.errorMessage!);
+        return;
+      } else if (inserted == 0 && collection.isOffline) {
+        _snack(l10n.offlineBanner);
         return;
       }
 
@@ -170,11 +194,7 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       Navigator.pop(context);
     } catch (_) {
       if (!mounted) return;
-      if (autoBackupPath != null) {
-        _snack('${l10n.errorLoadData} (${p.basename(autoBackupPath)})');
-      } else {
-        _snack(l10n.errorLoadData);
-      }
+      _snack(l10n.errorLoadData);
     } finally {
       if (mounted) {
         setState(() {
@@ -247,11 +267,9 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
                   child: Text(l10n.cancel),
                 ),
                 TextButton(
-                  onPressed: matches
-                      ? () => Navigator.pop(ctx, true)
-                      : null,
-                  style: TextButton.styleFrom(
-                      foregroundColor: Colors.redAccent),
+                  onPressed: matches ? () => Navigator.pop(ctx, true) : null,
+                  style:
+                      TextButton.styleFrom(foregroundColor: Colors.redAccent),
                   child: Text(l10n.importReplace),
                 ),
               ],
@@ -275,141 +293,142 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
     final collection = context.watch<CollectionProvider>();
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.backupRestore)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSizes.spacingM),
-        children: [
-          Card(
-            elevation: 0,
-            color: theme.cardColor,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSizes.spacingM),
-              child: Column(
-                children: [
-                  const Icon(Icons.backup,
-                      size: 64, color: AppColors.primaryGreen),
-                  const SizedBox(height: AppSizes.spacingM),
-                  Text(
-                    l10n.exportTitle,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: AppSizes.spacingS),
-                  Text(
-                    l10n.exportDesc,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                  const SizedBox(height: AppSizes.spacingL),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed:
-                          _isProcessing ? null : () => _eksporData(l10n),
-                      icon: const Icon(Icons.upload_file),
-                      label: Text(
-                          '${l10n.exportTitle} (${collection.allEntries.length})'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
-                        foregroundColor: Colors.black,
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSizes.spacingL),
-          Card(
-            elevation: 0,
-            color: theme.cardColor,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSizes.spacingM),
-              child: Column(
-                children: [
-                  const Icon(Icons.restore,
-                      size: 64, color: AppColors.infoBlue),
-                  const SizedBox(height: AppSizes.spacingM),
-                  Text(
-                    l10n.importTitle,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: AppSizes.spacingS),
-                  Text(
-                    l10n.importDesc,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                  const SizedBox(height: AppSizes.spacingL),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed:
-                          _isProcessing ? null : () => _imporData(l10n),
-                      icon: const Icon(Icons.file_open),
-                      label: Text(l10n.importTitle),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.infoBlue,
-                        side: const BorderSide(color: AppColors.infoBlue),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSizes.spacingL),
-          if (_isProcessing)
-            Center(
-              child: Column(
-                children: [
-                  const CircularProgressIndicator(),
-                  if (_progressText != null) ...[
-                    const SizedBox(height: 12),
+    return PopScope(
+      canPop: !_isProcessing,
+      child: Scaffold(
+        appBar: AppBar(title: Text(l10n.backupRestore)),
+        body: ListView(
+          padding: const EdgeInsets.all(AppSizes.spacingM),
+          children: [
+            Card(
+              elevation: 0,
+              color: theme.cardColor,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSizes.spacingM),
+                child: Column(
+                  children: [
+                    const Icon(Icons.backup,
+                        size: 64, color: AppColors.primaryGreen),
+                    const SizedBox(height: AppSizes.spacingM),
                     Text(
-                      _progressText!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      l10n.exportTitle,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: AppSizes.spacingS),
+                    Text(
+                      l10n.exportDesc,
                       textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed:
+                            _isProcessing ? null : () => _eksporData(l10n),
+                        icon: const Icon(Icons.upload_file),
+                        label: Text(
+                            '${l10n.exportTitle} (${collection.allEntries.length})'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGreen,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
                     ),
                   ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.spacingL),
+            Card(
+              elevation: 0,
+              color: theme.cardColor,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSizes.spacingM),
+                child: Column(
+                  children: [
+                    const Icon(Icons.restore,
+                        size: 64, color: AppColors.infoBlue),
+                    const SizedBox(height: AppSizes.spacingM),
+                    Text(
+                      l10n.importTitle,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: AppSizes.spacingS),
+                    Text(
+                      l10n.importDesc,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed:
+                            _isProcessing ? null : () => _imporData(l10n),
+                        icon: const Icon(Icons.file_open),
+                        label: Text(l10n.importTitle),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.infoBlue,
+                          side: const BorderSide(color: AppColors.infoBlue),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.spacingL),
+            if (_isProcessing)
+              Center(
+                child: Column(
+                  children: [
+                    const CircularProgressIndicator(),
+                    if (_progressText != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        _progressText!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            const SizedBox(height: AppSizes.spacingL),
+            Container(
+              padding: const EdgeInsets.all(AppSizes.spacingM),
+              decoration: BoxDecoration(
+                color: AppColors.infoBlue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppSizes.radiusM),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline,
+                      size: 18, color: AppColors.infoBlue),
+                  const SizedBox(width: AppSizes.spacingS),
+                  Expanded(
+                    child: Text(
+                      l10n.storageDataDesc,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          const SizedBox(height: AppSizes.spacingL),
-          Container(
-            padding: const EdgeInsets.all(AppSizes.spacingM),
-            decoration: BoxDecoration(
-              color: AppColors.infoBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppSizes.radiusM),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.info_outline,
-                    size: 18, color: AppColors.infoBlue),
-                const SizedBox(width: AppSizes.spacingS),
-                Expanded(
-                  child: Text(
-                    l10n.storageDataDesc,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

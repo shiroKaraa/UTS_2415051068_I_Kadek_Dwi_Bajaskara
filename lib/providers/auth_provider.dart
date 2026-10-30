@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
@@ -20,6 +21,7 @@ class AuthProvider extends ChangeNotifier {
   String? _displayName;
   String? _avatarEmoji;
   StreamSubscription<AuthState>? _sub;
+  String _bgPreset = 'default';
 
   AuthStatus get status => _status;
   User? get user => _user;
@@ -30,6 +32,29 @@ class AuthProvider extends ChangeNotifier {
   String? get userId => _user?.id;
   String? get displayName => _displayName;
   String? get avatarEmoji => _avatarEmoji;
+  String get bgPreset => _bgPreset;
+
+  Future<void> setBgPreset(String preset) async {
+    _bgPreset = preset;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profile_bg_${_user?.id ?? "guest"}', preset);
+    } catch (_) {
+    }
+  }
+
+  Future<void> _loadLocalBgPreset() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _bgPreset =
+          prefs.getString('profile_bg_${_user?.id ?? "guest"}') ?? 'default';
+      notifyListeners();
+    } catch (_) {
+      _bgPreset = 'default';
+      notifyListeners();
+    }
+  }
 
   void _init() {
     _sub = _service.onAuthStateChange.listen((state) async {
@@ -43,11 +68,15 @@ class AuthProvider extends ChangeNotifier {
         _user = user;
         _status = AuthStatus.authenticated;
         await _loadProfile();
+        await _loadLocalBgPreset();
         if (_user?.id == user.id) notifyListeners();
       } else {
         _user = null;
         _username = null;
         _status = AuthStatus.unauthenticated;
+        _displayName = null;
+        _avatarEmoji = null;
+        await _loadLocalBgPreset();
         notifyListeners();
       }
     });
@@ -56,15 +85,22 @@ class AuthProvider extends ChangeNotifier {
     if (current != null) {
       _user = current;
       _status = AuthStatus.authenticated;
-      
-      _loadProfile().timeout(const Duration(seconds: 5)).then((_) {
+
+      _loadProfile()
+          .timeout(const Duration(seconds: 5))
+          .then((_) async {
+        await _loadLocalBgPreset();
         if (_user?.id == current.id) notifyListeners();
-      }).catchError((_) {
+      }).catchError((_) async {
+        await _loadLocalBgPreset();
         if (_user?.id == current.id) notifyListeners();
       });
     } else {
       _status = AuthStatus.unauthenticated;
-      Future.microtask(notifyListeners);
+      Future.microtask(() async {
+        await _loadLocalBgPreset();
+        notifyListeners();
+      });
     }
   }
 
@@ -85,7 +121,8 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signIn({required String username, required String password}) async {
+  Future<bool> signIn(
+      {required String username, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -104,12 +141,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signUp({required String username, required String password, required String confirmPassword}) async {
+  Future<bool> signUp({
+    required String username,
+    required String password,
+    required String confirmPassword,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      await _service.signUp(username: username, password: password, confirmPassword: confirmPassword);
+      await _service.signUp(
+          username: username,
+          password: password,
+          confirmPassword: confirmPassword);
       return true;
     } on AuthServiceException catch (e) {
       _error = e.message;
@@ -139,12 +183,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateProfile({required String displayName, required String avatarEmoji}) async {
+  Future<bool> updateProfile(
+      {required String displayName, required String avatarEmoji}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      await _service.updateProfile(displayName: displayName, avatarEmoji: avatarEmoji);
+      await _service.updateProfile(
+          displayName: displayName, avatarEmoji: avatarEmoji);
       _displayName = displayName;
       _avatarEmoji = avatarEmoji;
       return true;
@@ -183,7 +229,9 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     _username = null;
     _status = AuthStatus.unauthenticated;
+    _bgPreset = 'default';
     notifyListeners();
+    _loadLocalBgPreset();
   }
 
   @override

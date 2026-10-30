@@ -1885,6 +1885,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Filter'**
   String get filterTooltip;
+
+  /// No description provided for @reconnected.
+  ///
+  /// In id, this message translates to:
+  /// **'Koneksi pulih.'**
+  String get reconnected;
 }
 
 class _AppLocalizationsDelegate

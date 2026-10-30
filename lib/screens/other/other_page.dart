@@ -63,7 +63,7 @@ class OtherPage extends StatelessWidget {
                               final ok = await provider.retryConnection();
                               if (!context.mounted) return;
                               messenger.showSnackBar(SnackBar(
-                                content: Text(ok ? l10n.progressAdded : l10n.stillOffline),
+                                content: Text(ok ? l10n.reconnected : l10n.stillOffline),
                               ));
                             },
                             child: Text(l10n.retryConnection,
