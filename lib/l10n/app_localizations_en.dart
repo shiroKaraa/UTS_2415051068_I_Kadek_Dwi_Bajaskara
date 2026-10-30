@@ -818,7 +818,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'By registering, you agree that your collection data is stored securely and only accessible by your account.';
 
   @override
-  String get usernameHint => '3–20 characters: letters, numbers, underscore.';
+  String get usernameHint =>
+      '3–20 characters: lowercase letters, numbers, underscore.';
 
   @override
   String get passwordHint => 'At least 6 characters.';
@@ -834,7 +835,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usernameInvalidChars =>
-      'Only letters, numbers, and underscore allowed.';
+      'Only lowercase letters, numbers, and underscore allowed.';
 
   @override
   String get passwordRequired => 'Password is required.';
@@ -962,4 +963,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reconnected => 'Connection restored.';
+
+  @override
+  String get nsfwSettingsTitle => 'NSFW Content (18+)';
+
+  @override
+  String get nsfwSettingsSubtitle =>
+      'Show adult content in the catalog. Default: off.';
+
+  @override
+  String get nsfwEnableTitle => 'Enable 18+ Content?';
+
+  @override
+  String get nsfwEnableBody =>
+      'By enabling, you declare that you are 18 years or older and willing to view adult content. This content is only shown in the catalog.';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String imageCacheLimitLabel(Object size) {
+    return 'Image cache limit: $size';
+  }
+
+  @override
+  String get confirmClearCacheTitle => 'Clear cache?';
+
+  @override
+  String get confirmClearCacheBody =>
+      'Cache will be cleared. Data on the server is not affected.';
+
+  @override
+  String get typeOther => 'Other';
+
+  @override
+  String preImportBackupSaved(Object filename) {
+    return 'Previous backup saved: $filename';
+  }
+
+  @override
+  String get imageCacheDesc =>
+      'Limit image cache to a maximum of 100MB. When disabled, the cache is unlimited.';
 }

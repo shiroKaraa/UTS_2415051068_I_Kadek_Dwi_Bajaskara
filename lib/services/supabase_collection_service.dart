@@ -81,9 +81,13 @@ class SupabaseCollectionService implements CollectionDataSource {
   @override
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri) async {
     final id = entri.id;
-    if (id == null) throw Exception('Gagal update: Entri belum tersimpan (ID kosong).'); 
+    if (id == null) {
+      throw Exception('Gagal update: Entri belum tersimpan (ID kosong).');
+    }
     final userId = _requireUserId();
-    final payload = entri.toJson()..remove('user_id');   
+    final payload = entri.toJson()
+      ..remove('user_id')
+      ..remove('device_id');
     final response = await _supabase
         .from('koleksi')
         .update(payload)

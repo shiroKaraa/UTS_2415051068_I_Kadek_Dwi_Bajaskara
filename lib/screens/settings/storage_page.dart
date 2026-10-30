@@ -75,7 +75,7 @@ class _StoragePageState extends State<StoragePage> {
     await _hitungUkuran();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${l10n.storage}: ${l10n.clearAll}')),
+      SnackBar(content: Text(l10n.storageClearSuccess)),
     );
   }
 
@@ -87,12 +87,13 @@ class _StoragePageState extends State<StoragePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.delete),
-        content: Text(l10n.storageDataDesc),
+        title: Text(l10n.confirmClearCacheTitle),
+        content: Text(l10n.confirmClearCacheBody),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(dialogCtx, false),
-              child: Text(l10n.cancel)),
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(l10n.cancel),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
@@ -118,7 +119,7 @@ class _StoragePageState extends State<StoragePage> {
     await _hitungUkuran();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${l10n.storage}: ${l10n.clearAll}')),
+      SnackBar(content: Text(l10n.storageClearSuccess)),
     );
   }
 
@@ -138,8 +139,8 @@ class _StoragePageState extends State<StoragePage> {
         actions: [
           IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh',
-              onPressed: _hitungUkuran),
+              tooltip: l10n.refresh,
+              onPressed: _hitungUkuran,),
         ],
       ),
       body: _isLoading
@@ -166,7 +167,7 @@ class _StoragePageState extends State<StoragePage> {
                         if (settings.limitImageCache) ...[
                           const SizedBox(height: AppSizes.spacingS),
                           Text(
-                            'Batas cache gambar: ${_formatBytes(_imageCacheLimitBytes)}',
+                            l10n.imageCacheLimitLabel(_formatBytes(_imageCacheLimitBytes)),
                             style: TextStyle(
                               fontSize: 12,
                               color: overLimit

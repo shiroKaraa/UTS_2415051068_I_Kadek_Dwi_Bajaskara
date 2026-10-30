@@ -49,6 +49,15 @@ class HelpPage extends StatelessWidget {
               ),
             ],
           ),
+          ExpansionTile(
+            title: Text(l10n.passwordRecoveryFaqTitle),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(l10n.passwordRecoveryFaqDesc),
+              ),
+            ],
+          ),
         ],
       ),
     );

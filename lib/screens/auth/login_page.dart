@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/services.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/app_sizes.dart';
@@ -101,12 +101,19 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: AppSizes.spacingXl),
-
                     TextFormField(
                       controller: _usernameController,
                       enabled: !isLoading,
                       textInputAction: TextInputAction.next,
                       autocorrect: false,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+                        TextInputFormatter.withFunction(
+                          (oldValue, newValue) => newValue.copyWith(
+                            text: newValue.text.toLowerCase(),
+                          ),
+                        ),
+                      ],
                       decoration: InputDecoration(
                         labelText: l10n.usernameLabel,
                         prefixIcon: const Icon(Icons.person_outline),
@@ -117,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                         if (v.isEmpty) return l10n.usernameRequired;
                         if (v.length < 3) return l10n.usernameMinLength;
                         if (v.length > 20) return l10n.usernameMaxLength;
-                        if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v)) {
+                        if (!RegExp(r'^[a-z0-9_]+$').hasMatch(v)) {
                           return l10n.usernameInvalidChars;
                         }
                         return null;

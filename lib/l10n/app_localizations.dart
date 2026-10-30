@@ -1625,7 +1625,7 @@ abstract class AppLocalizations {
   /// No description provided for @usernameHint.
   ///
   /// In id, this message translates to:
-  /// **'3–20 karakter: huruf, angka, underscore.'**
+  /// **'3–20 karakter: huruf kecil, angka, underscore.'**
   String get usernameHint;
 
   /// No description provided for @passwordHint.
@@ -1655,7 +1655,7 @@ abstract class AppLocalizations {
   /// No description provided for @usernameInvalidChars.
   ///
   /// In id, this message translates to:
-  /// **'Hanya huruf, angka, dan underscore.'**
+  /// **'Hanya huruf kecil, angka, dan underscore.'**
   String get usernameInvalidChars;
 
   /// No description provided for @passwordRequired.
@@ -1891,6 +1891,72 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Koneksi pulih.'**
   String get reconnected;
+
+  /// No description provided for @nsfwSettingsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Konten NSFW (18+)'**
+  String get nsfwSettingsTitle;
+
+  /// No description provided for @nsfwSettingsSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan konten dewasa di katalog. Default: nonaktif.'**
+  String get nsfwSettingsSubtitle;
+
+  /// No description provided for @nsfwEnableTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Aktifkan Konten 18+?'**
+  String get nsfwEnableTitle;
+
+  /// No description provided for @nsfwEnableBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Dengan mengaktifkan, Anda menyatakan telah berusia 18 tahun atau lebih dan bersedia melihat konten dewasa. Konten ini hanya ditampilkan di katalog.'**
+  String get nsfwEnableBody;
+
+  /// No description provided for @refresh.
+  ///
+  /// In id, this message translates to:
+  /// **'Segarkan'**
+  String get refresh;
+
+  /// No description provided for @imageCacheLimitLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Batas cache gambar: {size}'**
+  String imageCacheLimitLabel(Object size);
+
+  /// No description provided for @confirmClearCacheTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus cache?'**
+  String get confirmClearCacheTitle;
+
+  /// No description provided for @confirmClearCacheBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Cache akan dihapus. Data di server tidak terpengaruh.'**
+  String get confirmClearCacheBody;
+
+  /// No description provided for @typeOther.
+  ///
+  /// In id, this message translates to:
+  /// **'Lainnya'**
+  String get typeOther;
+
+  /// No description provided for @preImportBackupSaved.
+  ///
+  /// In id, this message translates to:
+  /// **'Backup sebelumnya disimpan: {filename}'**
+  String preImportBackupSaved(Object filename);
+
+  /// No description provided for @imageCacheDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi.'**
+  String get imageCacheDesc;
 }
 
 class _AppLocalizationsDelegate

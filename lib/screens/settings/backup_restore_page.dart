@@ -189,7 +189,14 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
 
       final parts = <String>['+$inserted'];
       if (skipped > 0) parts.add('-$skipped');
-      _snack(parts.join(', '));
+      final baseMsg = parts.join(', ');
+      final msg = preImportBackupPath != null
+          ? '$baseMsg · ${l10n.preImportBackupSaved(p.basename(preImportBackupPath))}'
+          : baseMsg;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), duration: const Duration(seconds: 5)),
+      );
 
       Navigator.pop(context);
     } catch (_) {

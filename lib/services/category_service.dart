@@ -4,11 +4,11 @@ import '../../models/custom_category.dart';
 class CategoryService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Future<List<KategoriKustom>> getCategories(String deviceId) async {
+  Future<List<KategoriKustom>> getCategories(String userId) async {
     final response = await _supabase
         .from('kategori_kustom')
         .select()
-        .eq('device_id', deviceId)
+        .eq('user_id', userId)
         .order('nama', ascending: true);
 
     return (response as List)
@@ -17,8 +17,11 @@ class CategoryService {
   }
 
   Future<KategoriKustom> createCategory(KategoriKustom category) async {
-    final payload = category.toJson();
-    payload.remove('user_id');
+    final payload = {
+      'nama': category.nama,
+      'satuan_progres': category.satuanProgres,
+      'user_id': category.userId,
+    };
     final response = await _supabase
         .from('kategori_kustom')
         .insert(payload)

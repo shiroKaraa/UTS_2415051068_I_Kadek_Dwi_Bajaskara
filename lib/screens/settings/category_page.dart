@@ -11,74 +11,11 @@ class CategoryPage extends StatelessWidget {
 
   void _showFormDialog(BuildContext context, AppLocalizations l10n,
       [KategoriKustom? category]) {
-    final namaController = TextEditingController(text: category?.nama ?? '');
-    final satuanController =
-        TextEditingController(text: category?.satuanProgres ?? 'Bagian');
-    final provider = context.read<CategoryProvider>();
-
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(category == null ? l10n.addCategory : l10n.editCategory),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: namaController,
-              decoration: InputDecoration(labelText: l10n.categoryName),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: satuanController,
-              decoration: InputDecoration(labelText: l10n.progressUnit),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (namaController.text.trim().isEmpty ||
-                  satuanController.text.trim().isEmpty) {
-                return;
-              }
-              bool success;
-              if (category == null) {
-                success = await provider.createCategory(
-                  namaController.text.trim(),
-                  satuanController.text.trim(),
-                );
-              } else {
-                success = await provider.updateCategory(
-                  category.copyWith(
-                    nama: namaController.text.trim(),
-                    satuanProgres: satuanController.text.trim(),
-                  ),
-                );
-              }
-              if (!context.mounted) return;
-              if (success) {
-                Navigator.pop(dialogCtx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(category == null
-                          ? l10n.categoryAdded
-                          : l10n.categoryUpdated)),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(provider.errorMessage ??
-                          l10n.categoryGenericError)),
-                );
-              }
-            },
-            child: Text(l10n.save),
-          ),
-        ],
+      builder: (dialogCtx) => _CategoryFormDialog(
+        l10n: l10n,
+        category: category,
       ),
     );
   }
@@ -171,6 +108,129 @@ class CategoryPage extends StatelessWidget {
         backgroundColor: AppColors.primaryGreen,
         child: const Icon(Icons.add, color: Colors.black),
       ),
+    );
+  }
+}
+
+class _CategoryFormDialog extends StatefulWidget {
+  final AppLocalizations l10n;
+  final KategoriKustom? category;
+
+  const _CategoryFormDialog({required this.l10n, this.category});
+
+  @override
+  State<_CategoryFormDialog> createState() => _CategoryFormDialogState();
+}
+
+class _CategoryFormDialogState extends State<_CategoryFormDialog> {
+  late final TextEditingController _namaController;
+  late final TextEditingController _satuanController;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _namaController = TextEditingController(text: widget.category?.nama ?? '');
+    _satuanController = TextEditingController(
+        text: widget.category?.satuanProgres ?? 'Bagian');
+  }
+
+  @override
+  void dispose() {
+    _namaController.dispose();
+    _satuanController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _simpan() async {
+    if (_namaController.text.trim().isEmpty ||
+        _satuanController.text.trim().isEmpty) {
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final provider = context.read<CategoryProvider>();
+    bool success;
+
+    if (widget.category == null) {
+      success = await provider.createCategory(
+        _namaController.text.trim(),
+        _satuanController.text.trim(),
+      );
+    } else {
+      success = await provider.updateCategory(
+        widget.category!.copyWith(
+          nama: _namaController.text.trim(),
+          satuanProgres: _satuanController.text.trim(),
+        ),
+      );
+    }
+
+    if (!mounted) return;
+
+    if (success) {
+      final messenger = ScaffoldMessenger.of(context); 
+      Navigator.pop(context);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(widget.category == null
+              ? widget.l10n.categoryAdded
+              : widget.l10n.categoryUpdated),
+        ),
+      );
+    } else {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              provider.errorMessage ?? widget.l10n.categoryGenericError),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.category == null
+          ? widget.l10n.addCategory
+          : widget.l10n.editCategory),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _namaController,
+              decoration: InputDecoration(labelText: widget.l10n.categoryName),
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _satuanController,
+              decoration: InputDecoration(labelText: widget.l10n.progressUnit),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _isSaving ? null : _simpan(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.pop(context),
+          child: Text(widget.l10n.cancel),
+        ),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _simpan,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(widget.l10n.save),
+        ),
+      ],
     );
   }
 }

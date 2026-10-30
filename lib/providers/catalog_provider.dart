@@ -102,36 +102,16 @@ class CatalogProvider extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
-  void setNsfwEnabled(bool enabled) {
-    if (_isNsfwEnabled == enabled) return;
-    _isNsfwEnabled = enabled;
-    _hasFetchedPopular = false;
-    _popularAnime.clear();
-    _popularManga.clear();
-    _availableTags = [];
-    fetchCatalog();
-    fetchPopularHome(forceRefresh: true);
-  }
-
-  void syncNsfwSetting(bool enabled) {
-    if (_isNsfwEnabled == enabled) return;
-    _isNsfwEnabled = enabled;
-    _hasFetchedPopular = false;
-    _popularAnime.clear();
-    _popularManga.clear();
-    _availableTags = [];
-  }
-
-  void toggleNsfw(bool enabled) {
-    if (_isNsfwEnabled == enabled) return;
-    _isNsfwEnabled = enabled;
-    _hasFetchedPopular = false;
-    _popularAnime.clear();
-    _popularManga.clear();
-    _availableTags = [];
-    fetchCatalog();
-    fetchPopularHome(forceRefresh: true);
-  }
+void syncNsfwSetting(bool enabled) {
+  if (_isNsfwEnabled == enabled) return;
+  _isNsfwEnabled = enabled;
+  _hasFetchedPopular = false;
+  _popularAnime.clear();
+  _popularManga.clear();
+  _availableTags = [];
+  fetchCatalog();
+  fetchPopularHome(forceRefresh: true);
+}
 
   Future<void> ensureGenres() async {
     if (_availableGenres.isNotEmpty || _isLoadingGenres) return;

@@ -300,6 +300,7 @@
   "fieldNotNegative": "Tidak boleh negatif",
   "fieldExceedsTotal": "Melebihi total",
 
+
   "noFavoritesTitle": "Belum Ada Favorit",
   "noFavoritesDesc": "Tandai anime atau komik favoritmu dengan ikon hati.",
   "favoritesMarkHint": "Favorit",
@@ -307,5 +308,18 @@
   "gridView": "Tampilan Grid",
   "listView": "Tampilan Daftar",
   "filterTooltip": "Filter",
-  "reconnected": "Koneksi pulih."
+  "reconnected": "Koneksi pulih.",
+  "nsfwSettingsTitle": "Konten NSFW (18+)",
+  "nsfwSettingsSubtitle": "Tampilkan konten dewasa di katalog. Default: nonaktif.",
+  "nsfwEnableTitle": "Aktifkan Konten 18+?",
+  "nsfwEnableBody": "Dengan mengaktifkan, Anda menyatakan telah berusia 18 tahun atau lebih dan bersedia melihat konten dewasa. Konten ini hanya ditampilkan di katalog.",
+  "refresh": "Segarkan",
+  "imageCacheLimitLabel": "Batas cache gambar: {size}",
+  "confirmClearCacheTitle": "Hapus cache?",
+  "confirmClearCacheBody": "Cache akan dihapus. Data di server tidak terpengaruh.",
+  "typeOther": "Lainnya",
+  "preImportBackupSaved": "Backup sebelumnya disimpan: {filename}",
+  "usernameHint": "3–20 karakter: huruf kecil, angka, underscore.",
+  "usernameInvalidChars": "Hanya huruf kecil, angka, dan underscore.",
+  "imageCacheDesc": "Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi."
 }

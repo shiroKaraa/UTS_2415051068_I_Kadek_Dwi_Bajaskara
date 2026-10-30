@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
-import '../../providers/catalog_provider.dart';
 import '../../providers/settings_provider.dart';
 import 'backup_restore_page.dart';
 
@@ -82,22 +81,16 @@ class SettingsPage extends StatelessWidget {
               Icons.visibility_off_outlined,
               color: settings.enableNsfw ? Colors.redAccent : null,
             ),
-            title: const Text('Konten NSFW (18+)'),
-            subtitle: const Text(
-              'Tampilkan konten dewasa di katalog. Default: nonaktif.',
-            ),
+            title: Text(l10n.nsfwSettingsTitle),
+            subtitle: Text(l10n.nsfwSettingsSubtitle),
             value: settings.enableNsfw,
             onChanged: (value) async {
               if (value && !settings.enableNsfw) {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (dialogCtx) => AlertDialog(
-                    title: const Text('Aktifkan Konten 18+?'),
-                    content: const Text(
-                      'Dengan mengaktifkan, Anda menyatakan telah berusia 18 tahun '
-                      'atau lebih dan bersedia melihat konten dewasa. '
-                      'Konten ini hanya ditampilkan di katalog.',
-                    ),
+                    title: Text(l10n.nsfwEnableTitle),
+                    content: Text(l10n.nsfwEnableBody),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, false),
@@ -105,8 +98,7 @@ class SettingsPage extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, true),
-                        style: TextButton.styleFrom(
-                            foregroundColor: Colors.redAccent),
+                        style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
                         child: Text(l10n.yes),
                       ),
                     ],
@@ -117,18 +109,13 @@ class SettingsPage extends StatelessWidget {
 
               if (!context.mounted) return;
               await context.read<SettingsProvider>().setEnableNsfw(value);
-              if (!context.mounted) return;
-              context.read<CatalogProvider>().toggleNsfw(value);
             },
           ),
           const Divider(),
           SwitchListTile(
             secondary: const Icon(Icons.image_outlined),
             title: Text(l10n.imageCache),
-            subtitle: const Text(
-              'Batasi ukuran cache gambar maksimal 100MB. '
-              'Saat nonaktif, cache tidak dibatasi.',
-            ),
+            subtitle: Text(l10n.imageCacheDesc),
             value: settings.limitImageCache,
             onChanged: (value) async {
               await context.read<SettingsProvider>().setLimitImageCache(value);

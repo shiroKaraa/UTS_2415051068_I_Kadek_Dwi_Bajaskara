@@ -818,7 +818,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Dengan mendaftar, kamu menyetujui bahwa data koleksi disimpan secara aman dan hanya dapat diakses oleh akunmu.';
 
   @override
-  String get usernameHint => '3–20 karakter: huruf, angka, underscore.';
+  String get usernameHint => '3–20 karakter: huruf kecil, angka, underscore.';
 
   @override
   String get passwordHint => 'Minimal 6 karakter.';
@@ -833,7 +833,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get usernameMaxLength => 'Username maksimal 20 karakter.';
 
   @override
-  String get usernameInvalidChars => 'Hanya huruf, angka, dan underscore.';
+  String get usernameInvalidChars =>
+      'Hanya huruf kecil, angka, dan underscore.';
 
   @override
   String get passwordRequired => 'Password wajib diisi.';
@@ -962,4 +963,45 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get reconnected => 'Koneksi pulih.';
+
+  @override
+  String get nsfwSettingsTitle => 'Konten NSFW (18+)';
+
+  @override
+  String get nsfwSettingsSubtitle =>
+      'Tampilkan konten dewasa di katalog. Default: nonaktif.';
+
+  @override
+  String get nsfwEnableTitle => 'Aktifkan Konten 18+?';
+
+  @override
+  String get nsfwEnableBody =>
+      'Dengan mengaktifkan, Anda menyatakan telah berusia 18 tahun atau lebih dan bersedia melihat konten dewasa. Konten ini hanya ditampilkan di katalog.';
+
+  @override
+  String get refresh => 'Segarkan';
+
+  @override
+  String imageCacheLimitLabel(Object size) {
+    return 'Batas cache gambar: $size';
+  }
+
+  @override
+  String get confirmClearCacheTitle => 'Hapus cache?';
+
+  @override
+  String get confirmClearCacheBody =>
+      'Cache akan dihapus. Data di server tidak terpengaruh.';
+
+  @override
+  String get typeOther => 'Lainnya';
+
+  @override
+  String preImportBackupSaved(Object filename) {
+    return 'Backup sebelumnya disimpan: $filename';
+  }
+
+  @override
+  String get imageCacheDesc =>
+      'Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi.';
 }
