@@ -22,6 +22,13 @@ class AniListResult {
   });
 }
 
+class TagInfo {
+  final String name;
+  final String category;
+  final bool isAdult;
+  TagInfo(this.name, this.category, this.isAdult);
+}
+
 class AniListService {
   static const String _url = 'https://graphql.anilist.co';
   final http.Client _client = http.Client();
@@ -223,13 +230,49 @@ class AniListService {
     const gql = 'query { GenreCollection }';
     try {
       final response = await _client
-          .post(Uri.parse(_url), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'query': gql}))
+          .post(
+            Uri.parse(_url), 
+            headers: {'Content-Type': 'application/json'}, 
+            body: jsonEncode({'query': gql}),
+          )
           .timeout(_timeout);
 
       if (response.statusCode != 200) return [];
       final body = jsonDecode(response.body);
       final genres = (body['data']['GenreCollection'] as List<dynamic>?)?.cast<String>() ?? [];
       return genres.where((g) => g != 'Hentai').toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<List<String>> fetchTags({bool isAdult = false}) async {
+    const gql = '''
+      query {
+        MediaTagCollection {
+          name
+          category
+          isAdult
+        }
+      }
+    ''';
+    try {
+      final response = await _client
+          .post(
+            Uri.parse(_url), 
+            headers: {'Content-Type': 'application/json'}, 
+            body: jsonEncode({'query': gql}),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode != 200) return [];
+      final body = jsonDecode(response.body);
+      final tags = (body['data']['MediaTagCollection'] as List<dynamic>?)
+          ?.cast<Map<String, dynamic>>() ?? [];
+      return tags
+          .where((t) => isAdult || !(t['isAdult'] as bool? ?? false))
+          .map((t) => t['name'] as String)
+          .toList()..sort();
     } catch (_) {
       return [];
     }

@@ -42,15 +42,19 @@ class CatalogProvider extends ChangeNotifier {
   final List<String> _hardcodedGenres = [
     'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 
     'Horror', 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 
-    'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller',
-    'Josei', 'Seinen', 'Shounen', 'Shoujo'
+    'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller'
   ];
   
-  final List<String> _availableTags = [
-    'Shounen Ai', 'Shoujo Ai', 'Harem', 'Reverse Harem', 'Time Travel', 'Survival',
-    'Isekai', 'Magic', 'Martial Arts', 'Super Power', 'Historical', 'Game', 'Gender Bender'
+  final List<String> _fallbackTags = [
+    "Boys' Love", "Girls' Love", "Male Harem", "Female Harem", "Time Manipulation", 
+    "Time Skip", "Time Loop", "Isekai", "Magic", "Martial Arts", "Super Power", 
+    "Historical", "Video Games", "Gender Bending"
   ];
+
+  List<String> _availableTags = [];
+  bool _isLoadingTags = false;
   List<String> get availableTags => _availableTags;
+  bool get isLoadingTags => _isLoadingTags;
 
   List<ItemKatalog> _popularAnime = [];
   List<ItemKatalog> _popularManga = [];
@@ -104,6 +108,7 @@ class CatalogProvider extends ChangeNotifier {
     _hasFetchedPopular = false;
     _popularAnime.clear();
     _popularManga.clear();
+    _availableTags = [];
     fetchCatalog();
     fetchPopularHome(forceRefresh: true);
   }
@@ -114,6 +119,7 @@ class CatalogProvider extends ChangeNotifier {
     _hasFetchedPopular = false;
     _popularAnime.clear();
     _popularManga.clear();
+    _availableTags = [];
   }
 
   void toggleNsfw(bool enabled) {
@@ -122,6 +128,7 @@ class CatalogProvider extends ChangeNotifier {
     _hasFetchedPopular = false;
     _popularAnime.clear();
     _popularManga.clear();
+    _availableTags = [];
     fetchCatalog();
     fetchPopularHome(forceRefresh: true);
   }
@@ -132,12 +139,27 @@ class CatalogProvider extends ChangeNotifier {
     _safeNotify();
     try {
       final apiGenres = await _service.fetchGenres();
-      final combined = {...apiGenres, ..._hardcodedGenres};
-      _availableGenres = combined.where((g) => g != 'Hentai').toList()..sort();
+      _availableGenres = apiGenres.where((g) => g != 'Hentai').toList()..sort();
+      if (_availableGenres.isEmpty) _availableGenres = List.from(_hardcodedGenres)..sort();
     } catch (_) {
       _availableGenres = List.from(_hardcodedGenres)..sort();
     } finally {
       _isLoadingGenres = false;
+      _safeNotify();
+    }
+  }
+
+  Future<void> ensureTags() async {
+    if (_availableTags.isNotEmpty || _isLoadingTags) return;
+    _isLoadingTags = true;
+    _safeNotify();
+    try {
+      final apiTags = await _service.fetchTags(isAdult: _isNsfwEnabled);
+      _availableTags = apiTags.isNotEmpty ? apiTags : List.from(_fallbackTags)..sort();
+    } catch (_) {
+      _availableTags = List.from(_fallbackTags)..sort();
+    } finally {
+      _isLoadingTags = false;
       _safeNotify();
     }
   }
@@ -288,7 +310,9 @@ class CatalogProvider extends ChangeNotifier {
         ...manhuaJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.manhua)),
       ];
       
-      _popularManga = cachedComics;
+      cachedComics.sort((a, b) => (b.skor ?? 0).compareTo(a.skor ?? 0));
+      _popularManga = cachedComics.take(10).toList();
+
       _hasFetchedPopular = _popularAnime.isNotEmpty || _popularManga.isNotEmpty;
       return _hasFetchedPopular;
     } catch (_) {
@@ -387,6 +411,9 @@ class CatalogProvider extends ChangeNotifier {
     final trimmed = query.trim();
     if (_query == trimmed) return;
     _query = trimmed;
+    if (_query.isEmpty && _urutan == UrutanKatalog.relevan) {
+      _urutan = UrutanKatalog.populer;
+    }
     fetchCatalog();
   }
 

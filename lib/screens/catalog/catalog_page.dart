@@ -74,6 +74,7 @@ class _CatalogPageState extends State<CatalogPage> {
   void _showFilterSheet(BuildContext context, AppLocalizations l10n) {
     final catalog = context.read<CatalogProvider>();
     catalog.ensureGenres();
+    catalog.ensureTags();
 
     List<String> tempGenres = List.from(catalog.filterGenres);
     List<String> tempTags = List.from(catalog.filterTags);
@@ -91,6 +92,64 @@ class _CatalogPageState extends State<CatalogPage> {
           builder: (context, _) {
             return StatefulBuilder(
               builder: (context, setState) {
+                Future<void> showMultiSelectDialog({
+                  required String title,
+                  required List<String> allItems,
+                  required List<String> selectedItems,
+                  required Function(List<String>) onSave,
+                }) async {
+                  final result = await showDialog<List<String>>(
+                    context: context,
+                    builder: (dialogCtx) {
+                      final tempSelected = List<String>.from(selectedItems);
+                      return StatefulBuilder(
+                        builder: (context, setDialogState) {
+                          return AlertDialog(
+                            title: Text(title),
+                            content: SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: allItems.length,
+                                itemBuilder: (context, index) {
+                                  final item = allItems[index];
+                                  final isSelected = tempSelected.contains(item);
+                                  return CheckboxListTile(
+                                    title: Text(item),
+                                    value: isSelected,
+                                    onChanged: (val) {
+                                      setDialogState(() {
+                                        if (val == true) {
+                                          tempSelected.add(item);
+                                        } else {
+                                          tempSelected.remove(item);
+                                        }
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogCtx),
+                                child: Text(l10n.cancel),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogCtx, tempSelected),
+                                child: Text(l10n.apply),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                  if (result != null) {
+                    onSave(result);
+                  }
+                }
+
                 return DraggableScrollableSheet(
                   initialChildSize: 0.85,
                   minChildSize: 0.6,
@@ -109,105 +168,113 @@ class _CatalogPageState extends State<CatalogPage> {
                             controller: scrollController,
                             padding: const EdgeInsets.all(AppSizes.spacingM),
                             children: [
-                              Text(l10n.filterGenre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: AppSizes.spacingS),
-                              if (catalog.isLoadingGenres)
-                                const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
-                              else
-                                Wrap(
-                                  spacing: AppSizes.spacingS,
-                                  runSpacing: AppSizes.spacingS,
-                                  children: catalog.availableGenres.map((genre) {
-                                    final isSelected = tempGenres.contains(genre);
-                                    return FilterChip(
-                                      label: Text(genre),
-                                      selected: isSelected,
-                                      onSelected: (selected) {
-                                        setState(() {
-                                          if (selected) { tempGenres.add(genre); } else { tempGenres.remove(genre); }
-                                        });
-                                      },
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(l10n.filterGenre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Text(tempGenres.isEmpty ? l10n.allGenres : tempGenres.join(', ')),
+                                trailing: catalog.isLoadingGenres
+                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                    : const Icon(Icons.arrow_drop_down),
+                                onTap: () {
+                                  if (catalog.isLoadingGenres) return;
+                                  if (catalog.availableGenres.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Gagal memuat data genre. Periksa koneksi internet.')),
                                     );
-                                  }).toList(),
-                                ),
-                              const SizedBox(height: AppSizes.spacingL),
-                              const Text("Tag", style: TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: AppSizes.spacingS),
-                              Wrap(
-                                spacing: AppSizes.spacingS,
-                                runSpacing: AppSizes.spacingS,
-                                children: catalog.availableTags.map((tag) {
-                                  final isSelected = tempTags.contains(tag);
-                                  return FilterChip(
-                                    label: Text(tag),
-                                    selected: isSelected,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        if (selected) { tempTags.add(tag); } else { tempTags.remove(tag); }
-                                      });
-                                    },
+                                    return;
+                                  }
+                                  showMultiSelectDialog(
+                                    title: l10n.filterGenre,
+                                    allItems: catalog.availableGenres,
+                                    selectedItems: tempGenres,
+                                    onSave: (selected) => setState(() => tempGenres = selected),
                                   );
-                                }).toList(),
+                                },
                               ),
-                              const SizedBox(height: AppSizes.spacingL),
-                              Text(l10n.filterStatus, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: AppSizes.spacingS),
-                              DropdownButtonFormField<String>(
-                                initialValue: tempStatus,
-                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                                items: [
-                                  DropdownMenuItem(value: null, child: Text(l10n.all)),
-                                  DropdownMenuItem(value: 'RELEASING', child: Text(l10n.statusAiring)),
-                                  DropdownMenuItem(value: 'FINISHED', child: Text(l10n.statusFinished)),
-                                  DropdownMenuItem(value: 'NOT_YET_RELEASED', child: Text(l10n.statusUpcoming)),
-                                ],
-                                onChanged: (val) => setState(() => tempStatus = val),
+                              const Divider(),
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: const Text('Tag', style: TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Text(tempTags.isEmpty ? 'Semua Tag' : tempTags.join(', ')),
+                                trailing: catalog.isLoadingTags
+                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                    : const Icon(Icons.arrow_drop_down),
+                                onTap: () {
+                                  if (catalog.isLoadingTags) return;
+                                  if (catalog.availableTags.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Gagal memuat data tag. Periksa koneksi internet.')),
+                                    );
+                                    return;
+                                  }
+                                  showMultiSelectDialog(
+                                    title: 'Tag',
+                                    allItems: catalog.availableTags,
+                                    selectedItems: tempTags,
+                                    onSave: (selected) => setState(() => tempTags = selected),
+                                  );
+                                },
                               ),
-                              const SizedBox(height: AppSizes.spacingL),
-                              Text(l10n.filterYear, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: AppSizes.spacingS),
-                              DropdownButtonFormField<int>(
-                                initialValue: tempTahun,
-                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                                items: [
-                                  DropdownMenuItem(value: null, child: Text(l10n.all)),
-                                  ...List.generate(30, (i) => DateTime.now().year - i).map((thn) {
-                                    return DropdownMenuItem(value: thn, child: Text(thn.toString()));
-                                  }),
-                                ],
-                                onChanged: (val) => setState(() => tempTahun = val),
+                              const Divider(),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: tempStatus,
+                                  decoration: InputDecoration(labelText: l10n.filterStatus, border: const OutlineInputBorder(), isDense: true),
+                                  items: [
+                                    DropdownMenuItem(value: null, child: Text(l10n.all)),
+                                    DropdownMenuItem(value: 'RELEASING', child: Text(l10n.statusAiring)),
+                                    DropdownMenuItem(value: 'FINISHED', child: Text(l10n.statusFinished)),
+                                    DropdownMenuItem(value: 'NOT_YET_RELEASED', child: Text(l10n.statusUpcoming)),
+                                  ],
+                                  onChanged: (val) => setState(() => tempStatus = val),
+                                ),
                               ),
-                              const SizedBox(height: AppSizes.spacingL),
-                              Text(l10n.filterScore, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: AppSizes.spacingS),
-                              DropdownButtonFormField<int>(
-                                initialValue: tempSkorMin,
-                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                                items: [
-                                  DropdownMenuItem(value: null, child: Text(l10n.all)),
-                                  DropdownMenuItem(value: 5, child: Text('≥ 5')),
-                                  DropdownMenuItem(value: 6, child: Text('≥ 6')),
-                                  DropdownMenuItem(value: 7, child: Text('≥ 7')),
-                                  DropdownMenuItem(value: 8, child: Text('≥ 8')),
-                                  DropdownMenuItem(value: 9, child: Text('≥ 9')),
-                                ],
-                                onChanged: (val) => setState(() => tempSkorMin = val),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+                                child: DropdownButtonFormField<int>(
+                                  initialValue: tempTahun,
+                                  decoration: InputDecoration(labelText: l10n.filterYear, border: const OutlineInputBorder(), isDense: true),
+                                  items: [
+                                    DropdownMenuItem(value: null, child: Text(l10n.all)),
+                                    ...List.generate(30, (i) => DateTime.now().year - i).map((thn) {
+                                      return DropdownMenuItem(value: thn, child: Text(thn.toString()));
+                                    }),
+                                  ],
+                                  onChanged: (val) => setState(() => tempTahun = val),
+                                ),
                               ),
-                              const SizedBox(height: AppSizes.spacingL),
-                              Text(l10n.sortBy, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: AppSizes.spacingS),
-                              DropdownButtonFormField<UrutanKatalog>(
-                                initialValue: tempUrutan,
-                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                                items: [
-                                  DropdownMenuItem(value: UrutanKatalog.populer, child: Text(l10n.sortPopular)),
-                                  if (catalog.query.isNotEmpty)
-                                    DropdownMenuItem(value: UrutanKatalog.relevan, child: Text('Relevan')),
-                                  DropdownMenuItem(value: UrutanKatalog.skor, child: Text(l10n.sortScore)),
-                                  DropdownMenuItem(value: UrutanKatalog.terbaru, child: Text(l10n.sortNewest)),
-                                  DropdownMenuItem(value: UrutanKatalog.judul, child: Text(l10n.sortTitle)),
-                                ],
-                                onChanged: (val) { if (val != null) setState(() => tempUrutan = val); },
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+                                child: DropdownButtonFormField<int>(
+                                  initialValue: tempSkorMin,
+                                  decoration: InputDecoration(labelText: l10n.filterScore, border: const OutlineInputBorder(), isDense: true),
+                                  items: [
+                                    DropdownMenuItem(value: null, child: Text(l10n.all)),
+                                    DropdownMenuItem(value: 5, child: Text('≥ 5')),
+                                    DropdownMenuItem(value: 6, child: Text('≥ 6')),
+                                    DropdownMenuItem(value: 7, child: Text('≥ 7')),
+                                    DropdownMenuItem(value: 8, child: Text('≥ 8')),
+                                    DropdownMenuItem(value: 9, child: Text('≥ 9')),
+                                  ],
+                                  onChanged: (val) => setState(() => tempSkorMin = val),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+                                child: DropdownButtonFormField<UrutanKatalog>(
+                                  initialValue: tempUrutan,
+                                  decoration: InputDecoration(labelText: l10n.sortBy, border: const OutlineInputBorder(), isDense: true),
+                                  items: [
+                                    DropdownMenuItem(value: UrutanKatalog.populer, child: Text(l10n.sortPopular)),
+                                    if (catalog.query.isNotEmpty)
+                                      DropdownMenuItem(value: UrutanKatalog.relevan, child: const Text('Relevan')),
+                                    DropdownMenuItem(value: UrutanKatalog.skor, child: Text(l10n.sortScore)),
+                                    DropdownMenuItem(value: UrutanKatalog.terbaru, child: Text(l10n.sortNewest)),
+                                    DropdownMenuItem(value: UrutanKatalog.judul, child: Text(l10n.sortTitle)),
+                                  ],
+                                  onChanged: (val) { if (val != null) setState(() => tempUrutan = val); },
+                                ),
                               ),
                               const SizedBox(height: AppSizes.spacingXl),
                             ],
