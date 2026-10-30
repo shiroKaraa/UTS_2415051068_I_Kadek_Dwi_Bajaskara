@@ -425,7 +425,7 @@ class _CatalogPageState extends State<CatalogPage> {
             padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
             child: Row(
               children: [
-                ...JenisMedia.values.map((jenis) {
+                ...JenisMedia.values.where((jenis) => jenis != JenisMedia.lainnya).map((jenis) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: ChoiceChip(

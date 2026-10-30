@@ -6,6 +6,7 @@ import '../../models/collection_entry.dart';
 import '../../models/status_collection_enum.dart';
 import '../../models/catalog_item.dart';
 import '../../providers/collection_provider.dart';
+import '../../providers/label_provider.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/forms/entry_form_fields.dart';
 
@@ -52,6 +53,7 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
   late TextEditingController _totalController;
   late TextEditingController _catatanController;
   int? _rating;
+  int? _labelId;
   bool _isDirty = false;
 
   @override
@@ -62,6 +64,7 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
     _totalController = TextEditingController(text: widget.initialTotal?.toString() ?? '');
     _catatanController = TextEditingController(text: widget.initialCatatan ?? '');
     _rating = widget.initialRating;
+    _labelId = widget.existingEntry?.labelId;
   }
 
   @override
@@ -103,8 +106,9 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
 
     bool berhasil;
     if (widget.isEditing && widget.existingEntry != null) {
-      // Mode EDIT
       final entriUpdate = widget.existingEntry!.copyWith(
+        labelId: _labelId,
+        clearLabelId: _labelId == null,
         status: statusUntukSimpan,
         progres: progresBaru,
         total: totalBaru,
@@ -135,6 +139,7 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
 
       final entriBaru = EntriKoleksi(
         jenis: widget.item!.jenis,
+        labelId: _labelId,
         externalId: 'al:${widget.item!.anilistId}',
         judul: widget.judul,
         coverUrl: widget.coverUrl,
@@ -185,6 +190,7 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isSaving = context.select<CollectionProvider, bool>((c) => c.isSaving);
+    final labels = context.watch<LabelProvider>().labels;
 
     return PopScope(
       canPop: false,
@@ -228,6 +234,11 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
                 isSaving: isSaving,
                 onSimpan: _simpan,
                 buttonText: l10n.save,
+                labels: labels,
+                selectedLabelId: _labelId,
+                onLabelChanged: (val) {
+                  setState(() { _labelId = val; _isDirty = true; });
+                },
                 onDirty: () {
                   if (!_isDirty) setState(() => _isDirty = true);
                 },

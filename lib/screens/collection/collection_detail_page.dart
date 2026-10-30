@@ -4,7 +4,9 @@ import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../models/collection_entry.dart';
+import '../../models/custom_label.dart';
 import '../../providers/collection_provider.dart';
+import '../../providers/label_provider.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/progress_bar.dart';
 import 'edit_entry_page.dart';
@@ -84,6 +86,10 @@ class CollectionDetailPage extends StatelessWidget {
         body: Center(child: Text(l10n.errorEmptyData)),
       );
     }
+
+    // Ambil data Label
+    final label = context.select<LabelProvider, LabelKustom?>(
+        (p) => p.findById(entri.labelId));
 
     final progress = (entri.total != null && entri.total! > 0)
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
@@ -168,6 +174,17 @@ class CollectionDetailPage extends StatelessWidget {
                 Text(entri.status.label(entri.jenis, l10n),
                     style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant)),
+                
+                // TAMPILKAN LABEL DI SINI
+                if (label != null) ...[
+                  const SizedBox(width: AppSizes.spacingM),
+                  Icon(Icons.label_outline, size: 16, color: AppColors.infoBlue),
+                  const SizedBox(width: AppSizes.spacingXs),
+                  Text(label.nama,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.infoBlue, fontWeight: FontWeight.bold)),
+                ],
+                
               ],
             ),
             const SizedBox(height: AppSizes.spacingL),

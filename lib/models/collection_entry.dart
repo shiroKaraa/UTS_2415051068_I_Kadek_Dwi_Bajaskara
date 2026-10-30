@@ -6,7 +6,7 @@ class EntriKoleksi {
   final String? userId;
   final String? deviceId;
   final JenisMedia jenis;
-  final int? kategoriId;
+  final int? labelId;
   final String? externalId;
   final String judul;
   final String? coverUrl;
@@ -24,7 +24,7 @@ class EntriKoleksi {
     this.userId,
     this.deviceId,
     required this.jenis,
-    this.kategoriId,
+    this.labelId,
     this.externalId,
     required this.judul,
     this.coverUrl,
@@ -47,7 +47,7 @@ class EntriKoleksi {
         (e) => e.name == json['jenis'],
         orElse: () => JenisMedia.lainnya,
       ),
-      kategoriId: json['kategori_id'] as int?,
+      labelId: json['label_id'] as int?, // <-- SUDAH DIPERBAIKI
       externalId: json['external_id'] as String?,
       judul: json['judul'] as String,
       coverUrl: json['cover_url'] as String?,
@@ -70,7 +70,7 @@ class EntriKoleksi {
     return {
       'device_id': deviceId,
       'jenis': jenis.name,
-      'kategori_id': kategoriId,
+      'label_id': labelId,
       'external_id': externalId,
       'judul': judul,
       'cover_url': coverUrl,
@@ -90,7 +90,7 @@ class EntriKoleksi {
       'user_id': userId,
       'device_id': deviceId,
       'jenis': jenis.name,
-      'kategori_id': kategoriId,
+      'label_id': labelId,
       'external_id': externalId,
       'judul': judul,
       'cover_url': coverUrl,
@@ -110,7 +110,7 @@ class EntriKoleksi {
       'user_id': userId,
       'device_id': deviceId,
       'jenis': jenis.name,
-      'kategori_id': kategoriId,
+      'label_id': labelId,
       'external_id': externalId,
       'judul': judul,
       'cover_url': coverUrl,
@@ -131,8 +131,8 @@ class EntriKoleksi {
     String? userId,
     String? deviceId,
     JenisMedia? jenis,
-    bool clearKategoriId = false,
-    int? kategoriId,
+    bool clearLabelId = false,
+    int? labelId,
     bool clearExternalId = false,
     String? externalId,
     String? judul,
@@ -155,7 +155,7 @@ class EntriKoleksi {
       userId: userId ?? this.userId,
       deviceId: deviceId ?? this.deviceId,
       jenis: jenis ?? this.jenis,
-      kategoriId: clearKategoriId ? null : (kategoriId ?? this.kategoriId),
+      labelId: clearLabelId ? null : (labelId ?? this.labelId),
       externalId: clearExternalId ? null : (externalId ?? this.externalId),
       judul: judul ?? this.judul,
       coverUrl: clearCoverUrl ? null : (coverUrl ?? this.coverUrl),

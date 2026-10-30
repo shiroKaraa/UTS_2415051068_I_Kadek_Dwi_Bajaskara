@@ -10,7 +10,7 @@ import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/catalog_provider.dart';
 import 'providers/collection_provider.dart';
-import 'providers/category_provider.dart';
+import 'providers/label_provider.dart';
 import 'repositories/collection_repository.dart';
 import 'services/supabase_collection_service.dart';
 import 'screens/auth/auth_gate.dart';
@@ -105,10 +105,10 @@ class MyApp extends StatelessWidget {
             return provider;
           },
         ),
-        ChangeNotifierProxyProvider<AuthProvider, CategoryProvider>(
-          create: (_) => CategoryProvider(),
+        ChangeNotifierProxyProvider<AuthProvider, LabelProvider>(
+          create: (_) => LabelProvider(),
           update: (context, auth, previous) {
-            final provider = previous ?? CategoryProvider();
+            final provider = previous ?? LabelProvider();
             provider.bindUser(auth.userId);
             return provider;
           },

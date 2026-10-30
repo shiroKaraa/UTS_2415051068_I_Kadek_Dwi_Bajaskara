@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../models/collection_entry.dart';
+import '../../models/custom_label.dart';
 import '../../models/status_collection_enum.dart';
 import '../../providers/collection_provider.dart';
+import '../../providers/label_provider.dart';
 import 'progress_bar.dart';
 import 'cover_image.dart';
 
@@ -28,6 +30,10 @@ class CollectionCard extends StatelessWidget {
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
         : 0.0;
     final bool isSelesai = entri.status == StatusKoleksi.selesai;
+    
+    // Ambil data Label
+    final label = context.select<LabelProvider, LabelKustom?>(
+        (p) => p.findById(entri.labelId));
 
     return InkWell(
       onTap: onTap,
@@ -122,6 +128,17 @@ class CollectionCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
+          
+          // TAMPILKAN LABEL DI SINI
+          if (label != null)
+            Text(
+              label.nama,
+              style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.infoBlue,
+                  fontWeight: FontWeight.w600),
+            ),
+
           Text(
             entri.status.netralLabel(l10n),
             style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),

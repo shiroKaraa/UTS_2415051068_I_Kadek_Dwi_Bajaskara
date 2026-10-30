@@ -4,6 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/app_sizes.dart';
 import '../../../models/status_collection_enum.dart';
 import '../../../models/media_type_enum.dart';
+import '../../../models/custom_label.dart';
 
 class EntryFormFields extends StatelessWidget {
   final JenisMedia jenisMedia;
@@ -19,6 +20,9 @@ class EntryFormFields extends StatelessWidget {
   final VoidCallback onSimpan;
   final String buttonText;
   final VoidCallback? onDirty;
+  final List<LabelKustom> labels;
+  final int? selectedLabelId;
+  final ValueChanged<int?> onLabelChanged;
 
   const EntryFormFields({
     super.key,
@@ -34,7 +38,10 @@ class EntryFormFields extends StatelessWidget {
     required this.isSaving,
     required this.onSimpan,
     required this.buttonText,
-    this.onDirty
+    required this.labels,
+    required this.selectedLabelId,
+    required this.onLabelChanged,
+    this.onDirty,
   });
 
   @override
@@ -48,6 +55,24 @@ class EntryFormFields extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (labels.isNotEmpty) ...[
+            DropdownButtonFormField<int>(
+              initialValue: selectedLabelId,
+              decoration: InputDecoration(
+                labelText: l10n.manageCategories,
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                const DropdownMenuItem(value: null, child: Text('-')),
+                ...labels.map((c) => DropdownMenuItem(
+                      value: c.id,
+                      child: Text(c.nama),
+                    )),
+              ],
+              onChanged: onLabelChanged,
+            ),
+            const SizedBox(height: AppSizes.spacingM),
+          ],
           DropdownButtonFormField<StatusKoleksi>(
             initialValue: status,
             decoration: InputDecoration(

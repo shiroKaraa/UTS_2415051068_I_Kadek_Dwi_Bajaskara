@@ -11,7 +11,7 @@ import '../../providers/collection_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../collection/collection_page.dart';
 import '../info/about_page.dart';
-import '../settings/category_page.dart';
+import '../settings/label_page.dart';
 import '../info/help_page.dart';
 import '../settings/settings_page.dart';
 import '../info/statistics_page.dart';
@@ -260,7 +260,7 @@ class _ManageGrid extends StatelessWidget {
         _LinkTile(
           icon: Icons.label_outline,
           title: l10n.manageCategories,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryPage())),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LabelPage())),
         ),
         _LinkTile(
           icon: Icons.storage_outlined,

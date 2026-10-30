@@ -449,7 +449,7 @@ abstract class AppLocalizations {
   /// No description provided for @manageCategories.
   ///
   /// In id, this message translates to:
-  /// **'Kelola Kategori'**
+  /// **'Kelola Label'**
   String get manageCategories;
 
   /// No description provided for @statistics.
@@ -593,25 +593,25 @@ abstract class AppLocalizations {
   /// No description provided for @noCategory.
   ///
   /// In id, this message translates to:
-  /// **'Belum ada kategori kustom.'**
+  /// **'Belum ada Label kustom.'**
   String get noCategory;
 
   /// No description provided for @addCategory.
   ///
   /// In id, this message translates to:
-  /// **'Tambah Kategori'**
+  /// **'Tambah Label'**
   String get addCategory;
 
   /// No description provided for @editCategory.
   ///
   /// In id, this message translates to:
-  /// **'Edit Kategori'**
+  /// **'Edit Label'**
   String get editCategory;
 
   /// No description provided for @categoryName.
   ///
   /// In id, this message translates to:
-  /// **'Nama Kategori'**
+  /// **'Nama Label'**
   String get categoryName;
 
   /// No description provided for @progressUnit.
@@ -635,49 +635,49 @@ abstract class AppLocalizations {
   /// No description provided for @deleteCategory.
   ///
   /// In id, this message translates to:
-  /// **'Hapus Kategori?'**
+  /// **'Hapus Label?'**
   String get deleteCategory;
 
   /// No description provided for @deleteCategoryDesc.
   ///
   /// In id, this message translates to:
-  /// **'Entri di kategori ini akan menjadi tanpa kategori.'**
+  /// **'Entri di Label ini akan menjadi tanpa Label.'**
   String get deleteCategoryDesc;
 
   /// No description provided for @categoryAdded.
   ///
   /// In id, this message translates to:
-  /// **'Kategori ditambahkan.'**
+  /// **'Label ditambahkan.'**
   String get categoryAdded;
 
   /// No description provided for @categoryUpdated.
   ///
   /// In id, this message translates to:
-  /// **'Kategori diperbarui.'**
+  /// **'Label diperbarui.'**
   String get categoryUpdated;
 
   /// No description provided for @categoryDeleted.
   ///
   /// In id, this message translates to:
-  /// **'Kategori dihapus.'**
+  /// **'Label dihapus.'**
   String get categoryDeleted;
 
   /// No description provided for @failedAddCategory.
   ///
   /// In id, this message translates to:
-  /// **'Gagal menambah kategori'**
+  /// **'Gagal menambah Label'**
   String get failedAddCategory;
 
   /// No description provided for @failedEditCategory.
   ///
   /// In id, this message translates to:
-  /// **'Gagal mengedit kategori'**
+  /// **'Gagal mengedit Label'**
   String get failedEditCategory;
 
   /// No description provided for @failedDeleteCategory.
   ///
   /// In id, this message translates to:
-  /// **'Gagal menghapus kategori'**
+  /// **'Gagal menghapus Label'**
   String get failedDeleteCategory;
 
   /// No description provided for @categoryGenericError.

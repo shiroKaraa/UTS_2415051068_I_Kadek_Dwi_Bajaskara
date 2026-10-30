@@ -187,7 +187,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get backupDesc => 'Ekspor atau impor koleksi Anda';
 
   @override
-  String get manageCategories => 'Kelola Kategori';
+  String get manageCategories => 'Kelola Label';
 
   @override
   String get statistics => 'Statistik';
@@ -262,16 +262,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get errorPopularData => 'Data populer tidak dapat dimuat.';
 
   @override
-  String get noCategory => 'Belum ada kategori kustom.';
+  String get noCategory => 'Belum ada Label kustom.';
 
   @override
-  String get addCategory => 'Tambah Kategori';
+  String get addCategory => 'Tambah Label';
 
   @override
-  String get editCategory => 'Edit Kategori';
+  String get editCategory => 'Edit Label';
 
   @override
-  String get categoryName => 'Nama Kategori';
+  String get categoryName => 'Nama Label';
 
   @override
   String get progressUnit => 'Satuan Progres (misal: Bagian, Halaman, Tugas)';
@@ -283,29 +283,29 @@ class AppLocalizationsId extends AppLocalizations {
   String get save => 'Simpan';
 
   @override
-  String get deleteCategory => 'Hapus Kategori?';
+  String get deleteCategory => 'Hapus Label?';
 
   @override
   String get deleteCategoryDesc =>
-      'Entri di kategori ini akan menjadi tanpa kategori.';
+      'Entri di Label ini akan menjadi tanpa Label.';
 
   @override
-  String get categoryAdded => 'Kategori ditambahkan.';
+  String get categoryAdded => 'Label ditambahkan.';
 
   @override
-  String get categoryUpdated => 'Kategori diperbarui.';
+  String get categoryUpdated => 'Label diperbarui.';
 
   @override
-  String get categoryDeleted => 'Kategori dihapus.';
+  String get categoryDeleted => 'Label dihapus.';
 
   @override
-  String get failedAddCategory => 'Gagal menambah kategori';
+  String get failedAddCategory => 'Gagal menambah Label';
 
   @override
-  String get failedEditCategory => 'Gagal mengedit kategori';
+  String get failedEditCategory => 'Gagal mengedit Label';
 
   @override
-  String get failedDeleteCategory => 'Gagal menghapus kategori';
+  String get failedDeleteCategory => 'Gagal menghapus Label';
 
   @override
   String get categoryGenericError => 'Terjadi kesalahan.';
