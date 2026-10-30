@@ -23,6 +23,7 @@ migrate_working_dir/
 .env.*
 !.env.example
 CATATAN.MD
+devtools_options.yaml
 
 # Node.js (Supabase CLI, tooling JS)
 node_modules/

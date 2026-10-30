@@ -84,7 +84,14 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => CatalogProvider()),
+                ChangeNotifierProxyProvider<SettingsProvider, CatalogProvider>(
+          create: (_) => CatalogProvider(),
+          update: (context, settings, previous) {
+            final provider = previous ?? CatalogProvider();
+            provider.syncNsfwSetting(settings.enableNsfw);
+            return provider;
+          },
+        ),
         ChangeNotifierProxyProvider<AuthProvider, CollectionProvider>(
           create: (_) => CollectionProvider(
             CollectionRepository(SupabaseCollectionService()),

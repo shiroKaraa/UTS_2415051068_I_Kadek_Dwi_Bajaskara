@@ -114,12 +114,11 @@ class SettingsPage extends StatelessWidget {
                 );
                 if (confirmed != true) return;
               }
+
               if (!context.mounted) return;
-              await context
-                  .read<SettingsProvider>()
-                  .setEnableNsfw(value);
+              await context.read<SettingsProvider>().setEnableNsfw(value);
               if (!context.mounted) return;
-              context.read<CatalogProvider>().setNsfwEnabled(value);
+              context.read<CatalogProvider>().toggleNsfw(value);
             },
           ),
           const Divider(),

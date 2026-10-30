@@ -12,29 +12,23 @@ enum TipeError { network, rateLimit, api, unknown }
 
 class CatalogProvider extends ChangeNotifier {
   final AniListService _service = AniListService();
-
-  static const String _cacheKeyPopular = 'cache_popular_home';
+  String get _cacheKeyPopular => 'cache_popular_home_${_isNsfwEnabled ? 'nsfw' : 'sfw'}';
   static const Duration _cacheTtl = Duration(minutes: 30);
-
   List<ItemKatalog> _items = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _hasNextPage = true;
   int _currentPage = 1;
   int _totalResults = 0;
-
   TipeError? _errorType;
   String? _errorMessage;
   String? _loadMoreError;
-
   JenisMedia _selectedJenis = JenisMedia.anime;
   String _query = '';
   int _requestGeneration = 0;
   bool _isNsfwEnabled = false;
-
   bool _isListView = false;
   bool get isListView => _isListView;
-
   List<String> _filterGenres = [];
   List<String> _filterTags = [];
   int? _filterTahun;
@@ -42,7 +36,6 @@ class CatalogProvider extends ChangeNotifier {
   UrutanKatalog _urutan = UrutanKatalog.populer;
   int? _filterSkorMin;
   int? get filterSkorMin => _filterSkorMin;
-
   List<String> _availableGenres = [];
   bool _isLoadingGenres = false;
 
@@ -50,12 +43,12 @@ class CatalogProvider extends ChangeNotifier {
     'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 
     'Horror', 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 
     'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller',
-    'Josei', 'Seinen', 'Shounen', 'Game', 'Gender Bender', 'Historical', 
-    'Isekai', 'Magic', 'Martial Arts', 'Super Power'
+    'Josei', 'Seinen', 'Shounen', 'Shoujo'
   ];
   
   final List<String> _availableTags = [
-    'Shounen Ai', 'Shoujo Ai', 'Harem', 'Reverse Harem', 'Time Travel', 'Survival'
+    'Shounen Ai', 'Shoujo Ai', 'Harem', 'Reverse Harem', 'Time Travel', 'Survival',
+    'Isekai', 'Magic', 'Martial Arts', 'Super Power', 'Historical', 'Game', 'Gender Bender'
   ];
   List<String> get availableTags => _availableTags;
 
@@ -64,9 +57,7 @@ class CatalogProvider extends ChangeNotifier {
   bool _isLoadingPopular = false;
   bool _hasFetchedPopular = false;
   String? _popularError;
-
   bool _disposed = false;
-
   UnmodifiableListView<ItemKatalog> get items => UnmodifiableListView(_items);
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -84,7 +75,6 @@ class CatalogProvider extends ChangeNotifier {
   UrutanKatalog get urutan => _urutan;
   List<String> get availableGenres => _availableGenres;
   bool get isLoadingGenres => _isLoadingGenres;
-
   List<ItemKatalog> get topAnime => _popularAnime;
   List<ItemKatalog> get topManga => _popularManga;
   bool get isLoadingPopular => _isLoadingPopular;
@@ -92,8 +82,8 @@ class CatalogProvider extends ChangeNotifier {
 
   bool get hasActiveFilters =>
     _filterGenres.isNotEmpty || _filterTags.isNotEmpty ||
-    _filterTahun != null || _filterStatus != null || _filterSkorMin != null;
-  bool get hasQuery => _query.isNotEmpty;
+    _filterTahun != null || _filterStatus != null || _filterSkorMin != null ||
+    _query.isNotEmpty;
 
   CatalogProvider();
 
@@ -111,7 +101,29 @@ class CatalogProvider extends ChangeNotifier {
   void setNsfwEnabled(bool enabled) {
     if (_isNsfwEnabled == enabled) return;
     _isNsfwEnabled = enabled;
+    _hasFetchedPopular = false;
+    _popularAnime.clear();
+    _popularManga.clear();
     fetchCatalog();
+    fetchPopularHome(forceRefresh: true);
+  }
+
+  void syncNsfwSetting(bool enabled) {
+    if (_isNsfwEnabled == enabled) return;
+    _isNsfwEnabled = enabled;
+    _hasFetchedPopular = false;
+    _popularAnime.clear();
+    _popularManga.clear();
+  }
+
+  void toggleNsfw(bool enabled) {
+    if (_isNsfwEnabled == enabled) return;
+    _isNsfwEnabled = enabled;
+    _hasFetchedPopular = false;
+    _popularAnime.clear();
+    _popularManga.clear();
+    fetchCatalog();
+    fetchPopularHome(forceRefresh: true);
   }
 
   Future<void> ensureGenres() async {
@@ -123,7 +135,7 @@ class CatalogProvider extends ChangeNotifier {
       final combined = {...apiGenres, ..._hardcodedGenres};
       _availableGenres = combined.where((g) => g != 'Hentai').toList()..sort();
     } catch (_) {
-      _availableGenres = _hardcodedGenres..sort();
+      _availableGenres = List.from(_hardcodedGenres)..sort();
     } finally {
       _isLoadingGenres = false;
       _safeNotify();
@@ -132,6 +144,7 @@ class CatalogProvider extends ChangeNotifier {
 
   String _getSortParam() {
     if (_query.isNotEmpty && _urutan == UrutanKatalog.populer) return 'SEARCH_MATCH';
+    if (_query.isNotEmpty && _urutan == UrutanKatalog.relevan) return 'SEARCH_MATCH';
     switch (_urutan) {
       case UrutanKatalog.populer: return 'POPULARITY_DESC';
       case UrutanKatalog.skor: return 'SCORE_DESC';
@@ -139,6 +152,21 @@ class CatalogProvider extends ChangeNotifier {
       case UrutanKatalog.judul: return 'TITLE_ROMAJI';
       case UrutanKatalog.relevan: return 'SEARCH_MATCH';
     }
+  }
+
+  Future<AniListResult> _fetch(int page) {
+    return _service.fetchPage(
+      jenis: _selectedJenis,
+      page: page,
+      searchQuery: _query.isEmpty ? null : _query,
+      genres: _filterGenres,
+      tags: _filterTags,
+      tahun: _filterTahun,
+      status: _filterStatus,
+      sort: _getSortParam(),
+      skorMin: _filterSkorMin,
+      isAdult: _isNsfwEnabled,
+    );
   }
 
   Future<void> fetchCatalog() async {
@@ -154,18 +182,7 @@ class CatalogProvider extends ChangeNotifier {
     _safeNotify();
 
     try {
-      final result = await _service.fetchPage(
-        jenis: _selectedJenis,
-        page: _currentPage,
-        searchQuery: _query.isEmpty ? null : _query,
-        genres: _filterGenres,
-        tags: _filterTags,
-        tahun: _filterTahun,
-        status: _filterStatus,
-        sort: _getSortParam(),
-        skorMin: _filterSkorMin,
-        isAdult: _isNsfwEnabled,
-      );
+      final result = await _fetch(_currentPage);
       if (gen != _requestGeneration) return;
 
       _items = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
@@ -174,8 +191,9 @@ class CatalogProvider extends ChangeNotifier {
     } catch (e) {
       if (gen != _requestGeneration) return;
       _handleError(e);
-      _items = [];
-      _hasNextPage = false;
+      if (_items.isEmpty) {
+        _hasNextPage = false;
+      }
     } finally {
       if (gen == _requestGeneration) {
         _isLoading = false;
@@ -193,17 +211,7 @@ class CatalogProvider extends ChangeNotifier {
 
     try {
       final nextPage = _currentPage + 1;
-      final result = await _service.fetchPage(
-        jenis: _selectedJenis,
-        page: nextPage,
-        searchQuery: _query.isEmpty ? null : _query,
-        genres: _filterGenres,
-        tags: _filterTags,
-        tahun: _filterTahun,
-        status: _filterStatus,
-        sort: _getSortParam(),
-        isAdult: _isNsfwEnabled,
-      );
+      final result = await _fetch(nextPage);
       if (gen != _requestGeneration) return;
 
       if (result.media.isEmpty) {
@@ -240,7 +248,7 @@ class CatalogProvider extends ChangeNotifier {
       _errorMessage = 'Tidak ada koneksi internet.';
     } else if (e is ApiException) {
       _errorType = TipeError.api;
-      _errorMessage = 'Terjadi kesalahan server: ${e.message}';
+      _errorMessage = 'Terjadi kesalahan server.';
     } else {
       _errorType = TipeError.unknown;
       _errorMessage = 'Terjadi kesalahan tidak diketahui.';
@@ -324,11 +332,12 @@ class CatalogProvider extends ChangeNotifier {
     _safeNotify();
 
     try {
+      int failCount = 0;
       final results = await Future.wait([
-        _service.fetchPage(jenis: JenisMedia.anime, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
-        _service.fetchPage(jenis: JenisMedia.manga, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
-        _service.fetchPage(jenis: JenisMedia.manhwa, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
-        _service.fetchPage(jenis: JenisMedia.manhua, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.anime, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.manga, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.manhwa, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.manhua, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
       ]);
 
       final newAnime = results[0].media;
@@ -339,7 +348,6 @@ class CatalogProvider extends ChangeNotifier {
       _popularAnime = newAnime.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
       
       final allComics = [...mangaItems, ...manhwaItems, ...manhuaItems];
-      
       allComics.sort((a, b) => (b.skor ?? 0).compareTo(a.skor ?? 0));
       _popularManga = allComics.take(10).toList();
 
@@ -347,12 +355,14 @@ class CatalogProvider extends ChangeNotifier {
         _popularError = 'Gagal memuat data populer.';
       } else {
         _hasFetchedPopular = true;
-        await _savePopularToCache(
-          newAnime,
-          results[1].media,
-          results[2].media,
-          results[3].media,
-        );
+        if (failCount == 0) {
+          await _savePopularToCache(
+            newAnime,
+            results[1].media,
+            results[2].media,
+            results[3].media,
+          );
+        }
       }
     } catch (e) {
       _popularError = 'Gagal memuat data populer.';
@@ -389,8 +399,8 @@ class CatalogProvider extends ChangeNotifier {
     int? skorMin,
   }) {
     bool changed = false;
-    if (genres != null && !_listEquals(genres, _filterGenres)) { _filterGenres = genres; changed = true; }
-    if (tags != null && !_listEquals(tags, _filterTags)) { _filterTags = tags; changed = true; }
+    if (genres != null && !_listEquals(genres, _filterGenres)) { _filterGenres = List.from(genres); changed = true; }
+    if (tags != null && !_listEquals(tags, _filterTags)) { _filterTags = List.from(tags); changed = true; }
     if (tahun != _filterTahun) { _filterTahun = tahun; changed = true; }
     if (status != _filterStatus) { _filterStatus = status; changed = true; }
     if (urutan != null && urutan != _urutan) { _urutan = urutan; changed = true; }
@@ -426,9 +436,8 @@ class CatalogProvider extends ChangeNotifier {
 
   bool _listEquals(List<String> a, List<String> b) {
     if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
+    final setA = a.toSet();
+    final setB = b.toSet();
+    return setA.containsAll(setB) && setB.containsAll(setA);
   }
 }

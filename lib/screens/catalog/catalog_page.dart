@@ -86,210 +86,181 @@ class _CatalogPageState extends State<CatalogPage> {
       context: context,
       isScrollControlled: true,
       builder: (sheetCtx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return DraggableScrollableSheet(
-              initialChildSize: 0.8,
-              minChildSize: 0.6,
-              maxChildSize: 0.95,
-              expand: false,
-              builder: (_, scrollController) {
-                return ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(AppSizes.spacingM),
-                  children: [
-                    Text(l10n.filterCatalog,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppSizes.spacingM),
-                    Text(l10n.filterGenre,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppSizes.spacingS),
-                    if (catalog.isLoadingGenres)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    else
-                      Wrap(
-                        spacing: AppSizes.spacingS,
-                        runSpacing: AppSizes.spacingS,
-                        children: catalog.availableGenres.map((genre) {
-                          final isSelected = tempGenres.contains(genre);
-                          return FilterChip(
-                            label: Text(genre),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                if (selected) {
-                                  tempGenres.add(genre);
-                                } else {
-                                  tempGenres.remove(genre);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    const SizedBox(height: AppSizes.spacingL),
-                    Text("Tag",
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppSizes.spacingS),
-                    Wrap(
-                      spacing: AppSizes.spacingS,
-                      runSpacing: AppSizes.spacingS,
-                      children: catalog.availableTags.map((tag) {
-                        final isSelected = tempTags.contains(tag);
-                        return FilterChip(
-                          label: Text(tag),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                tempTags.add(tag);
-                              } else {
-                                tempTags.remove(tag);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: AppSizes.spacingL),
-                    Text(l10n.filterStatus,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppSizes.spacingS),
-                    DropdownButtonFormField<String>(
-                      initialValue: tempStatus,
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(), isDense: true),
-                      items: [
-                        DropdownMenuItem(value: null, child: Text(l10n.all)),
-                        DropdownMenuItem(
-                            value: 'RELEASING',
-                            child: Text(l10n.statusAiring)),
-                        DropdownMenuItem(
-                            value: 'FINISHED',
-                            child: Text(l10n.statusFinished)),
-                        DropdownMenuItem(
-                            value: 'NOT_YET_RELEASED',
-                            child: Text(l10n.statusUpcoming)),
-                      ],
-                      onChanged: (val) => setState(() => tempStatus = val),
-                    ),
-                    const SizedBox(height: AppSizes.spacingL),
-                    Text(l10n.filterYear,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppSizes.spacingS),
-                    DropdownButtonFormField<int>(
-                      initialValue: tempTahun,
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(), isDense: true),
-                      items: [
-                        DropdownMenuItem(value: null, child: Text(l10n.all)),
-                        ...List.generate(10, (i) => DateTime.now().year - i)
-                            .map((thn) {
-                          return DropdownMenuItem(
-                              value: thn, child: Text(thn.toString()));
-                        }),
-                      ],
-                      onChanged: (val) => setState(() => tempTahun = val),
-                    ),
-                    const SizedBox(height: AppSizes.spacingL),
-                    Text(l10n.filterScore,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppSizes.spacingS),
-                    DropdownButtonFormField<int>(
-                      initialValue: tempSkorMin,
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(), isDense: true),
-                      items: [
-                        DropdownMenuItem(value: null, child: Text(l10n.all)),
-                        DropdownMenuItem(value: 5, child: Text('≥ 5')),
-                        DropdownMenuItem(value: 6, child: Text('≥ 6')),
-                        DropdownMenuItem(value: 7, child: Text('≥ 7')),
-                        DropdownMenuItem(value: 8, child: Text('≥ 8')),
-                        DropdownMenuItem(value: 9, child: Text('≥ 9')),
-                      ],
-                      onChanged: (val) =>
-                          setState(() => tempSkorMin = val),
-                    ),
-                    const SizedBox(height: AppSizes.spacingL),
-                    Text(l10n.sortBy,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppSizes.spacingS),
-                    DropdownButtonFormField<UrutanKatalog>(
-                      initialValue: tempUrutan,
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(), isDense: true),
-                      items: [
-                        DropdownMenuItem(
-                            value: UrutanKatalog.populer,
-                            child: Text(l10n.sortPopular)),
-                        DropdownMenuItem(
-                            value: UrutanKatalog.skor,
-                            child: Text(l10n.sortScore)),
-                        DropdownMenuItem(
-                            value: UrutanKatalog.terbaru,
-                            child: Text(l10n.sortNewest)),
-                        DropdownMenuItem(
-                            value: UrutanKatalog.judul,
-                            child: Text(l10n.sortTitle)),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) setState(() => tempUrutan = val);
-                      },
-                    ),
-                    const SizedBox(height: AppSizes.spacingXl),
-                    Row(
+        return ListenableBuilder(
+          listenable: catalog,
+          builder: (context, _) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return DraggableScrollableSheet(
+                  initialChildSize: 0.85,
+                  minChildSize: 0.6,
+                  maxChildSize: 0.95,
+                  expand: false,
+                  builder: (_, scrollController) {
+                    return Column(
                       children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(AppSizes.spacingM, AppSizes.spacingM, AppSizes.spacingM, 0),
+                          child: Text(l10n.filterCatalog,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        ),
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              catalog.clearFilters();
-                              Navigator.pop(sheetCtx);
-                            },
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(
-                                  color: Theme.of(context).colorScheme.outline),
-                            ),
-                            child: Text(l10n.reset),
+                          child: ListView(
+                            controller: scrollController,
+                            padding: const EdgeInsets.all(AppSizes.spacingM),
+                            children: [
+                              Text(l10n.filterGenre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: AppSizes.spacingS),
+                              if (catalog.isLoadingGenres)
+                                const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+                              else
+                                Wrap(
+                                  spacing: AppSizes.spacingS,
+                                  runSpacing: AppSizes.spacingS,
+                                  children: catalog.availableGenres.map((genre) {
+                                    final isSelected = tempGenres.contains(genre);
+                                    return FilterChip(
+                                      label: Text(genre),
+                                      selected: isSelected,
+                                      onSelected: (selected) {
+                                        setState(() {
+                                          if (selected) { tempGenres.add(genre); } else { tempGenres.remove(genre); }
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              const SizedBox(height: AppSizes.spacingL),
+                              const Text("Tag", style: TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: AppSizes.spacingS),
+                              Wrap(
+                                spacing: AppSizes.spacingS,
+                                runSpacing: AppSizes.spacingS,
+                                children: catalog.availableTags.map((tag) {
+                                  final isSelected = tempTags.contains(tag);
+                                  return FilterChip(
+                                    label: Text(tag),
+                                    selected: isSelected,
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        if (selected) { tempTags.add(tag); } else { tempTags.remove(tag); }
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: AppSizes.spacingL),
+                              Text(l10n.filterStatus, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: AppSizes.spacingS),
+                              DropdownButtonFormField<String>(
+                                initialValue: tempStatus,
+                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                                items: [
+                                  DropdownMenuItem(value: null, child: Text(l10n.all)),
+                                  DropdownMenuItem(value: 'RELEASING', child: Text(l10n.statusAiring)),
+                                  DropdownMenuItem(value: 'FINISHED', child: Text(l10n.statusFinished)),
+                                  DropdownMenuItem(value: 'NOT_YET_RELEASED', child: Text(l10n.statusUpcoming)),
+                                ],
+                                onChanged: (val) => setState(() => tempStatus = val),
+                              ),
+                              const SizedBox(height: AppSizes.spacingL),
+                              Text(l10n.filterYear, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: AppSizes.spacingS),
+                              DropdownButtonFormField<int>(
+                                initialValue: tempTahun,
+                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                                items: [
+                                  DropdownMenuItem(value: null, child: Text(l10n.all)),
+                                  ...List.generate(30, (i) => DateTime.now().year - i).map((thn) {
+                                    return DropdownMenuItem(value: thn, child: Text(thn.toString()));
+                                  }),
+                                ],
+                                onChanged: (val) => setState(() => tempTahun = val),
+                              ),
+                              const SizedBox(height: AppSizes.spacingL),
+                              Text(l10n.filterScore, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: AppSizes.spacingS),
+                              DropdownButtonFormField<int>(
+                                initialValue: tempSkorMin,
+                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                                items: [
+                                  DropdownMenuItem(value: null, child: Text(l10n.all)),
+                                  DropdownMenuItem(value: 5, child: Text('≥ 5')),
+                                  DropdownMenuItem(value: 6, child: Text('≥ 6')),
+                                  DropdownMenuItem(value: 7, child: Text('≥ 7')),
+                                  DropdownMenuItem(value: 8, child: Text('≥ 8')),
+                                  DropdownMenuItem(value: 9, child: Text('≥ 9')),
+                                ],
+                                onChanged: (val) => setState(() => tempSkorMin = val),
+                              ),
+                              const SizedBox(height: AppSizes.spacingL),
+                              Text(l10n.sortBy, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: AppSizes.spacingS),
+                              DropdownButtonFormField<UrutanKatalog>(
+                                initialValue: tempUrutan,
+                                decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                                items: [
+                                  DropdownMenuItem(value: UrutanKatalog.populer, child: Text(l10n.sortPopular)),
+                                  if (catalog.query.isNotEmpty)
+                                    DropdownMenuItem(value: UrutanKatalog.relevan, child: Text('Relevan')),
+                                  DropdownMenuItem(value: UrutanKatalog.skor, child: Text(l10n.sortScore)),
+                                  DropdownMenuItem(value: UrutanKatalog.terbaru, child: Text(l10n.sortNewest)),
+                                  DropdownMenuItem(value: UrutanKatalog.judul, child: Text(l10n.sortTitle)),
+                                ],
+                                onChanged: (val) { if (val != null) setState(() => tempUrutan = val); },
+                              ),
+                              const SizedBox(height: AppSizes.spacingXl),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: AppSizes.spacingM),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              catalog.setFilters(
-                                genres: tempGenres,
-                                tags: tempTags,
-                                tahun: tempTahun,
-                                status: tempStatus,
-                                urutan: tempUrutan,
-                                skorMin: tempSkorMin,
-                              );
-                              Navigator.pop(sheetCtx);
-                            },
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: AppColors.primaryGreen
-                                  .withValues(alpha: 0.15),
-                              side: const BorderSide(
-                                  color: AppColors.primaryGreen, width: 1.5),
+                        SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSizes.spacingM),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () {
+                                      catalog.clearFilters();
+                                      Navigator.pop(sheetCtx);
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                                    ),
+                                    child: Text(l10n.reset),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSizes.spacingM),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () {
+                                      catalog.setFilters(
+                                        genres: tempGenres,
+                                        tags: tempTags,
+                                        tahun: tempTahun,
+                                        status: tempStatus,
+                                        urutan: tempUrutan,
+                                        skorMin: tempSkorMin,
+                                      );
+                                      Navigator.pop(sheetCtx);
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.15),
+                                      side: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                                    ),
+                                    child: Text(l10n.apply,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: Text(l10n.apply,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryGreen)),
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: AppSizes.spacingXl),
-                  ],
+                    );
+                  },
                 );
               },
             );
