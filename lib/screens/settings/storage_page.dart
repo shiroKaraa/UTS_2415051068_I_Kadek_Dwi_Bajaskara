@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
+import '../../providers/settings_provider.dart';
 
 class StoragePage extends StatefulWidget {
   const StoragePage({super.key});
@@ -18,6 +20,7 @@ class _StoragePageState extends State<StoragePage> {
   int _imageCacheSize = 0;
   int _collectionDataSize = 0;
   int _translationDataSize = 0;
+  static const int _imageCacheLimitBytes = 100 * 1024 * 1024;
 
   @override
   void initState() {
@@ -87,7 +90,9 @@ class _StoragePageState extends State<StoragePage> {
         title: Text(l10n.delete),
         content: Text(l10n.storageDataDesc),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: Text(l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
@@ -121,13 +126,20 @@ class _StoragePageState extends State<StoragePage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final totalSize = _imageCacheSize + _collectionDataSize + _translationDataSize;
+    final settings = context.watch<SettingsProvider>();
+    final totalSize =
+        _imageCacheSize + _collectionDataSize + _translationDataSize;
+    final overLimit = settings.limitImageCache &&
+        _imageCacheSize > _imageCacheLimitBytes;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.storage),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), tooltip: 'Refresh', onPressed: _hitungUkuran),
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh',
+              onPressed: _hitungUkuran),
         ],
       ),
       body: _isLoading
@@ -142,44 +154,52 @@ class _StoragePageState extends State<StoragePage> {
                     padding: const EdgeInsets.all(AppSizes.spacingM),
                     child: Column(
                       children: [
-                        const Icon(Icons.pie_chart_outline, size: 48, color: AppColors.primaryGreen),
+                        const Icon(Icons.pie_chart_outline,
+                            size: 48, color: AppColors.primaryGreen),
                         const SizedBox(height: AppSizes.spacingS),
-                        Text(l10n.imageCache, style: const TextStyle(fontSize: 14)),
+                        Text(l10n.imageCache,
+                            style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: AppSizes.spacingXs),
-                        Text(_formatBytes(totalSize), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                        Text(_formatBytes(totalSize),
+                            style: const TextStyle(
+                                fontSize: 28, fontWeight: FontWeight.bold)),
+                        if (settings.limitImageCache) ...[
+                          const SizedBox(height: AppSizes.spacingS),
+                          Text(
+                            'Batas cache gambar: ${_formatBytes(_imageCacheLimitBytes)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: overLimit
+                                  ? Colors.redAccent
+                                  : theme.colorScheme.onSurfaceVariant,
+                              fontWeight:
+                                  overLimit ? FontWeight.bold : null,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSizes.spacingL),
-                Text(l10n.activityDetails, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(l10n.activityDetails,
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: AppSizes.spacingS),
                 Card(
                   elevation: 0,
                   color: theme.cardColor,
                   child: ListTile(
-                    leading: const Icon(Icons.image_outlined, color: AppColors.infoBlue),
+                    leading: const Icon(Icons.image_outlined,
+                        color: AppColors.infoBlue),
                     title: Text(l10n.imageCache),
                     subtitle: Text(_formatBytes(_imageCacheSize)),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      icon: const Icon(Icons.delete_outline,
+                          color: Colors.redAccent),
                       tooltip: l10n.delete,
-                      onPressed: _imageCacheSize > 0 ? () => _hapusCacheGambar(l10n) : null,
-                    ),
-                  ),
-                ),
-                Card(
-                  elevation: 0,
-                  color: theme.cardColor,
-                  child: ListTile(
-                    leading: const Icon(Icons.storage_outlined, color: AppColors.goldPrimary),
-                    title: Text(l10n.storageData),
-                    subtitle: Text(_formatBytes(_collectionDataSize)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                      tooltip: l10n.delete,
-                      onPressed: _collectionDataSize > 0
-                          ? () => _hapusCacheData(l10n, includeCollection: true, includeTranslation: false)
+                      onPressed: _imageCacheSize > 0
+                          ? () => _hapusCacheGambar(l10n)
                           : null,
                     ),
                   ),
@@ -188,14 +208,38 @@ class _StoragePageState extends State<StoragePage> {
                   elevation: 0,
                   color: theme.cardColor,
                   child: ListTile(
-                    leading: const Icon(Icons.translate, color: AppColors.typeManhua),
+                    leading: const Icon(Icons.storage_outlined,
+                        color: AppColors.goldPrimary),
+                    title: Text(l10n.storageData),
+                    subtitle: Text(_formatBytes(_collectionDataSize)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline,
+                          color: Colors.redAccent),
+                      tooltip: l10n.delete,
+                      onPressed: _collectionDataSize > 0
+                          ? () => _hapusCacheData(l10n,
+                              includeCollection: true,
+                              includeTranslation: false)
+                          : null,
+                    ),
+                  ),
+                ),
+                Card(
+                  elevation: 0,
+                  color: theme.cardColor,
+                  child: ListTile(
+                    leading: const Icon(Icons.translate,
+                        color: AppColors.typeManhua),
                     title: Text(l10n.synopsis),
                     subtitle: Text(_formatBytes(_translationDataSize)),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      icon: const Icon(Icons.delete_outline,
+                          color: Colors.redAccent),
                       tooltip: l10n.delete,
                       onPressed: _translationDataSize > 0
-                          ? () => _hapusCacheData(l10n, includeCollection: false, includeTranslation: true)
+                          ? () => _hapusCacheData(l10n,
+                              includeCollection: false,
+                              includeTranslation: true)
                           : null,
                     ),
                   ),

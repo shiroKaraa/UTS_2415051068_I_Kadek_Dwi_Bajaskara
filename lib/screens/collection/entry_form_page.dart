@@ -54,12 +54,9 @@ class _EntryFormPageState extends State<EntryFormPage> {
     final collection = context.read<CollectionProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-
     final progresBaru = int.tryParse(_progresController.text) ?? 0;
     final totalBaru = int.tryParse(_totalController.text);
     final judul = widget.item.displayTitle;
-
-    // B-23: auto-suggest status Selesai.
     var statusUntukSimpan = _status;
     if (totalBaru != null &&
         progresBaru >= totalBaru &&

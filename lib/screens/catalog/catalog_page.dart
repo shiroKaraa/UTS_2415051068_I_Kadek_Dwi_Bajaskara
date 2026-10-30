@@ -76,6 +76,7 @@ class _CatalogPageState extends State<CatalogPage> {
     catalog.ensureGenres();
 
     List<String> tempGenres = List.from(catalog.filterGenres);
+    List<String> tempTags = List.from(catalog.filterTags);
     int? tempTahun = catalog.filterTahun;
     String? tempStatus = catalog.filterStatus;
     UrutanKatalog tempUrutan = catalog.urutan;
@@ -88,9 +89,9 @@ class _CatalogPageState extends State<CatalogPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return DraggableScrollableSheet(
-              initialChildSize: 0.7,
-              minChildSize: 0.5,
-              maxChildSize: 0.9,
+              initialChildSize: 0.8,
+              minChildSize: 0.6,
+              maxChildSize: 0.95,
               expand: false,
               builder: (_, scrollController) {
                 return ListView(
@@ -101,7 +102,6 @@ class _CatalogPageState extends State<CatalogPage> {
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingM),
-
                     Text(l10n.filterGenre,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingS),
@@ -134,7 +134,30 @@ class _CatalogPageState extends State<CatalogPage> {
                         }).toList(),
                       ),
                     const SizedBox(height: AppSizes.spacingL),
-
+                    Text("Tag",
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppSizes.spacingS),
+                    Wrap(
+                      spacing: AppSizes.spacingS,
+                      runSpacing: AppSizes.spacingS,
+                      children: catalog.availableTags.map((tag) {
+                        final isSelected = tempTags.contains(tag);
+                        return FilterChip(
+                          label: Text(tag),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                tempTags.add(tag);
+                              } else {
+                                tempTags.remove(tag);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: AppSizes.spacingL),
                     Text(l10n.filterStatus,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingS),
@@ -157,7 +180,6 @@ class _CatalogPageState extends State<CatalogPage> {
                       onChanged: (val) => setState(() => tempStatus = val),
                     ),
                     const SizedBox(height: AppSizes.spacingL),
-
                     Text(l10n.filterYear,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingS),
@@ -176,7 +198,6 @@ class _CatalogPageState extends State<CatalogPage> {
                       onChanged: (val) => setState(() => tempTahun = val),
                     ),
                     const SizedBox(height: AppSizes.spacingL),
-
                     Text(l10n.filterScore,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingS),
@@ -196,7 +217,6 @@ class _CatalogPageState extends State<CatalogPage> {
                           setState(() => tempSkorMin = val),
                     ),
                     const SizedBox(height: AppSizes.spacingL),
-
                     Text(l10n.sortBy,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppSizes.spacingS),
@@ -223,7 +243,6 @@ class _CatalogPageState extends State<CatalogPage> {
                       },
                     ),
                     const SizedBox(height: AppSizes.spacingXl),
-
                     Row(
                       children: [
                         Expanded(
@@ -232,15 +251,21 @@ class _CatalogPageState extends State<CatalogPage> {
                               catalog.clearFilters();
                               Navigator.pop(sheetCtx);
                             },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.outline),
+                            ),
                             child: Text(l10n.reset),
                           ),
                         ),
                         const SizedBox(width: AppSizes.spacingM),
                         Expanded(
-                          child: ElevatedButton(
+                          child: OutlinedButton(
                             onPressed: () {
                               catalog.setFilters(
                                 genres: tempGenres,
+                                tags: tempTags,
                                 tahun: tempTahun,
                                 status: tempStatus,
                                 urutan: tempUrutan,
@@ -248,7 +273,17 @@ class _CatalogPageState extends State<CatalogPage> {
                               );
                               Navigator.pop(sheetCtx);
                             },
-                            child: Text(l10n.apply),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: AppColors.primaryGreen
+                                  .withValues(alpha: 0.15),
+                              side: const BorderSide(
+                                  color: AppColors.primaryGreen, width: 1.5),
+                            ),
+                            child: Text(l10n.apply,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryGreen)),
                           ),
                         ),
                       ],

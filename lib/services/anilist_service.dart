@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/media_type_enum.dart';
 
@@ -64,8 +63,7 @@ class AniListService {
     nextAiringEpisode { episode }
   ''';
 
-  Future<AniListResult> _query(
-      String query, Map<String, dynamic> variables) async {
+  Future<AniListResult> _query(String query, Map<String, dynamic> variables) async {
     try {
       final response = await _client
           .post(
@@ -80,22 +78,17 @@ class AniListService {
 
       if (response.statusCode == 429) throw RateLimitException();
       if (response.statusCode != 200) {
-        debugPrint('AniList Error Body: ${response.body}');
         throw ApiException('HTTP ${response.statusCode}');
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['errors'] != null) {
-        debugPrint('AniList GraphQL Error: ${body['errors']}');
         throw ApiException('AniList: ${body['errors'][0]['message']}');
       }
 
       final pageData = body['data']['Page'];
-      final media = (pageData['media'] as List<dynamic>?)
-              ?.cast<Map<String, dynamic>>() ??
-          [];
-      final pageInfo =
-          pageData['pageInfo'] as Map<String, dynamic>? ?? {};
+      final media = (pageData['media'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+      final pageInfo = pageData['pageInfo'] as Map<String, dynamic>? ?? {};
 
       return AniListResult(
         media: media,
@@ -106,35 +99,21 @@ class AniListService {
       throw NetworkException();
     } on http.ClientException {
       throw NetworkException();
-    } on FormatException {
-      throw ApiException('Format respons tidak valid');
-    } on TypeError {
-      throw ApiException('Format respons tidak valid');
     } catch (e) {
-      if (e is RateLimitException ||
-          e is ApiException ||
-          e is NetworkException) {
-        rethrow;
-      }
+      if (e is RateLimitException || e is ApiException || e is NetworkException) rethrow;
       throw NetworkException();
     }
   }
 
-  String _type(JenisMedia jenis) =>
-      (jenis == JenisMedia.anime) ? 'ANIME' : 'MANGA';
+  String _type(JenisMedia jenis) => (jenis == JenisMedia.anime) ? 'ANIME' : 'MANGA';
 
   String? _country(JenisMedia jenis) {
     switch (jenis) {
-      case JenisMedia.anime:
-        return 'JP';
-      case JenisMedia.manhwa:
-        return 'KR';
-      case JenisMedia.manhua:
-        return 'CN';
-      case JenisMedia.manga:
-        return 'JP';
-      default:
-        return null;
+      case JenisMedia.anime: return 'JP';
+      case JenisMedia.manhwa: return 'KR';
+      case JenisMedia.manhua: return 'CN';
+      case JenisMedia.manga: return 'JP';
+      default: return null;
     }
   }
 
@@ -148,18 +127,20 @@ class AniListService {
     int page = 1,
     String? searchQuery,
     List<String>? genres,
+    List<String>? tags,
     int? tahun,
     String? status,
     String sort = 'POPULARITY_DESC',
     bool lite = true,
     int? skorMin,
+    bool isAdult = false,
   }) async {
     final fields = lite ? _lightFields : _fullFields;
     final gql = '''
-      query (\$page: Int, \$perPage: Int, \$type: MediaType, \$country: CountryCode, \$sort: [MediaSort], \$search: String, \$genre_in: [String], \$startGreater: FuzzyDateInt, \$startLesser: FuzzyDateInt, \$status: MediaStatus, \$format_in: [MediaFormat], \$scoreGreater: Int) {
+      query (\$page: Int, \$perPage: Int, \$type: MediaType, \$country: CountryCode, \$sort: [MediaSort], \$search: String, \$genre_in: [String], \$tag_in: [String], \$startGreater: FuzzyDateInt, \$startLesser: FuzzyDateInt, \$status: MediaStatus, \$format_in: [MediaFormat], \$scoreGreater: Int, \$isAdult: Boolean) {
         Page(page: \$page, perPage: \$perPage) {
           pageInfo { hasNextPage total }
-          media(type: \$type, countryOfOrigin: \$country, isAdult: false, sort: \$sort, search: \$search, genre_in: \$genre_in, startDate_greater: \$startGreater, startDate_lesser: \$startLesser, status: \$status, format_in: \$format_in, averageScore_greater: \$scoreGreater) {
+          media(type: \$type, countryOfOrigin: \$country, isAdult: \$isAdult, sort: \$sort, search: \$search, genre_in: \$genre_in, tag_in: \$tag_in, startDate_greater: \$startGreater, startDate_lesser: \$startLesser, status: \$status, format_in: \$format_in, averageScore_greater: \$scoreGreater) {
             $fields
           }
         }
@@ -172,12 +153,12 @@ class AniListService {
       'type': _type(jenis),
       'country': _country(jenis),
       'sort': [sort],
+      'isAdult': isAdult,
     };
 
-    if (searchQuery != null && searchQuery.isNotEmpty) {
-      vars['search'] = searchQuery;
-    }
+    if (searchQuery != null && searchQuery.isNotEmpty) vars['search'] = searchQuery;
     if (genres != null && genres.isNotEmpty) vars['genre_in'] = genres;
+    if (tags != null && tags.isNotEmpty) vars['tag_in'] = tags;
     if (status != null && status.isNotEmpty) vars['status'] = status;
     if (_format(jenis) != null) vars['format_in'] = _format(jenis);
 
@@ -204,26 +185,16 @@ class AniListService {
       final response = await _client
           .post(
             Uri.parse(_url),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode({
-              'query': gql,
-              'variables': {'id': anilistId},
-            }),
+            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+            body: jsonEncode({'query': gql, 'variables': {'id': anilistId}}),
           )
           .timeout(_timeout);
 
       if (response.statusCode == 429) throw RateLimitException();
-      if (response.statusCode != 200) {
-        throw ApiException('HTTP ${response.statusCode}');
-      }
+      if (response.statusCode != 200) throw ApiException('HTTP ${response.statusCode}');
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
-      if (body['errors'] != null) {
-        throw ApiException('AniList: ${body['errors'][0]['message']}');
-      }
+      if (body['errors'] != null) throw ApiException('AniList: ${body['errors'][0]['message']}');
 
       final media = body['data']?['Media'] as Map<String, dynamic>?;
       if (media == null) throw ApiException('Detail tidak ditemukan');
@@ -233,11 +204,7 @@ class AniListService {
     } on http.ClientException {
       throw NetworkException();
     } catch (e) {
-      if (e is RateLimitException ||
-          e is ApiException ||
-          e is NetworkException) {
-        rethrow;
-      }
+      if (e is RateLimitException || e is ApiException || e is NetworkException) rethrow;
       throw NetworkException();
     }
   }
@@ -246,18 +213,12 @@ class AniListService {
     const gql = 'query { GenreCollection }';
     try {
       final response = await _client
-          .post(
-            Uri.parse(_url),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'query': gql}),
-          )
+          .post(Uri.parse(_url), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'query': gql}))
           .timeout(_timeout);
 
       if (response.statusCode != 200) return [];
       final body = jsonDecode(response.body);
-      final genres = (body['data']['GenreCollection'] as List<dynamic>?)
-              ?.cast<String>() ??
-          [];
+      final genres = (body['data']['GenreCollection'] as List<dynamic>?)?.cast<String>() ?? [];
       return genres.where((g) => g != 'Hentai').toList();
     } catch (_) {
       return [];

@@ -1,4 +1,4 @@
-package com.example.mediashelf
+package com.example.tsuzuki
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,6 +1,6 @@
 {
-    "name": "mediashelf",
-    "short_name": "mediashelf",
+    "name": "tsuzuki",
+    "short_name": "tsuzuki",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

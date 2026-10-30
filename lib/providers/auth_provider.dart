@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../services/auth_service.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
@@ -24,15 +23,13 @@ class AuthProvider extends ChangeNotifier {
 
   AuthStatus get status => _status;
   User? get user => _user;
-  String? get username => _username
-  ;
+  String? get username => _username;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get userId => _user?.id;
   String? get displayName => _displayName;
   String? get avatarEmoji => _avatarEmoji;
-
 
   void _init() {
     _sub = _service.onAuthStateChange.listen((state) async {
@@ -46,9 +43,7 @@ class AuthProvider extends ChangeNotifier {
         _user = user;
         _status = AuthStatus.authenticated;
         await _loadProfile();
-        if (_user?.id == user.id) {
-          notifyListeners();
-        }
+        if (_user?.id == user.id) notifyListeners();
       } else {
         _user = null;
         _username = null;
@@ -61,7 +56,10 @@ class AuthProvider extends ChangeNotifier {
     if (current != null) {
       _user = current;
       _status = AuthStatus.authenticated;
-      _loadProfile().then((_) {
+      
+      _loadProfile().timeout(const Duration(seconds: 5)).then((_) {
+        if (_user?.id == current.id) notifyListeners();
+      }).catchError((_) {
         if (_user?.id == current.id) notifyListeners();
       });
     } else {
@@ -73,11 +71,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _loadProfile() async {
     final userIdAtStart = _user?.id;
     if (userIdAtStart == null) return;
-
     try {
       final profile = await _service.getMyProfile();
       if (_user?.id != userIdAtStart) return;
-      
       _username = profile?['username'] as String?;
       _displayName = profile?['display_name'] as String?;
       _avatarEmoji = profile?['avatar_emoji'] as String?;
@@ -89,14 +85,10 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signIn({
-    required String username,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String username, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
       await _service.signIn(username: username, password: password);
       return true;
@@ -112,21 +104,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signUp({
-    required String username,
-    required String password,
-    required String confirmPassword,
-  }) async {
+  Future<bool> signUp({required String username, required String password, required String confirmPassword}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
-      await _service.signUp(
-        username: username,
-        password: password,
-        confirmPassword: confirmPassword,
-      );
+      await _service.signUp(username: username, password: password, confirmPassword: confirmPassword);
       return true;
     } on AuthServiceException catch (e) {
       _error = e.message;
@@ -156,19 +139,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateProfile({
-    required String displayName,
-    required String avatarEmoji,
-  }) async {
+  Future<bool> updateProfile({required String displayName, required String avatarEmoji}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
-      await _service.updateProfile(
-        displayName: displayName,
-        avatarEmoji: avatarEmoji,
-      );
+      await _service.updateProfile(displayName: displayName, avatarEmoji: avatarEmoji);
       _displayName = displayName;
       _avatarEmoji = avatarEmoji;
       return true;
@@ -188,7 +164,6 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
       await _service.updatePassword(newPassword);
       return true;
@@ -204,14 +179,10 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<int> claimDeviceCollections(String deviceId) async {
-    if (!isAuthenticated) return 0;
-    return _service.claimDeviceCollections(deviceId);
-  }
-
-  void clearError() {
-    if (_error == null) return;
-    _error = null;
+  void continueAsGuest() {
+    _user = null;
+    _username = null;
+    _status = AuthStatus.unauthenticated;
     notifyListeners();
   }
 

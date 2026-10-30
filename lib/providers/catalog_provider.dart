@@ -30,11 +30,13 @@ class CatalogProvider extends ChangeNotifier {
   JenisMedia _selectedJenis = JenisMedia.anime;
   String _query = '';
   int _requestGeneration = 0;
+  bool _isNsfwEnabled = false;
 
   bool _isListView = false;
   bool get isListView => _isListView;
 
   List<String> _filterGenres = [];
+  List<String> _filterTags = [];
   int? _filterTahun;
   String? _filterStatus;
   UrutanKatalog _urutan = UrutanKatalog.populer;
@@ -43,6 +45,19 @@ class CatalogProvider extends ChangeNotifier {
 
   List<String> _availableGenres = [];
   bool _isLoadingGenres = false;
+
+  final List<String> _hardcodedGenres = [
+    'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 
+    'Horror', 'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 
+    'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller',
+    'Josei', 'Seinen', 'Shounen', 'Game', 'Gender Bender', 'Historical', 
+    'Isekai', 'Magic', 'Martial Arts', 'Super Power'
+  ];
+  
+  final List<String> _availableTags = [
+    'Shounen Ai', 'Shoujo Ai', 'Harem', 'Reverse Harem', 'Time Travel', 'Survival'
+  ];
+  List<String> get availableTags => _availableTags;
 
   List<ItemKatalog> _popularAnime = [];
   List<ItemKatalog> _popularManga = [];
@@ -63,6 +78,7 @@ class CatalogProvider extends ChangeNotifier {
   JenisMedia get selectedJenis => _selectedJenis;
   String get query => _query;
   List<String> get filterGenres => _filterGenres;
+  List<String> get filterTags => _filterTags;
   int? get filterTahun => _filterTahun;
   String? get filterStatus => _filterStatus;
   UrutanKatalog get urutan => _urutan;
@@ -75,10 +91,8 @@ class CatalogProvider extends ChangeNotifier {
   String? get popularError => _popularError;
 
   bool get hasActiveFilters =>
-    _filterGenres.isNotEmpty ||
-    _filterTahun != null ||
-    _filterStatus != null ||
-    _filterSkorMin != null;
+    _filterGenres.isNotEmpty || _filterTags.isNotEmpty ||
+    _filterTahun != null || _filterStatus != null || _filterSkorMin != null;
   bool get hasQuery => _query.isNotEmpty;
 
   CatalogProvider();
@@ -94,14 +108,22 @@ class CatalogProvider extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
+  void setNsfwEnabled(bool enabled) {
+    if (_isNsfwEnabled == enabled) return;
+    _isNsfwEnabled = enabled;
+    fetchCatalog();
+  }
+
   Future<void> ensureGenres() async {
     if (_availableGenres.isNotEmpty || _isLoadingGenres) return;
     _isLoadingGenres = true;
     _safeNotify();
     try {
-      _availableGenres = await _service.fetchGenres();
+      final apiGenres = await _service.fetchGenres();
+      final combined = {...apiGenres, ..._hardcodedGenres};
+      _availableGenres = combined.where((g) => g != 'Hentai').toList()..sort();
     } catch (_) {
-      _availableGenres = [];
+      _availableGenres = _hardcodedGenres..sort();
     } finally {
       _isLoadingGenres = false;
       _safeNotify();
@@ -109,21 +131,13 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   String _getSortParam() {
-    if (_query.isNotEmpty && _urutan == UrutanKatalog.populer) {
-      return 'SEARCH_MATCH';
-    }
-
+    if (_query.isNotEmpty && _urutan == UrutanKatalog.populer) return 'SEARCH_MATCH';
     switch (_urutan) {
-      case UrutanKatalog.populer:
-        return 'POPULARITY_DESC';
-      case UrutanKatalog.skor:
-        return 'SCORE_DESC';
-      case UrutanKatalog.terbaru:
-        return 'START_DATE_DESC';
-      case UrutanKatalog.judul:
-        return 'TITLE_ROMAJI';
-      case UrutanKatalog.relevan:
-        return 'SEARCH_MATCH';
+      case UrutanKatalog.populer: return 'POPULARITY_DESC';
+      case UrutanKatalog.skor: return 'SCORE_DESC';
+      case UrutanKatalog.terbaru: return 'START_DATE_DESC';
+      case UrutanKatalog.judul: return 'TITLE_ROMAJI';
+      case UrutanKatalog.relevan: return 'SEARCH_MATCH';
     }
   }
 
@@ -145,16 +159,16 @@ class CatalogProvider extends ChangeNotifier {
         page: _currentPage,
         searchQuery: _query.isEmpty ? null : _query,
         genres: _filterGenres,
+        tags: _filterTags,
         tahun: _filterTahun,
         status: _filterStatus,
         sort: _getSortParam(),
         skorMin: _filterSkorMin,
+        isAdult: _isNsfwEnabled,
       );
       if (gen != _requestGeneration) return;
 
-      _items = result.media
-          .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
-          .toList();
+      _items = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
       _hasNextPage = result.hasNextPage;
       _totalResults = result.total;
     } catch (e) {
@@ -171,9 +185,7 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasNextPage || _isLoading || _loadMoreError != null) {
-      return;
-    }
+    if (_isLoadingMore || !_hasNextPage || _isLoading || _loadMoreError != null) return;
 
     final gen = _requestGeneration;
     _isLoadingMore = true;
@@ -186,9 +198,11 @@ class CatalogProvider extends ChangeNotifier {
         page: nextPage,
         searchQuery: _query.isEmpty ? null : _query,
         genres: _filterGenres,
+        tags: _filterTags,
         tahun: _filterTahun,
         status: _filterStatus,
         sort: _getSortParam(),
+        isAdult: _isNsfwEnabled,
       );
       if (gen != _requestGeneration) return;
 
@@ -196,19 +210,14 @@ class CatalogProvider extends ChangeNotifier {
         _hasNextPage = false;
       } else {
         _currentPage = nextPage;
-        final newItems = result.media
-            .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
-            .toList();
+        final newItems = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
         final existingIds = _items.map((e) => e.anilistId).toSet();
-        final uniqueNewItems =
-            newItems.where((e) => !existingIds.contains(e.anilistId)).toList();
+        final uniqueNewItems = newItems.where((e) => !existingIds.contains(e.anilistId)).toList();
         _items.addAll(uniqueNewItems);
         _hasNextPage = result.hasNextPage;
       }
     } catch (e) {
-      if (gen == _requestGeneration) {
-        _handleLoadMoreError(e);
-      }
+      if (gen == _requestGeneration) _handleLoadMoreError(e);
     } finally {
       if (gen == _requestGeneration) {
         _isLoadingMore = false;
@@ -256,21 +265,13 @@ class CatalogProvider extends ChangeNotifier {
 
       final obj = jsonDecode(raw) as Map<String, dynamic>;
       final ts = DateTime.tryParse(obj['ts'] as String? ?? '');
-      if (ts == null || DateTime.now().difference(ts) > _cacheTtl) {
-        return false;
-      }
+      if (ts == null || DateTime.now().difference(ts) > _cacheTtl) return false;
 
       final animeJson = (obj['anime'] as List<dynamic>?) ?? [];
       final mangaJson = (obj['manga'] as List<dynamic>?) ?? [];
 
-      _popularAnime = animeJson
-          .cast<Map<String, dynamic>>()
-          .map((j) => ItemKatalog.fromAniList(j, JenisMedia.anime))
-          .toList();
-      _popularManga = mangaJson
-          .cast<Map<String, dynamic>>()
-          .map((j) => ItemKatalog.fromAniList(j, JenisMedia.manga))
-          .toList();
+      _popularAnime = animeJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.anime)).toList();
+      _popularManga = mangaJson.cast<Map<String, dynamic>>().map((j) => ItemKatalog.fromAniList(j, JenisMedia.manga)).toList();
       _hasFetchedPopular = _popularAnime.isNotEmpty || _popularManga.isNotEmpty;
       return _hasFetchedPopular;
     } catch (_) {
@@ -278,19 +279,12 @@ class CatalogProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _savePopularToCache(
-    List<Map<String, dynamic>> anime,
-    List<Map<String, dynamic>> manga,
-  ) async {
+  Future<void> _savePopularToCache(List<Map<String, dynamic>> anime, List<Map<String, dynamic>> manga) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
         _cacheKeyPopular,
-        jsonEncode({
-          'ts': DateTime.now().toIso8601String(),
-          'anime': anime,
-          'manga': manga,
-        }),
+        jsonEncode({'ts': DateTime.now().toIso8601String(), 'anime': anime, 'manga': manga}),
       );
     } catch (_) {}
   }
@@ -298,10 +292,7 @@ class CatalogProvider extends ChangeNotifier {
   Future<void> fetchPopularHome({bool forceRefresh = false}) async {
     if (forceRefresh) _hasFetchedPopular = false;
 
-    if (!forceRefresh &&
-        !_hasFetchedPopular &&
-        _popularAnime.isEmpty &&
-        _popularManga.isEmpty) {
+    if (!forceRefresh && !_hasFetchedPopular && _popularAnime.isEmpty && _popularManga.isEmpty) {
       final ok = await _loadPopularFromCache();
       if (ok) _safeNotify();
     }
@@ -314,27 +305,26 @@ class CatalogProvider extends ChangeNotifier {
 
     try {
       final results = await Future.wait([
-        _service
-            .fetchPage(jenis: JenisMedia.anime, page: 1)
-            .catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
-        _service
-            .fetchPage(jenis: JenisMedia.manga, page: 1)
-            .catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.anime, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.manga, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.manhwa, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.manhua, page: 1, isAdult: _isNsfwEnabled).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
       ]);
 
       final newAnime = results[0].media;
-      final newManga = results[1].media;
+      final mangaRaw = [...results[1].media, ...results[2].media, ...results[3].media];
 
-      _popularAnime =
-          newAnime.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
-      _popularManga =
-          newManga.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
+      _popularAnime = newAnime.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
+      
+      final allComics = mangaRaw.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
+      allComics.sort((a, b) => (b.skor ?? 0).compareTo(a.skor ?? 0));
+      _popularManga = allComics.take(10).toList();
 
       if (_popularAnime.isEmpty && _popularManga.isEmpty) {
         _popularError = 'Gagal memuat data populer.';
       } else {
         _hasFetchedPopular = true;
-        await _savePopularToCache(newAnime, newManga);
+        await _savePopularToCache(newAnime, mangaRaw);
       }
     } catch (e) {
       _popularError = 'Gagal memuat data populer.';
@@ -352,7 +342,7 @@ class CatalogProvider extends ChangeNotifier {
 
   void toggleView() {
     _isListView = !_isListView;
-    notifyListeners();
+    _safeNotify();
   }
 
   void setQuery(String query) {
@@ -364,38 +354,26 @@ class CatalogProvider extends ChangeNotifier {
 
   void setFilters({
     List<String>? genres,
+    List<String>? tags,
     int? tahun,
     String? status,
     UrutanKatalog? urutan,
     int? skorMin,
   }) {
     bool changed = false;
-    if (genres != null && !_listEquals(genres, _filterGenres)) {
-      _filterGenres = genres;
-      changed = true;
-    }
-    if (tahun != _filterTahun) {
-      _filterTahun = tahun;
-      changed = true;
-    }
-    if (status != _filterStatus) {
-      _filterStatus = status;
-      changed = true;
-    }
-    if (urutan != null && urutan != _urutan) {
-      _urutan = urutan;
-      changed = true;
-    }
-    if (skorMin != _filterSkorMin) {
-      _filterSkorMin = skorMin;
-      changed = true;
-    }
+    if (genres != null && !_listEquals(genres, _filterGenres)) { _filterGenres = genres; changed = true; }
+    if (tags != null && !_listEquals(tags, _filterTags)) { _filterTags = tags; changed = true; }
+    if (tahun != _filterTahun) { _filterTahun = tahun; changed = true; }
+    if (status != _filterStatus) { _filterStatus = status; changed = true; }
+    if (urutan != null && urutan != _urutan) { _urutan = urutan; changed = true; }
+    if (skorMin != _filterSkorMin) { _filterSkorMin = skorMin; changed = true; }
 
     if (changed) fetchCatalog();
   }
 
   void clearFilters() {
     _filterGenres = [];
+    _filterTags = [];
     _filterTahun = null;
     _filterStatus = null;
     _filterSkorMin = null;
@@ -405,6 +383,7 @@ class CatalogProvider extends ChangeNotifier {
 
   void clearAll() {
     _filterGenres = [];
+    _filterTags = [];
     _filterTahun = null;
     _filterStatus = null;
     _filterSkorMin = null;

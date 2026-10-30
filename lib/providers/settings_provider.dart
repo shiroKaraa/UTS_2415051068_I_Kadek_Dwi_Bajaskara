@@ -8,12 +8,18 @@ class SettingsProvider extends ChangeNotifier {
   bool _isLoading = true;
   bool _hasSeenOnboarding = false;
   Locale _locale = const Locale('id'); 
+  
+  // State Baru
+  bool _limitImageCache = false;
+  bool _enableNsfw = false;
 
   ThemeMode get themeMode => _themeMode;
   String? get deviceId => _deviceId;
   bool get isLoading => _isLoading;
   bool get hasSeenOnboarding => _hasSeenOnboarding;
   Locale get locale => _locale;
+  bool get limitImageCache => _limitImageCache;
+  bool get enableNsfw => _enableNsfw;
 
   SettingsProvider() {
     _loadSettings();
@@ -36,6 +42,9 @@ class SettingsProvider extends ChangeNotifier {
       if (savedLang != null) {
         _locale = Locale(savedLang);
       }
+      
+      _limitImageCache = prefs.getBool('limit_image_cache') ?? false;
+      _enableNsfw = prefs.getBool('enable_nsfw') ?? false;
     } catch (e) {
       debugPrint('Gagal memuat settings: $e');
     } finally {
@@ -77,5 +86,19 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language_code', locale.languageCode);
+  }
+
+  Future<void> setLimitImageCache(bool value) async {
+    _limitImageCache = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('limit_image_cache', value);
+  }
+
+  Future<void> setEnableNsfw(bool value) async {
+    _enableNsfw = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('enable_nsfw', value);
   }
 }

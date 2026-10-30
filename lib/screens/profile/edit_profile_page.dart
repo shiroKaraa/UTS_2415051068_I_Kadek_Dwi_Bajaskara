@@ -167,6 +167,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 decoration: InputDecoration(
                   labelText: l10n.newPasswordLabel,
                   helperText: l10n.newPasswordHint,
+                  helperMaxLines: 3,
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.lock_outline),
                 ),

@@ -277,12 +277,21 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final settings = context.watch<SettingsProvider>();
-    
+
+    final themeLabel = settings.themeMode == ThemeMode.dark
+        ? l10n.dark
+        : settings.themeMode == ThemeMode.light
+            ? l10n.light
+            : l10n.system;
+    final langLabel = settings.locale.languageCode.toUpperCase();
+    final nsfwLabel = settings.enableNsfw ? ' · NSFW ON' : '';
+
     return _LinkTile(
       icon: Icons.settings_outlined,
       title: l10n.settings,
-      subtitle: '${settings.themeMode == ThemeMode.dark ? l10n.dark : l10n.light} · ${settings.locale.languageCode.toUpperCase()}',
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
+      subtitle: '$themeLabel · $langLabel$nsfwLabel',
+      onTap: () => Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const SettingsPage())),
     );
   }
 }

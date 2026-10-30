@@ -20,7 +20,7 @@ class ProfilePage extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.logoutTitle), // <-- Gunakan key baru
+        title: Text(l10n.logoutTitle),
         content: Text(l10n.logoutConfirmDesc),
         actions: [
           TextButton(
@@ -64,8 +64,6 @@ class ProfilePage extends StatelessWidget {
                   else ...[
                     _SectionTitle(title: l10n.statistics, icon: Icons.insights_outlined),
                     const SizedBox(height: AppSizes.spacingS),
-                    
-                    // Loading menggunakan shimmer
                     if (isLoading && isEmpty) 
                       const _ShimmerStats()
                     else 
@@ -78,8 +76,6 @@ class ProfilePage extends StatelessWidget {
                 ]),
               ),
             ),
-            
-            // Tombol Logout di paling bawah
             SliverFillRemaining(
               hasScrollBody: false,
               child: Padding(
@@ -100,14 +96,11 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-// --- WIDGET TERPISAH ---
-
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader(); // <-- const constructor
+  const _ProfileHeader();
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan select untuk optimasi
     final displayName = context.select<AuthProvider, String?>((a) => a.displayName);
     final username = context.select<AuthProvider, String?>((a) => a.username);
     final avatar = context.select<AuthProvider, String?>((a) => a.avatarEmoji);
@@ -122,7 +115,6 @@ class _ProfileHeader extends StatelessWidget {
       pinned: true,
       expandedHeight: 200,
       backgroundColor: theme.scaffoldBackgroundColor,
-      // Hapus title dari FlexibleSpaceBar, gunakan title biasa
       title: Text(l10n.profile, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -131,7 +123,7 @@ class _ProfileHeader extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.primaryGreen.withValues(alpha: 0.35), // Alpha dinaikkan
+                AppColors.primaryGreen.withValues(alpha: 0.35),
                 theme.colorScheme.surface,
               ],
             ),
@@ -145,7 +137,6 @@ class _ProfileHeader extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      // Avatar dengan ring hijau dan InkWell
                       Semantics(
                         button: true,
                         label: l10n.editProfile,
@@ -153,7 +144,7 @@ class _ProfileHeader extends StatelessWidget {
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilePage())),
                           customBorder: const CircleBorder(),
                           child: Container(
-                            padding: const EdgeInsets.all(3), // Ruang untuk ring
+                            padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppColors.primaryGreen.withValues(alpha: 0.2),
@@ -167,7 +158,6 @@ class _ProfileHeader extends StatelessWidget {
                                   backgroundColor: theme.cardColor,
                                   child: Text(avatarEmoji, style: const TextStyle(fontSize: 32)),
                                 ),
-                                // Badge edit diperbesar
                                 Positioned(
                                   bottom: 0,
                                   right: 0,
@@ -234,7 +224,7 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _QuickMenu extends StatelessWidget {
-  const _QuickMenu(); // <-- const constructor
+  const _QuickMenu();
 
   @override
   Widget build(BuildContext context) {
@@ -313,67 +303,108 @@ class _StatsSection extends StatelessWidget {
     final total = stats.totalAnime + stats.totalManga;
     final animePercent = total > 0 ? (stats.totalAnime / total * 100).round() : 0;
     final mangaPercent = total > 0 ? (stats.totalManga / total * 100).round() : 0;
+    final secondaryItems = <Widget>[
+      if (showAnime)
+        _StatSecondaryCard(
+          title: l10n.statDaysWatched,
+          value: stats.daysWatched.toStringAsFixed(1),
+          icon: Icons.access_time,
+        ),
+      if (showAnime)
+        _StatSecondaryCard(
+          title: l10n.statEpisodes,
+          value: stats.totalEpisodes.toString(),
+          icon: Icons.tv,
+        ),
+      if (showManga)
+        _StatSecondaryCard(
+          title: l10n.statChapters,
+          value: stats.totalChapters.toString(),
+          icon: Icons.auto_stories,
+        ),
+      if (showManga)
+        _StatSecondaryCard(
+          title: l10n.statVolumes,
+          value: stats.volumesRead.toString(),
+          icon: Icons.library_books,
+        ),
+    ];
 
     return Column(
       children: [
         Row(
           children: [
-            Expanded(child: _StatHighlightCard(title: 'Anime', value: stats.totalAnime, icon: Icons.play_circle_outline, color: AppColors.infoBlue)),
+            Expanded(
+              child: _StatHighlightCard(
+                title: 'Anime',
+                value: stats.totalAnime,
+                icon: Icons.play_circle_outline,
+                color: AppColors.infoBlue,
+              ),
+            ),
             const SizedBox(width: AppSizes.spacingS),
-            Expanded(child: _StatHighlightCard(title: 'Manga', value: stats.totalManga, icon: Icons.menu_book_outlined, color: AppColors.typeManga)),
+            Expanded(
+              child: _StatHighlightCard(
+                title: 'Manga',
+                value: stats.totalManga,
+                icon: Icons.menu_book_outlined,
+                color: AppColors.typeManga,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: AppSizes.spacingS),
-        
-        // Bar rasio dengan legenda
         if (total > 0) ...[
           _RatioBar(anime: stats.totalAnime, manga: stats.totalManga),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (showAnime) _LegendItem(color: AppColors.infoBlue, label: l10n.animeLegend(animePercent)),
-              if (showManga) _LegendItem(color: AppColors.typeManga, label: l10n.mangaLegend(mangaPercent)),
+              if (showAnime)
+                _LegendItem(
+                  color: AppColors.infoBlue,
+                  label: l10n.animeLegend(animePercent),
+                ),
+              if (showManga)
+                _LegendItem(
+                  color: AppColors.typeManga,
+                  label: l10n.mangaLegend(mangaPercent),
+                ),
             ],
           ),
           const SizedBox(height: AppSizes.spacingS),
         ],
-
-        // Grid statistik yang aman
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSizes.spacingS,
-          crossAxisSpacing: AppSizes.spacingS,
-          childAspectRatio: 2.8,
-          children: [
-            if (showAnime) ...[
-              _StatSecondaryCard(
-                title: l10n.statDaysWatched,
-                value: stats.daysWatched.toStringAsFixed(1),
-                icon: Icons.access_time,
-              ),
-              _StatSecondaryCard(
-                title: l10n.statEpisodes,
-                value: stats.totalEpisodes.toString(),
-                icon: Icons.tv,
-              ),
-            ],
-            if (showManga) ...[
-              _StatSecondaryCard(
-                title: l10n.statChapters,
-                value: stats.totalChapters.toString(),
-                icon: Icons.auto_stories,
-              ),
-              _StatSecondaryCard(
-                title: l10n.statVolumes,
-                value: stats.volumesRead.toString(),
-                icon: Icons.library_books,
-              ),
-            ],
-          ],
-        ),
+        if (secondaryItems.isNotEmpty)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const spacing = AppSizes.spacingS;
+              final itemWidth = (constraints.maxWidth - spacing) / 2;
+              final rows = <Widget>[];
+              for (var i = 0; i < secondaryItems.length; i += 2) {
+                final left = secondaryItems[i];
+                final right = i + 1 < secondaryItems.length
+                    ? secondaryItems[i + 1]
+                    : const SizedBox.shrink();
+                rows.add(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(width: itemWidth, child: left),
+                      const SizedBox(width: spacing),
+                      SizedBox(width: itemWidth, child: right),
+                    ],
+                  ),
+                );
+                if (i + 2 < secondaryItems.length) {
+                  rows.add(const SizedBox(height: spacing));
+                }
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: rows,
+              );
+            },
+          ),
       ],
     );
   }
@@ -464,30 +495,57 @@ class _StatSecondaryCard extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  const _StatSecondaryCard({required this.title, required this.value, required this.icon});
+  const _StatSecondaryCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Semantics(
       label: '$title: $value',
       child: Container(
         padding: const EdgeInsets.all(AppSizes.spacingS),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 20),
+            Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 20),
             const SizedBox(width: AppSizes.spacingS),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  Text(title, style: Theme.of(context).textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        value,
+                        maxLines: 1,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall,
+                  ),
                 ],
               ),
             ),
@@ -589,7 +647,7 @@ class _LogoutButtonState extends State<_LogoutButton> {
     final confirmed = await widget.onConfirm();
     if (!confirmed) return;
     
-    if (!mounted) return; // <-- Tambahkan pengecekan mounted
+    if (!mounted) return;
     setState(() => _isLoading = true);
     
     try {
