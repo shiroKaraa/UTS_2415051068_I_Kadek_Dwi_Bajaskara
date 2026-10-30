@@ -21,6 +21,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   String _selectedEmoji = '👤';
   String _selectedBgPreset = 'default';
+  bool _isSaving = false;
+
   final List<String> _emojis = [
     '👤', '🐱', '🐶', '🦊', '🐼', '🦁', '🐧', '🐲', '🌸', '🍀'
   ];
@@ -47,67 +49,63 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _simpan() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_isSaving || !_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
 
     final l10n = AppLocalizations.of(context)!;
     final auth = context.read<AuthProvider>();
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
-    if (auth.bgPreset != _selectedBgPreset) {
-      await auth.setBgPreset(_selectedBgPreset);
-    }
+    try {
+      final profileOk = await auth.updateProfile(
+        displayName: _nameController.text.trim(),
+        avatarEmoji: _selectedEmoji,
+      );
 
-    final profileOk = await auth.updateProfile(
-      displayName: _nameController.text.trim(),
-      avatarEmoji: _selectedEmoji,
-    );
+      if (!profileOk) {
+        if (!mounted) return;
+        messenger.showSnackBar(
+          SnackBar(
+              content: Text(auth.error ?? l10n.loginFailedTitle),
+              backgroundColor: Colors.redAccent),
+        );
+        return;
+      }
 
-    if (!profileOk) {
+      final passwordBaru = _passwordController.text;
+      if (passwordBaru.isNotEmpty) {
+        final passOk = await auth.updatePassword(passwordBaru);
+        if (!passOk) {
+          if (!mounted) return;
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.profileSavedPasswordFailed),
+              backgroundColor: Colors.orangeAccent,
+            ),
+          );
+          return;
+        }
+      }
+
+      if (auth.bgPreset != _selectedBgPreset) {
+        await auth.setBgPreset(_selectedBgPreset);
+      }
+
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(
-            content: Text(auth.error ?? l10n.loginFailedTitle),
-            backgroundColor: Colors.redAccent),
-      );
-      return;
-    }
-
-    final passwordBaru = _passwordController.text;
-    if (passwordBaru.isEmpty) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.profileUpdated)),
+        SnackBar(content: Text(passwordBaru.isEmpty ? l10n.profileUpdated : l10n.profilePasswordSaved)),
       );
       navigator.pop();
-      return;
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
-
-    final passOk = await auth.updatePassword(passwordBaru);
-    if (!mounted) return;
-
-    if (!passOk) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.profileSavedPasswordFailed),
-          backgroundColor: Colors.orangeAccent,
-        ),
-      );
-      navigator.pop();
-      return;
-    }
-
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.profilePasswordSaved)),
-    );
-    navigator.pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final auth = context.watch<AuthProvider>();
-    final isLoading = auth.isLoading;
     final passwordBaru = _passwordController.text;
 
     return Scaffold(
@@ -227,7 +225,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     prefixIcon: const Icon(Icons.lock_outline),
                   ),
                   validator: (val) {
-                    if (passwordBaru.isNotEmpty && val != passwordBaru) {
+                    if (_passwordController.text.isNotEmpty && val != _passwordController.text) {
                       return l10n.confirmPasswordMismatch;
                     }
                     return null;
@@ -239,12 +237,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : _simpan,
+                  onPressed: _isSaving ? null : _simpan,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGreen,
                     foregroundColor: Colors.black,
                   ),
-                  child: isLoading
+                  child: _isSaving
                       ? const SizedBox(
                           width: 20,
                           height: 20,

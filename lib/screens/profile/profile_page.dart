@@ -9,8 +9,8 @@ import '../../providers/collection_provider.dart';
 import '../../models/profile_stats.dart';
 import '../../widgets/shimmer_loading.dart';
 import 'edit_profile_page.dart';
+import '../catalog/catalog_page.dart';
 import '../collection/favorites_page.dart';
-import '../collection/collection_page.dart';
 import '../settings/settings_page.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -67,7 +67,7 @@ class ProfilePage extends StatelessWidget {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const CollectionPage()));
+                              builder: (_) => const CatalogPage()));
                     })
                   else ...[
                     _SectionTitle(
@@ -79,8 +79,8 @@ class ProfilePage extends StatelessWidget {
                     else
                       _StatsSection(stats: stats),
                     const SizedBox(height: AppSizes.spacingL),
-                    const _QuickMenu(),
                   ],
+                  const _QuickMenu(),
                 ]),
               ),
             ),
@@ -121,7 +121,8 @@ class _ProfileHeader extends StatelessWidget {
     final colors = ProfileBackgrounds.getGradient(bgPreset);
     final brightness = ThemeData.estimateBrightnessForColor(colors.first);
     final onBg = brightness == Brightness.dark ? Colors.white : Colors.black87;
-    final onBgShadow = brightness == Brightness.dark ? Colors.black26 : Colors.transparent;
+    final onBgShadow =
+        brightness == Brightness.dark ? Colors.black26 : Colors.transparent;
 
     return SliverAppBar(
       pinned: true,

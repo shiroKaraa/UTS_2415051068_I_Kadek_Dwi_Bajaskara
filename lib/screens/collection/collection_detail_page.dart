@@ -87,7 +87,6 @@ class CollectionDetailPage extends StatelessWidget {
       );
     }
 
-    // Ambil data Label
     final label = context.select<LabelProvider, LabelKustom?>(
         (p) => p.findById(entri.labelId));
 
@@ -174,8 +173,7 @@ class CollectionDetailPage extends StatelessWidget {
                 Text(entri.status.label(entri.jenis, l10n),
                     style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant)),
-                
-                // TAMPILKAN LABEL DI SINI
+              
                 if (label != null) ...[
                   const SizedBox(width: AppSizes.spacingM),
                   Icon(Icons.label_outline, size: 16, color: AppColors.infoBlue),

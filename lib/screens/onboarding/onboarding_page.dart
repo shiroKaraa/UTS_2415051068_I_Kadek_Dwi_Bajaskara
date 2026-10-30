@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../providers/settings_provider.dart';
-import 'package:provider/provider.dart';
+
+class _OnboardingSlide {
+  final IconData icon;
+  final String title;
+  final String desc;
+  const _OnboardingSlide(this.icon, this.title, this.desc);
+}
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -16,8 +23,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  void _finishOnboarding() {
-    context.read<SettingsProvider>().setHasSeenOnboarding(true);
+  bool get _isLast => _currentPage == 2;
+
+  Future<void> _finishOnboarding() async {
+    await context.read<SettingsProvider>().setHasSeenOnboarding(true);
+  }
+
+  void _goTo(int index) {
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -32,80 +49,41 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final l10n = AppLocalizations.of(context)!;
 
     final slides = [
-      {
-        'icon': Icons.auto_stories,
-        'title': l10n.onboardingTitle,
-        'desc': l10n.onboardingDesc,
-      },
-      {
-        'icon': Icons.track_changes,
-        'title': l10n.onboardingSlide2Title,
-        'desc': l10n.onboardingSlide2Desc,
-      },
-      {
-        'icon': Icons.collections_bookmark,
-        'title': l10n.onboardingSlide3Title,
-        'desc': l10n.onboardingSlide3Desc,
-      },
+      _OnboardingSlide(Icons.auto_stories, l10n.onboardingTitle, l10n.onboardingDesc),
+      _OnboardingSlide(Icons.track_changes, l10n.onboardingSlide2Title, l10n.onboardingSlide2Desc),
+      _OnboardingSlide(Icons.collections_bookmark, l10n.onboardingSlide3Title, l10n.onboardingSlide3Desc),
     ];
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: _finishOnboarding,
-                child: Text(l10n.skip),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  const _LanguageToggle(),
+                  const Spacer(),
+                  AnimatedOpacity(
+                    opacity: _isLast ? 0 : 1,
+                    duration: const Duration(milliseconds: 200),
+                    child: IgnorePointer(
+                      ignoring: _isLast,
+                      child: TextButton(
+                        onPressed: _finishOnboarding,
+                        child: Text(l10n.skip),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
+                onPageChanged: (i) => setState(() => _currentPage = i),
                 itemCount: slides.length,
-                itemBuilder: (context, index) {
-                  final slide = slides[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(AppSizes.spacingXl),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryGreen.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            slide['icon'] as IconData,
-                            size: 100,
-                            color: AppColors.primaryGreen,
-                          ),
-                        ),
-                        const SizedBox(height: AppSizes.spacingXl),
-                        Text(
-                          slide['title'] as String,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppSizes.spacingM),
-                        Text(
-                          slide['desc'] as String,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                itemBuilder: (_, i) => _SlideView(slide: slides[i], theme: theme),
               ),
             ),
             Padding(
@@ -114,46 +92,38 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      slides.length,
-                      (index) => Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: _currentPage == index ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? AppColors.primaryGreen
-                              : theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(4),
+                    children: List.generate(slides.length, (i) {
+                      final active = _currentPage == i;
+                      return GestureDetector(
+                        onTap: () => _goTo(i),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: active ? 24 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: active
+                                ? AppColors.primaryGreen
+                                : theme.colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                   ),
                   const SizedBox(height: AppSizes.spacingL),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage == slides.length - 1) {
-                          _finishOnboarding();
-                        } else {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
+                      onPressed: _isLast ? _finishOnboarding : () => _goTo(_currentPage + 1),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: Text(
-                        _currentPage == slides.length - 1
-                            ? l10n.getStarted
-                            : l10n.next,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                        _isLast ? l10n.getStarted : l10n.next,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -163,6 +133,67 @@ class _OnboardingPageState extends State<OnboardingPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SlideView extends StatelessWidget {
+  final _OnboardingSlide slide;
+  final ThemeData theme;
+  const _SlideView({required this.slide, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSizes.spacingXl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.8, end: 1),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutBack,
+            builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+            child: Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(slide.icon, size: 100, color: AppColors.primaryGreen),
+            ),
+          ),
+          const SizedBox(height: AppSizes.spacingXl),
+          Text(
+            slide.title,
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSizes.spacingM),
+          Text(
+            slide.desc,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageToggle extends StatelessWidget {
+  const _LanguageToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+    final isId = settings.locale.languageCode == 'id';
+    return TextButton.icon(
+      onPressed: () => settings.setLocale(Locale(isId ? 'en' : 'id')),
+      icon: const Icon(Icons.language, size: 18),
+      label: Text(isId ? 'ID' : 'EN'),
     );
   }
 }

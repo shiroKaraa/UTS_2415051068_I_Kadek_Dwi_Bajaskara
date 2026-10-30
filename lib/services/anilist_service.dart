@@ -22,13 +22,6 @@ class AniListResult {
   });
 }
 
-class TagInfo {
-  final String name;
-  final String category;
-  final bool isAdult;
-  TagInfo(this.name, this.category, this.isAdult);
-}
-
 class AniListService {
   static const String _url = 'https://graphql.anilist.co';
   final http.Client _client = http.Client();
@@ -109,6 +102,8 @@ class AniListService {
       throw NetworkException();
     } on http.ClientException {
       throw NetworkException();
+    } on FormatException {
+      throw ApiException('Respons server tidak valid.');
     } catch (e) {
       if (e is RateLimitException || e is ApiException || e is NetworkException) rethrow;
       throw NetworkException();
@@ -170,9 +165,9 @@ class AniListService {
       'type': _type(jenis),
       'country': _country(jenis),
       'sort': [sort],
-      'isAdult': isAdult,
     };
 
+    if (!isAdult) vars['isAdult'] = false;
     if (searchQuery != null && searchQuery.isNotEmpty) vars['search'] = searchQuery;
     if (genres != null && genres.isNotEmpty) vars['genre_in'] = genres;
     if (tags != null && tags.isNotEmpty) vars['tag_in'] = tags;
@@ -189,21 +184,24 @@ class AniListService {
     return _query(gql, vars);
   }
 
-  Future<Map<String, dynamic>> fetchDetail(int anilistId) async {
+  Future<Map<String, dynamic>> fetchDetail(int anilistId, {bool isAdult = false}) async {
     final gql = '''
-      query (\$id: Int) {
-        Media(id: \$id, isAdult: false) {
+      query (\$id: Int, \$isAdult: Boolean) {
+        Media(id: \$id, isAdult: \$isAdult) {
           $_fullFields
         }
       }
     ''';
+
+    final vars = <String, dynamic>{'id': anilistId};
+    if (!isAdult) vars['isAdult'] = false;
 
     try {
       final response = await _client
           .post(
             Uri.parse(_url),
             headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-            body: jsonEncode({'query': gql, 'variables': {'id': anilistId}}),
+            body: jsonEncode({'query': gql, 'variables': vars}),
           )
           .timeout(_timeout);
 
@@ -220,6 +218,8 @@ class AniListService {
       throw NetworkException();
     } on http.ClientException {
       throw NetworkException();
+    } on FormatException {
+      throw ApiException('Respons server tidak valid.');
     } catch (e) {
       if (e is RateLimitException || e is ApiException || e is NetworkException) rethrow;
       throw NetworkException();

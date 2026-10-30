@@ -11,12 +11,9 @@ class SkeletonGridCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: AspectRatio(
-              aspectRatio: 2 / 3,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: const SkeletonBox(),
-              ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: const SkeletonBox(),
             ),
           ),
           const SizedBox(height: 8),

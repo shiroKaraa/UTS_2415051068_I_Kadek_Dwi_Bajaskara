@@ -9,7 +9,7 @@ class LabelProvider extends ChangeNotifier {
   bool _hasLoaded = false;
   String? _errorMessage;
   String? _userId;
-  
+
   List<LabelKustom> get labels => _labels;
   bool get isLoading => _isLoading;
   bool get hasLoaded => _hasLoaded;
@@ -22,9 +22,11 @@ class LabelProvider extends ChangeNotifier {
     _labels = [];
     _hasLoaded = false;
     _errorMessage = null;
-    notifyListeners();
+
     if (userId != null) {
       Future.microtask(() => fetchLabels());
+    } else {
+      Future.microtask(() => notifyListeners());
     }
   }
 
@@ -59,7 +61,9 @@ class LabelProvider extends ChangeNotifier {
         ),
       );
       _labels.add(newLabel);
-      _labels.sort((a, b) => a.nama.compareTo(b.nama));
+      _labels.sort(
+        (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
+      );
       notifyListeners();
       return true;
     } catch (e) {
@@ -75,7 +79,9 @@ class LabelProvider extends ChangeNotifier {
       final index = _labels.indexWhere((c) => c.id == updated.id);
       if (index != -1) {
         _labels[index] = updated;
-        _labels.sort((a, b) => a.nama.compareTo(b.nama));
+        _labels.sort(
+          (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
+        );
         notifyListeners();
       }
       return true;

@@ -23,6 +23,7 @@ class CollectionProvider extends ChangeNotifier {
   String? _errorMessage;
   String? _userId;
   int _fetchGen = 0;
+  bool _disposed = false;
   final Set<int> _inFlight = {};
 
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
@@ -125,6 +126,7 @@ class CollectionProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _cacheTimer?.cancel();
     _reconnectTimer?.cancel();
     _inFlight.clear();
@@ -136,7 +138,21 @@ class CollectionProvider extends ChangeNotifier {
     _filteredCache = null;
     _continueCache = null;
     _externalIndex = null;
-    notifyListeners();
+    _safeNotify();
+  }
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  bool _isNetworkError(Object e) {
+    if (e is TimeoutException) return true;
+    final s = e.toString();
+    return s.contains('SocketException') ||
+        s.contains('ClientException') ||
+        s.contains('HandshakeException') ||
+        s.contains('Failed host lookup') ||
+        s.contains('AuthRetryableFetchException');
   }
 
   EntriKoleksi _reconcileStatus(EntriKoleksi entri) {
@@ -146,11 +162,10 @@ class CollectionProvider extends ChangeNotifier {
 
     if (isFull && entri.status != StatusKoleksi.selesai) {
       return entri.copyWith(status: StatusKoleksi.selesai);
-    }
-    else if (!isFull && entri.status == StatusKoleksi.selesai) {
+    } else if (!isFull && entri.status == StatusKoleksi.selesai) {
       return entri.copyWith(status: StatusKoleksi.sedang);
-    }
-    else if (entri.progres > 0 && entri.status == StatusKoleksi.direncanakan) {
+    } else if (entri.progres > 0 &&
+        entri.status == StatusKoleksi.direncanakan) {
       return entri.copyWith(status: StatusKoleksi.sedang);
     }
     return entri;
@@ -162,7 +177,7 @@ class CollectionProvider extends ChangeNotifier {
   }) async {
     _isSaving = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
     try {
       return await action();
     } catch (e) {
@@ -170,12 +185,15 @@ class CollectionProvider extends ChangeNotifier {
       return onError;
     } finally {
       _isSaving = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
   void bindUser(String? userId) {
     if (_userId == userId) return;
+    _fetchGen++;
+    _cacheTimer?.cancel();
+    _reconnectTimer?.cancel();
     _userId = userId;
     _entries = [];
     _inFlight.clear();
@@ -183,10 +201,15 @@ class CollectionProvider extends ChangeNotifier {
     _isOffline = false;
     _isLoading = false;
     _isSaving = false;
-    _notifyDataChanged();
+    _cachedStats = null;
+    _filteredCache = null;
+    _continueCache = null;
+    _externalIndex = null;
 
     if (userId != null) {
-      Future.microtask(fetchCollection);
+      Future.microtask(() => fetchCollection());
+    } else {
+      Future.microtask(() => _safeNotify());
     }
   }
 
@@ -215,11 +238,11 @@ class CollectionProvider extends ChangeNotifier {
     final gen = ++_fetchGen;
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final data = await _repository.getCollection(userId);
-      if (gen != _fetchGen) return;
+      if (gen != _fetchGen || _userId != userId) return;
 
       _entries = data;
       _isOffline = false;
@@ -227,12 +250,9 @@ class CollectionProvider extends ChangeNotifier {
       _scheduleSaveCache();
       _notifyDataChanged();
     } catch (e) {
-      if (gen != _fetchGen) return;
-      final bool isNetworkError = e is TimeoutException ||
-          e.toString().contains('SocketException') ||
-          e.toString().contains('ClientException');
+      if (gen != _fetchGen || _userId != userId) return;
 
-      if (isNetworkError) {
+      if (_isNetworkError(e)) {
         final prefs = await SharedPreferences.getInstance();
         final cachedData = prefs.getString(_cacheKeyFor(userId));
         if (cachedData != null && cachedData.isNotEmpty) {
@@ -246,13 +266,19 @@ class CollectionProvider extends ChangeNotifier {
             _scheduleReconnectCheck();
           } catch (_) {
             _entries = [];
+            _isOffline = true;
             _errorMessage = 'Gagal membaca cache lokal.';
+            _scheduleReconnectCheck();
           }
         } else {
-          _entries = [];
-          _isOffline = false;
-          _errorMessage =
-              'Gagal memuat koleksi. Periksa koneksi internet Anda.';
+          if (_entries.isEmpty) {
+            _isOffline = false;
+            _errorMessage =
+                'Gagal memuat koleksi. Periksa koneksi internet Anda.';
+          } else {
+            _isOffline = true;
+            _scheduleReconnectCheck();
+          }
         }
       } else {
         _isOffline = false;
@@ -263,7 +289,7 @@ class CollectionProvider extends ChangeNotifier {
     } finally {
       if (gen == _fetchGen) {
         _isLoading = false;
-        notifyListeners();
+        _safeNotify();
       }
     }
   }
@@ -275,7 +301,7 @@ class CollectionProvider extends ChangeNotifier {
       if (!ok) return false;
       _isOffline = false;
       _reconnectTimer?.cancel();
-      notifyListeners();
+      _safeNotify();
       await fetchCollection();
       return true;
     } catch (_) {
@@ -318,7 +344,7 @@ class CollectionProvider extends ChangeNotifier {
   Future<bool> createEntry(EntriKoleksi entri) async {
     if (_userId == null) {
       _errorMessage = 'Silakan login terlebih dahulu.';
-      notifyListeners();
+      _safeNotify();
       return false;
     }
 
@@ -326,7 +352,7 @@ class CollectionProvider extends ChangeNotifier {
       final existing = findByExternal(entri.externalId!, entri.jenis);
       if (existing != null) {
         _errorMessage = 'Anime/komik ini sudah ada di koleksimu.';
-        notifyListeners();
+        _safeNotify();
         return false;
       }
     }
@@ -335,7 +361,7 @@ class CollectionProvider extends ChangeNotifier {
       final isOnline = await _repository.pingServer();
       if (!isOnline) {
         _errorMessage = 'Tidak dapat menambah data saat offline.';
-        notifyListeners();
+        _safeNotify();
         return false;
       }
       _isOffline = false;
@@ -344,11 +370,13 @@ class CollectionProvider extends ChangeNotifier {
 
     _isSaving = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
-      final toInsert = entri.id != null ? entri.copyWith(clearId: true) : entri;
-      final newEntry = await _repository.createEntry(_reconcileStatus(toInsert));
+      final toInsert =
+          entri.id != null ? entri.copyWith(clearId: true) : entri;
+      final newEntry =
+          await _repository.createEntry(_reconcileStatus(toInsert));
       _entries.insert(0, newEntry);
       _scheduleSaveCache();
       _notifyDataChanged();
@@ -358,7 +386,7 @@ class CollectionProvider extends ChangeNotifier {
       return false;
     } finally {
       _isSaving = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -366,7 +394,7 @@ class CollectionProvider extends ChangeNotifier {
     if (_userId == null || _isOffline || entries.isEmpty) return 0;
     _isSaving = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final normalized = entries.map(_reconcileStatus).toList();
@@ -380,7 +408,7 @@ class CollectionProvider extends ChangeNotifier {
       return 0;
     } finally {
       _isSaving = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -389,7 +417,7 @@ class CollectionProvider extends ChangeNotifier {
       _errorMessage = _isOffline
           ? 'Tidak dapat mengubah data saat offline.'
           : 'ID Perangkat tidak valid.';
-      notifyListeners();
+      _safeNotify();
       return false;
     }
     return _runSaving(() async {
@@ -407,7 +435,7 @@ class CollectionProvider extends ChangeNotifier {
       _errorMessage = _isOffline
           ? 'Tidak dapat menghapus data saat offline.'
           : 'ID tidak valid.';
-      notifyListeners();
+      _safeNotify();
       return false;
     }
     final id = entri.id;
@@ -427,7 +455,7 @@ class CollectionProvider extends ChangeNotifier {
       _errorMessage = _isOffline
           ? 'Tidak dapat menghapus saat offline.'
           : 'ID Perangkat tidak valid.';
-      notifyListeners();
+      _safeNotify();
       return 0;
     }
 
@@ -535,7 +563,7 @@ class CollectionProvider extends ChangeNotifier {
       _errorMessage = _isOffline
           ? 'Tidak dapat mengubah data saat offline.'
           : 'ID Perangkat tidak valid.';
-      notifyListeners();
+      _safeNotify();
       return false;
     }
     return _runSaving(() async {
@@ -625,7 +653,7 @@ class CollectionProvider extends ChangeNotifier {
 
   void toggleView() {
     _isListView = !_isListView;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> refresh() async {

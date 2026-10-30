@@ -3,6 +3,7 @@ import '../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
+import '../../models/media_type_enum.dart';
 import 'cover_image.dart';
 import 'media_type_chip.dart';
 
@@ -73,7 +74,7 @@ class MediaCard extends StatelessWidget {
             left: AppSizes.spacingS,
             child: MediaTypeChip(
               label: item.jenis.label(l10n),
-              dotColor: _getColorForType(item.jenis.label(l10n)),
+              dotColor: _getColorForType(item.jenis),
             ),
           ),
         ],
@@ -99,7 +100,8 @@ class MediaCard extends StatelessWidget {
               item.displayTitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             Text(
               '${item.total ?? "?"} $satuan',
@@ -113,15 +115,15 @@ class MediaCard extends StatelessWidget {
     );
   }
 
-  Color _getColorForType(String label) {
-    switch (label) {
-      case 'Anime':
+  Color _getColorForType(JenisMedia jenis) {
+    switch (jenis) {
+      case JenisMedia.anime:
         return AppColors.typeAnime;
-      case 'Manga':
+      case JenisMedia.manga:
         return AppColors.typeManga;
-      case 'Manhwa':
+      case JenisMedia.manhwa:
         return AppColors.typeManhwa;
-      case 'Manhua':
+      case JenisMedia.manhua:
         return AppColors.typeManhua;
       default:
         return AppColors.typeLainnya;

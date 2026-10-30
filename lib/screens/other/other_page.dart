@@ -23,8 +23,10 @@ class OtherPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final stats = context.select<CollectionProvider, ProfileStats>((c) => c.stats);
-    final isOffline = context.select<CollectionProvider, bool>((c) => c.isOffline);
+    final stats =
+        context.select<CollectionProvider, ProfileStats>((c) => c.stats);
+    final isOffline =
+        context.select<CollectionProvider, bool>((c) => c.isOffline);
 
     return Scaffold(
       body: CustomScrollView(
@@ -43,14 +45,16 @@ class OtherPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSizes.spacingM),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.goldPrimary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.wifi_off, color: AppColors.goldPrimary, size: 20),
+                          const Icon(Icons.wifi_off,
+                              color: AppColors.goldPrimary, size: 20),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(l10n.offlineMode,
@@ -58,12 +62,15 @@ class OtherPage extends StatelessWidget {
                           ),
                           TextButton(
                             onPressed: () async {
-                              final provider = context.read<CollectionProvider>();
+                              final provider =
+                                  context.read<CollectionProvider>();
                               final messenger = ScaffoldMessenger.of(context);
                               final ok = await provider.retryConnection();
                               if (!context.mounted) return;
                               messenger.showSnackBar(SnackBar(
-                                content: Text(ok ? l10n.reconnected : l10n.stillOffline),
+                                content: Text(ok
+                                    ? l10n.reconnected
+                                    : l10n.stillOffline),
                               ));
                             },
                             child: Text(l10n.retryConnection,
@@ -74,17 +81,21 @@ class OtherPage extends StatelessWidget {
                     ),
                   ),
 
-                _SectionTitle(title: l10n.activityDetails, icon: Icons.insights_outlined),
+                _SectionTitle(
+                    title: l10n.activityDetails,
+                    icon: Icons.insights_outlined),
                 const SizedBox(height: AppSizes.spacingS),
                 _ActivityStats(stats: stats),
                 const SizedBox(height: AppSizes.spacingL),
-
-                _SectionTitle(title: l10n.navOther, icon: Icons.dashboard_outlined),
+                _SectionTitle(
+                    title: 'Kelola',
+                    icon: Icons.dashboard_outlined),
                 const SizedBox(height: AppSizes.spacingS),
                 _ManageGrid(),
                 const SizedBox(height: AppSizes.spacingL),
 
-                _SectionTitle(title: l10n.settings, icon: Icons.settings_outlined),
+                _SectionTitle(
+                    title: l10n.settings, icon: Icons.settings_outlined),
                 const SizedBox(height: AppSizes.spacingS),
                 _SettingsTile(),
                 const SizedBox(height: AppSizes.spacingL),
@@ -110,14 +121,19 @@ class _OtherHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     return SliverAppBar(
-      pinned: true, 
-      expandedHeight: 140, 
+      pinned: true,
+      expandedHeight: 140,
       backgroundColor: theme.scaffoldBackgroundColor,
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        titlePadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         title: Text(l10n.navOther, style: const TextStyle(fontSize: 16)),
         background: Container(
-          padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+          ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -133,7 +149,8 @@ class _OtherHeader extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.15),
-                child: Text(auth.avatarEmoji ?? '👤', style: const TextStyle(fontSize: 28)),
+                child: Text(auth.avatarEmoji ?? '👤',
+                    style: const TextStyle(fontSize: 28)),
               ),
               const SizedBox(width: 16),
               Column(
@@ -142,11 +159,13 @@ class _OtherHeader extends StatelessWidget {
                 children: [
                   Text(
                     auth.displayName ?? auth.username ?? 'Pengguna',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Text(
                     '@${auth.username ?? '-'}',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -234,8 +253,15 @@ class _StatCard extends StatelessWidget {
                 children: [
                   Icon(icon, color: color, size: 24),
                   const SizedBox(height: 8),
-                  Text('$value', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  Text(label, style: Theme.of(context).textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text('$value',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(label,
+                      style: Theme.of(context).textTheme.labelSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
@@ -255,17 +281,20 @@ class _ManageGrid extends StatelessWidget {
         _LinkTile(
           icon: Icons.insights_outlined,
           title: l10n.statistics,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatisticsPage())),
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const StatisticsPage())),
         ),
         _LinkTile(
           icon: Icons.label_outline,
           title: l10n.manageCategories,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LabelPage())),
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const LabelPage())),
         ),
         _LinkTile(
           icon: Icons.storage_outlined,
           title: l10n.storage,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StoragePage())),
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const StoragePage())),
         ),
       ],
     );
@@ -314,12 +343,14 @@ class _OthersList extends StatelessWidget {
         _LinkTile(
           icon: Icons.help_outline,
           title: l10n.helpFaq,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpPage())),
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const HelpPage())),
         ),
         _LinkTile(
           icon: Icons.info_outline,
           title: l10n.aboutApp,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage())),
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const AboutPage())),
         ),
       ],
     );
@@ -332,7 +363,11 @@ class _LinkTile extends StatelessWidget {
   final String? subtitle;
   final VoidCallback onTap;
 
-  const _LinkTile({required this.icon, required this.title, this.subtitle, required this.onTap});
+  const _LinkTile(
+      {required this.icon,
+      required this.title,
+      this.subtitle,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -341,8 +376,11 @@ class _LinkTile extends StatelessWidget {
       child: Card(
         child: ListTile(
           leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-          subtitle: subtitle != null ? Text(subtitle!, style: Theme.of(context).textTheme.bodySmall) : null,
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+          subtitle: subtitle != null
+              ? Text(subtitle!, style: Theme.of(context).textTheme.bodySmall)
+              : null,
           trailing: const Icon(Icons.chevron_right, size: 20),
           onTap: onTap,
         ),
@@ -363,7 +401,11 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 8),
-        Text(title, style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Text(title,
+            style: Theme.of(context)
+                .textTheme
+                .labelLarge
+                ?.copyWith(fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -375,9 +417,15 @@ class _Footer extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          Icon(Icons.auto_stories, size: 32, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+          Icon(Icons.auto_stories,
+              size: 32,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withValues(alpha: 0.5)),
           const SizedBox(height: 8),
-          Text('© 2026 Tsuzuki App', style: Theme.of(context).textTheme.labelSmall),
+          Text('© 2026 Tsuzuki App',
+              style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
     );

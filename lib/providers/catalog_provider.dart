@@ -38,6 +38,7 @@ class CatalogProvider extends ChangeNotifier {
   int? get filterSkorMin => _filterSkorMin;
   List<String> _availableGenres = [];
   bool _isLoadingGenres = false;
+  bool _genresFromFallback = false;
 
   final List<String> _hardcodedGenres = [
     'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 
@@ -53,6 +54,7 @@ class CatalogProvider extends ChangeNotifier {
 
   List<String> _availableTags = [];
   bool _isLoadingTags = false;
+  bool _tagsFromFallback = false;
   List<String> get availableTags => _availableTags;
   bool get isLoadingTags => _isLoadingTags;
 
@@ -62,6 +64,8 @@ class CatalogProvider extends ChangeNotifier {
   bool _hasFetchedPopular = false;
   String? _popularError;
   bool _disposed = false;
+  int _popularGen = 0;
+  
   UnmodifiableListView<ItemKatalog> get items => UnmodifiableListView(_items);
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
@@ -86,8 +90,9 @@ class CatalogProvider extends ChangeNotifier {
 
   bool get hasActiveFilters =>
     _filterGenres.isNotEmpty || _filterTags.isNotEmpty ||
-    _filterTahun != null || _filterStatus != null || _filterSkorMin != null ||
-    _query.isNotEmpty;
+    _filterTahun != null || _filterStatus != null || _filterSkorMin != null;
+
+  bool get hasAnyActiveFilters => hasActiveFilters || _query.isNotEmpty;
 
   CatalogProvider();
 
@@ -102,27 +107,38 @@ class CatalogProvider extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
-void syncNsfwSetting(bool enabled) {
-  if (_isNsfwEnabled == enabled) return;
-  _isNsfwEnabled = enabled;
-  _hasFetchedPopular = false;
-  _popularAnime.clear();
-  _popularManga.clear();
-  _availableTags = [];
-  fetchCatalog();
-  fetchPopularHome(forceRefresh: true);
-}
+  void syncNsfwSetting(bool enabled) {
+    if (_isNsfwEnabled == enabled) return;
+    _isNsfwEnabled = enabled;
+    _hasFetchedPopular = false;
+    _popularAnime = [];
+    _popularManga = [];
+    _availableTags = [];
+    _tagsFromFallback = false;
+    Future.microtask(() {
+      if (_disposed) return;
+      fetchCatalog();
+      fetchPopularHome(forceRefresh: true);
+    });
+  }
 
   Future<void> ensureGenres() async {
-    if (_availableGenres.isNotEmpty || _isLoadingGenres) return;
+    if (_availableGenres.isNotEmpty && !_genresFromFallback) return;
+    if (_isLoadingGenres) return;
     _isLoadingGenres = true;
     _safeNotify();
     try {
       final apiGenres = await _service.fetchGenres();
-      _availableGenres = apiGenres.where((g) => g != 'Hentai').toList()..sort();
-      if (_availableGenres.isEmpty) _availableGenres = List.from(_hardcodedGenres)..sort();
+      if (apiGenres.isNotEmpty) {
+        _availableGenres = apiGenres.where((g) => g != 'Hentai').toList()..sort();
+        _genresFromFallback = false;
+      } else {
+        _availableGenres = List.from(_hardcodedGenres)..sort();
+        _genresFromFallback = true;
+      }
     } catch (_) {
       _availableGenres = List.from(_hardcodedGenres)..sort();
+      _genresFromFallback = true;
     } finally {
       _isLoadingGenres = false;
       _safeNotify();
@@ -130,14 +146,22 @@ void syncNsfwSetting(bool enabled) {
   }
 
   Future<void> ensureTags() async {
-    if (_availableTags.isNotEmpty || _isLoadingTags) return;
+    if (_availableTags.isNotEmpty && !_tagsFromFallback) return;
+    if (_isLoadingTags) return;
     _isLoadingTags = true;
     _safeNotify();
     try {
       final apiTags = await _service.fetchTags(isAdult: _isNsfwEnabled);
-      _availableTags = apiTags.isNotEmpty ? apiTags : List.from(_fallbackTags)..sort();
+      if (apiTags.isNotEmpty) {
+        _availableTags = apiTags;
+        _tagsFromFallback = false;
+      } else {
+        _availableTags = List.from(_fallbackTags)..sort();
+        _tagsFromFallback = true;
+      }
     } catch (_) {
       _availableTags = List.from(_fallbackTags)..sort();
+      _tagsFromFallback = true;
     } finally {
       _isLoadingTags = false;
       _safeNotify();
@@ -193,12 +217,36 @@ void syncNsfwSetting(bool enabled) {
     } catch (e) {
       if (gen != _requestGeneration) return;
       _handleError(e);
-      if (_items.isEmpty) {
-        _hasNextPage = false;
-      }
+      if (_items.isEmpty) _hasNextPage = false;
     } finally {
       if (gen == _requestGeneration) {
         _isLoading = false;
+        _safeNotify();
+      }
+    }
+  }
+
+  Future<void> refresh() async {
+    final gen = ++_requestGeneration;
+    _isLoading = false;
+    _isLoadingMore = false;
+    _errorType = null;
+    _errorMessage = null;
+    _loadMoreError = null;
+    _currentPage = 1;
+    _hasNextPage = true;
+
+    try {
+      final result = await _fetch(_currentPage);
+      if (gen != _requestGeneration) return;
+      _items = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
+      _hasNextPage = result.hasNextPage;
+      _totalResults = result.total;
+    } catch (e) {
+      if (gen != _requestGeneration) return;
+      _handleError(e);
+    } finally {
+      if (gen == _requestGeneration) {
         _safeNotify();
       }
     }
@@ -292,7 +340,6 @@ void syncNsfwSetting(bool enabled) {
       
       cachedComics.sort((a, b) => (b.skor ?? 0).compareTo(a.skor ?? 0));
       _popularManga = cachedComics.take(10).toList();
-
       _hasFetchedPopular = _popularAnime.isNotEmpty || _popularManga.isNotEmpty;
       return _hasFetchedPopular;
     } catch (_) {
@@ -301,6 +348,7 @@ void syncNsfwSetting(bool enabled) {
   }
 
   Future<void> _savePopularToCache(
+    String cacheKey,
     List<Map<String, dynamic>> anime, 
     List<Map<String, dynamic>> manga,
     List<Map<String, dynamic>> manhwa,
@@ -309,7 +357,7 @@ void syncNsfwSetting(bool enabled) {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
-        _cacheKeyPopular,
+        cacheKey,
         jsonEncode({
           'ts': DateTime.now().toIso8601String(), 
           'anime': anime, 
@@ -329,8 +377,12 @@ void syncNsfwSetting(bool enabled) {
       if (ok) _safeNotify();
     }
 
-    if (_isLoadingPopular) return;
+    if (_isLoadingPopular && !forceRefresh) return;
 
+    final gen = ++_popularGen;
+    final cacheKey = _cacheKeyPopular;
+    final nsfw = _isNsfwEnabled;
+    
     _isLoadingPopular = true;
     _popularError = null;
     _safeNotify();
@@ -338,22 +390,28 @@ void syncNsfwSetting(bool enabled) {
     try {
       int failCount = 0;
       final results = await Future.wait([
-        _service.fetchPage(jenis: JenisMedia.anime, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
-        _service.fetchPage(jenis: JenisMedia.manga, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
-        _service.fetchPage(jenis: JenisMedia.manhwa, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
-        _service.fetchPage(jenis: JenisMedia.manhua, page: 1, isAdult: _isNsfwEnabled).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.anime, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.manga, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.manhwa, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.manhua, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
       ]);
+
+      if (gen != _popularGen) return;
 
       final newAnime = results[0].media;
       final mangaItems = results[1].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manga)).toList();
       final manhwaItems = results[2].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manhwa)).toList();
       final manhuaItems = results[3].media.map((json) => ItemKatalog.fromAniList(json, JenisMedia.manhua)).toList();
 
-      _popularAnime = newAnime.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
+      if (newAnime.isNotEmpty) {
+        _popularAnime = newAnime.map((json) => ItemKatalog.fromAniList(json, JenisMedia.anime)).toList();
+      }
       
       final allComics = [...mangaItems, ...manhwaItems, ...manhuaItems];
       allComics.sort((a, b) => (b.skor ?? 0).compareTo(a.skor ?? 0));
-      _popularManga = allComics.take(10).toList();
+      if (allComics.isNotEmpty) {
+        _popularManga = allComics.take(10).toList();
+      }
 
       if (_popularAnime.isEmpty && _popularManga.isEmpty) {
         _popularError = 'Gagal memuat data populer.';
@@ -361,6 +419,7 @@ void syncNsfwSetting(bool enabled) {
         _hasFetchedPopular = true;
         if (failCount == 0) {
           await _savePopularToCache(
+            cacheKey,
             newAnime,
             results[1].media,
             results[2].media,
@@ -371,8 +430,10 @@ void syncNsfwSetting(bool enabled) {
     } catch (e) {
       _popularError = 'Gagal memuat data populer.';
     } finally {
-      _isLoadingPopular = false;
-      _safeNotify();
+      if (gen == _popularGen) {
+        _isLoadingPopular = false;
+        _safeNotify();
+      }
     }
   }
 
@@ -435,10 +496,6 @@ void syncNsfwSetting(bool enabled) {
     _query = '';
     _urutan = UrutanKatalog.populer;
     fetchCatalog();
-  }
-
-  Future<void> refresh() async {
-    await fetchCatalog();
   }
 
   bool _listEquals(List<String> a, List<String> b) {

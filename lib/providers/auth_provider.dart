@@ -167,16 +167,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> signOut() async {
+  Future<bool> signOut() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       await _service.signOut();
+      return true;
     } on AuthServiceException catch (e) {
       _error = e.message;
+      return false;
     } catch (e) {
       _error = 'Logout gagal: $e';
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

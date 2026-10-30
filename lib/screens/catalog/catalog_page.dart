@@ -92,64 +92,6 @@ class _CatalogPageState extends State<CatalogPage> {
           builder: (context, _) {
             return StatefulBuilder(
               builder: (context, setState) {
-                Future<void> showMultiSelectDialog({
-                  required String title,
-                  required List<String> allItems,
-                  required List<String> selectedItems,
-                  required Function(List<String>) onSave,
-                }) async {
-                  final result = await showDialog<List<String>>(
-                    context: context,
-                    builder: (dialogCtx) {
-                      final tempSelected = List<String>.from(selectedItems);
-                      return StatefulBuilder(
-                        builder: (context, setDialogState) {
-                          return AlertDialog(
-                            title: Text(title),
-                            content: SizedBox(
-                              width: double.maxFinite,
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: allItems.length,
-                                itemBuilder: (context, index) {
-                                  final item = allItems[index];
-                                  final isSelected = tempSelected.contains(item);
-                                  return CheckboxListTile(
-                                    title: Text(item),
-                                    value: isSelected,
-                                    onChanged: (val) {
-                                      setDialogState(() {
-                                        if (val == true) {
-                                          tempSelected.add(item);
-                                        } else {
-                                          tempSelected.remove(item);
-                                        }
-                                      });
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(dialogCtx),
-                                child: Text(l10n.cancel),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(dialogCtx, tempSelected),
-                                child: Text(l10n.apply),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  );
-                  if (result != null) {
-                    onSave(result);
-                  }
-                }
-
                 return DraggableScrollableSheet(
                   initialChildSize: 0.85,
                   minChildSize: 0.6,
@@ -178,17 +120,19 @@ class _CatalogPageState extends State<CatalogPage> {
                                 onTap: () {
                                   if (catalog.isLoadingGenres) return;
                                   if (catalog.availableGenres.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Gagal memuat data genre. Periksa koneksi internet.')),
-                                    );
+                                    catalog.ensureGenres();
                                     return;
                                   }
-                                  showMultiSelectDialog(
-                                    title: l10n.filterGenre,
-                                    allItems: catalog.availableGenres,
-                                    selectedItems: tempGenres,
-                                    onSave: (selected) => setState(() => tempGenres = selected),
-                                  );
+                                  showDialog<List<String>>(
+                                    context: context,
+                                    builder: (_) => MultiSelectDialog(
+                                      title: l10n.filterGenre,
+                                      items: catalog.availableGenres,
+                                      selected: tempGenres,
+                                    ),
+                                  ).then((selected) {
+                                    if (selected != null) setState(() => tempGenres = selected);
+                                  });
                                 },
                               ),
                               const Divider(),
@@ -202,17 +146,19 @@ class _CatalogPageState extends State<CatalogPage> {
                                 onTap: () {
                                   if (catalog.isLoadingTags) return;
                                   if (catalog.availableTags.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Gagal memuat data tag. Periksa koneksi internet.')),
-                                    );
+                                    catalog.ensureTags();
                                     return;
                                   }
-                                  showMultiSelectDialog(
-                                    title: 'Tag',
-                                    allItems: catalog.availableTags,
-                                    selectedItems: tempTags,
-                                    onSave: (selected) => setState(() => tempTags = selected),
-                                  );
+                                  showDialog<List<String>>(
+                                    context: context,
+                                    builder: (_) => MultiSelectDialog(
+                                      title: 'Tag',
+                                      items: catalog.availableTags,
+                                      selected: tempTags,
+                                    ),
+                                  ).then((selected) {
+                                    if (selected != null) setState(() => tempTags = selected);
+                                  });
                                 },
                               ),
                               const Divider(),
@@ -660,6 +606,79 @@ class _CatalogPageState extends State<CatalogPage> {
               ),
             ),
           ),
+      ],
+    );
+  }
+}
+
+class MultiSelectDialog extends StatefulWidget {
+  final String title;
+  final List<String> items;
+  final List<String> selected;
+
+  const MultiSelectDialog({
+    super.key,
+    required this.title,
+    required this.items,
+    required this.selected,
+  });
+
+  @override
+  State<MultiSelectDialog> createState() => _MultiSelectDialogState();
+}
+
+class _MultiSelectDialogState extends State<MultiSelectDialog> {
+  late final Set<String> _sel = widget.selected.toSet();
+  String _q = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final filtered = widget.items
+        .where((e) => e.toLowerCase().contains(_q.toLowerCase()))
+        .toList();
+
+    return AlertDialog(
+      title: Text(widget.title),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 420,
+        child: Column(
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                isDense: true,
+                hintText: 'Cari...',
+              ),
+              onChanged: (v) => setState(() => _q = v),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (_, i) {
+                  final it = filtered[i];
+                  return CheckboxListTile(
+                    dense: true,
+                    title: Text(it),
+                    value: _sel.contains(it),
+                    onChanged: (v) => setState(
+                        () => v == true ? _sel.add(it) : _sel.remove(it)),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel)),
+        TextButton(
+            onPressed: () => Navigator.pop(context, _sel.toList()),
+            child: Text(l10n.apply)),
       ],
     );
   }

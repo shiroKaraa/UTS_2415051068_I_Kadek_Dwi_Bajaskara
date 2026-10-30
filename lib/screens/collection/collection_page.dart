@@ -13,7 +13,7 @@ import '../../widgets/skeleton/skeleton_list_card.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/collection_card.dart';
-import '../../widgets/cover_image.dart';
+import '../../widgets/collection_list_card.dart';
 import '../catalog/catalog_page.dart';
 import 'collection_detail_page.dart';
 import 'edit_entry_page.dart';
@@ -30,18 +30,16 @@ class CollectionPage extends StatefulWidget {
 class _CollectionPageState extends State<CollectionPage> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounceTimer;
+  String _lastQuery = '';
+  final Set<int> _processingIds = {};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<CollectionProvider>();
-      if (widget.initialStatus != null &&
-          provider.filterStatus != widget.initialStatus) {
+      if (provider.filterStatus != widget.initialStatus) {
         provider.setFilterStatus(widget.initialStatus);
-      }
-      if (_searchController.text != provider.query) {
-        _searchController.text = provider.query;
       }
     });
   }
@@ -173,8 +171,19 @@ class _CollectionPageState extends State<CollectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
-    if (collection.query.isEmpty && _searchController.text.isNotEmpty) {
-      _searchController.clear();
+
+    if (collection.query != _lastQuery) {
+      _lastQuery = collection.query;
+      if (_searchController.text.trim() != collection.query) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final q = collection.query;
+          _searchController.value = TextEditingValue(
+            text: q,
+            selection: TextSelection.collapsed(offset: q.length),
+          );
+        });
+      }
     }
 
     return Scaffold(
@@ -321,7 +330,7 @@ class _CollectionPageState extends State<CollectionPage> {
                       if (!context.mounted) return;
                       messenger.showSnackBar(SnackBar(
                         content:
-                            Text(ok ? l10n.progressAdded : l10n.stillOffline),
+                            Text(ok ? l10n.reconnected : l10n.stillOffline),
                       ));
                     },
                     child: Text(l10n.retryConnection,
@@ -376,12 +385,14 @@ class _CollectionPageState extends State<CollectionPage> {
       if (collection.isListView) {
         return ListView.builder(
           padding: const EdgeInsets.all(AppSizes.spacingM),
+          physics: const AlwaysScrollableScrollPhysics(),
           itemCount: 6,
           itemBuilder: (context, index) => const SkeletonListCard(),
         );
       }
       return GridView.builder(
         padding: const EdgeInsets.all(AppSizes.spacingM),
+        physics: const AlwaysScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 180,
           mainAxisSpacing: 16,
@@ -469,75 +480,45 @@ class _CollectionPageState extends State<CollectionPage> {
       itemCount: collection.entries.length,
       itemBuilder: (context, index) {
         final entri = collection.entries[index];
-        final isSelesai = entri.status == StatusKoleksi.selesai;
+        final isProcessing = _processingIds.contains(entri.id);
 
-        return Card(
+        return CollectionListCard(
           key: ValueKey(entri.id),
-          margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
-          child: ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: CoverImage(url: entri.coverUrl, width: 50, height: 70),
-            ),
-            title: Text(entri.judul,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  '${entri.status.netralLabel(l10n)} • ${entri.progres}/${entri.total ?? "?"} ${entri.jenis.satuanProgres(l10n)}',
-                  style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant),
-                ),
-              ],
-            ),
-            trailing: !isSelesai
-                ? IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: l10n.progress,
-                    onPressed: () async {
-                      final provider = context.read<CollectionProvider>();
-                      final messenger = ScaffoldMessenger.of(context);
-                      final result =
-                          await provider.incrementProgress(entri);
+          entri: entri,
+          isProcessing: isProcessing,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CollectionDetailPage(id: entri.id!),
+              ),
+            );
+          },
+          onLongPress: () => _showQuickMenu(context, entri),
+          onIncrement: () async {
+            setState(() => _processingIds.add(entri.id!));
+            final provider = context.read<CollectionProvider>();
+            final messenger = ScaffoldMessenger.of(context);
+            messenger.clearSnackBars();
 
-                      if (!context.mounted) return;
+            final result = await provider.incrementProgress(entri);
+            if (!context.mounted) return;
+            setState(() => _processingIds.remove(entri.id));
 
-                      if (result == HasilIncrement.ok) {
-                        messenger.showSnackBar(SnackBar(
-                            content: Text(l10n.progressAdded)));
-                      } else if (result == HasilIncrement.offline) {
-                        messenger.showSnackBar(SnackBar(
-                            content: Text(l10n.offlineMode)));
-                      } else if (result ==
-                          HasilIncrement.alreadyCompleted) {
-                        messenger.showSnackBar(SnackBar(
-                            content: Text(l10n.congratsCompleted)));
-                      } else {
-                        messenger.showSnackBar(SnackBar(
-                            content: Text(provider.errorMessage ??
-                                l10n.errorLoadData)));
-                      }
-                    },
-                  )
-                : null,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CollectionDetailPage(id: entri.id!),
-                ),
-              );
-            },
-            onLongPress: () {
-              _showQuickMenu(context, entri);
-            },
-          ),
+            if (result == HasilIncrement.ok) {
+              messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.progressAdded)));
+            } else if (result == HasilIncrement.offline) {
+              messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.offlineMode)));
+            } else if (result == HasilIncrement.alreadyCompleted) {
+              messenger.showSnackBar(
+                  SnackBar(content: Text(l10n.congratsCompleted)));
+            } else {
+              messenger.showSnackBar(SnackBar(
+                  content: Text(provider.errorMessage ?? l10n.errorLoadData)));
+            }
+          },
         );
       },
     );

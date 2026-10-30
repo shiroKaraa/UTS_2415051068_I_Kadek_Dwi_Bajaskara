@@ -30,8 +30,6 @@ class CollectionCard extends StatelessWidget {
         ? (entri.progres / entri.total!).clamp(0.0, 1.0)
         : 0.0;
     final bool isSelesai = entri.status == StatusKoleksi.selesai;
-    
-    // Ambil data Label
     final label = context.select<LabelProvider, LabelKustom?>(
         (p) => p.findById(entri.labelId));
 
@@ -128,8 +126,6 @@ class CollectionCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          
-          // TAMPILKAN LABEL DI SINI
           if (label != null)
             Text(
               label.nama,

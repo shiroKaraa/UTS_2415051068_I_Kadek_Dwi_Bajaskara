@@ -8,7 +8,7 @@ class SupabaseCollectionService implements CollectionDataSource {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   static const int _pageSize = 500;
-  static const Duration _timeout = Duration(seconds: 10);
+  static const Duration _timeout = Duration(seconds: 15);
 
   String _requireUserId() {
     final user = _supabase.auth.currentUser;
@@ -26,8 +26,7 @@ class SupabaseCollectionService implements CollectionDataSource {
           .from('koleksi')
           .select()
           .eq('user_id', userId)
-          .order('updated_at', ascending: false)
-          .order('id', ascending: false)
+          .order('id', ascending: true)
           .range(from, from + _pageSize - 1)
           .timeout(_timeout,
               onTimeout: () => throw TimeoutException('Koneksi lambat / Offline'));
@@ -37,7 +36,7 @@ class SupabaseCollectionService implements CollectionDataSource {
         try {
           batch.add(EntriKoleksi.fromJson(json as Map<String, dynamic>));
         } catch (e) {
-          debugPrint('Baris koleksi dilewati karena format tidak valid: $e');
+          debugPrint('Baris koleksi dilewati: $e');
         }
       }
 
@@ -54,7 +53,12 @@ class SupabaseCollectionService implements CollectionDataSource {
     final payload = {...entri.toJson(), 'user_id': userId};
     
     try {
-      final response = await _supabase.from('koleksi').insert(payload).select().single();
+      final response = await _supabase
+          .from('koleksi')
+          .insert(payload)
+          .select()
+          .single()
+          .timeout(_timeout, onTimeout: () => throw TimeoutException('Simpan timeout'));
       return EntriKoleksi.fromJson(response);
     } on PostgrestException catch (e) {
       if (e.code == '23505') throw Exception('Anime/komik ini sudah ada di koleksimu.');
@@ -68,7 +72,11 @@ class SupabaseCollectionService implements CollectionDataSource {
     final userId = _requireUserId();
     final payload = entries.map((e) => {...e.toJson(), 'user_id': userId}).toList();
     try {
-      final response = await _supabase.from('koleksi').insert(payload).select();
+      final response = await _supabase
+          .from('koleksi')
+          .insert(payload)
+          .select()
+          .timeout(_timeout, onTimeout: () => throw TimeoutException('Impor timeout'));
       return (response as List).map((json) => EntriKoleksi.fromJson(json as Map<String, dynamic>)).toList();
     } on PostgrestException catch (e) {
       if (e.code == '23505') {
@@ -94,19 +102,29 @@ class SupabaseCollectionService implements CollectionDataSource {
         .eq('id', id)
         .eq('user_id', userId)
         .select()
-        .single();
+        .single()
+        .timeout(_timeout, onTimeout: () => throw TimeoutException('Update timeout'));
     return EntriKoleksi.fromJson(response);
   }
 
   @override
   Future<void> deleteEntry(int id) async {
     final userId = _requireUserId();
-    await _supabase.from('koleksi').delete().eq('id', id).eq('user_id', userId);
+    await _supabase
+        .from('koleksi')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId)
+        .timeout(_timeout, onTimeout: () => throw TimeoutException('Delete timeout'));
   }
 
   @override
   Future<void> deleteAll(String userId) async {
-    await _supabase.from('koleksi').delete().eq('user_id', userId);
+    await _supabase
+        .from('koleksi')
+        .delete()
+        .eq('user_id', userId)
+        .timeout(_timeout, onTimeout: () => throw TimeoutException('Delete all timeout'));
   }
 
   @override
@@ -132,7 +150,7 @@ class SupabaseCollectionService implements CollectionDataSource {
           .from('koleksi')
           .select('id')
           .limit(1)
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 5));
       return true;
     } catch (_) {
       return false;

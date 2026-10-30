@@ -4,6 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
+import '../../models/media_type_enum.dart';
 import '../../providers/collection_provider.dart';
 import '../../services/anilist_service.dart';
 import '../../services/translation_service.dart';
@@ -49,6 +50,9 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
   Future<void> _muatDetailLengkap() async {
     if (widget.item.sinopsis != null && widget.item.sinopsis!.isNotEmpty) {
       setState(() => _detail = widget.item);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _mulaiTerjemahan();
+      });
       return;
     }
 
@@ -107,15 +111,15 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
     return text;
   }
 
-  Color _getColorForType(String label) {
-    switch (label) {
-      case 'Anime':
+  Color _getColorForType(JenisMedia jenis) {
+    switch (jenis) {
+      case JenisMedia.anime:
         return AppColors.typeAnime;
-      case 'Manga':
+      case JenisMedia.manga:
         return AppColors.typeManga;
-      case 'Manhwa':
+      case JenisMedia.manhwa:
         return AppColors.typeManhwa;
-      case 'Manhua':
+      case JenisMedia.manhua:
         return AppColors.typeManhua;
       default:
         return AppColors.typeLainnya;
@@ -134,13 +138,12 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
         : (_sinopsisTerjemahan ?? _rawSinopsis);
     final sinopsisKosong = _rawSinopsis.isEmpty;
 
-    final existingEntry = context.select<CollectionProvider, EntriKoleksiView?>(
-      (p) {
-        final e = p.findByExternal('al:${item.anilistId}', item.jenis);
-        if (e == null) return null;
-        return EntriKoleksiView(id: e.id!, judul: e.judul);
-      },
-    );
+    final existingEntry =
+        context.select<CollectionProvider, EntriKoleksiView?>((p) {
+      final e = p.findByExternal('al:${item.anilistId}', item.jenis);
+      if (e == null) return null;
+      return EntriKoleksiView(id: e.id!, judul: e.judul);
+    });
     final inCollection = existingEntry != null;
 
     return Scaffold(
@@ -191,7 +194,7 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                         left: AppSizes.spacingS,
                         child: MediaTypeChip(
                           label: item.jenis.label(l10n),
-                          dotColor: _getColorForType(item.jenis.label(l10n)),
+                          dotColor: _getColorForType(item.jenis),
                         ),
                       ),
                       if (inCollection)
@@ -276,7 +279,7 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                     icon: Icons.menu_book_outlined,
                     label:
                         '${item.total} ${item.jenis.satuanProgres(l10n)}',
-                    color: AppColors.typeAnime,
+                    color: _getColorForType(item.jenis),
                   ),
               ],
             ),
@@ -304,7 +307,7 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                     const SizedBox(width: AppSizes.spacingS),
                     Expanded(
                       child: Text(
-                        'Detail lengkap gagal dimuat. Menampilkan data ringkas.',
+                        l10n.errorPopularData,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -330,7 +333,9 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ],
-                if (isId && !_isTranslating && _sinopsisTerjemahan != null) ...[
+                if (isId &&
+                    !_isTranslating &&
+                    _sinopsisTerjemahan != null) ...[
                   const SizedBox(width: AppSizes.spacingS),
                   Icon(Icons.translate,
                       size: 16, color: theme.colorScheme.onSurfaceVariant),

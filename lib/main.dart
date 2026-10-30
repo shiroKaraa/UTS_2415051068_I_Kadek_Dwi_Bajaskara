@@ -19,6 +19,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await dotenv.load(fileName: ".env");
+    KonfigurasiApp.ensureConfigured();
     await Supabase.initialize(
       url: KonfigurasiApp.supabaseUrl,
       publishableKey: KonfigurasiApp.supabaseAnonKey,
@@ -84,7 +85,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-                ChangeNotifierProxyProvider<SettingsProvider, CatalogProvider>(
+        ChangeNotifierProxyProvider<SettingsProvider, CatalogProvider>(
           create: (_) => CatalogProvider(),
           update: (context, settings, previous) {
             final provider = previous ?? CatalogProvider();
@@ -114,14 +115,15 @@ class MyApp extends StatelessWidget {
           },
         ),
       ],
-      child: Consumer<SettingsProvider>(
-        builder: (context, settings, _) {
+      child: Selector<SettingsProvider, (ThemeMode, Locale)>(
+        selector: (_, s) => (s.themeMode, s.locale),
+        builder: (context, v, _) {
           return MaterialApp(
             title: 'Tsuzuki',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: settings.themeMode,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: v.$1,
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
@@ -132,7 +134,7 @@ class MyApp extends StatelessWidget {
               Locale('id'),
               Locale('en'),
             ],
-            locale: settings.locale,
+            locale: v.$2,
             home: const AuthGate(),
           );
         },

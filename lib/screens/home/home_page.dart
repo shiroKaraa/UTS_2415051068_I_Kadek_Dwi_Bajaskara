@@ -7,6 +7,7 @@ import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
 import '../../models/profile_stats.dart';
 import '../../models/collection_entry.dart';
+import '../../models/media_type_enum.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/catalog_provider.dart';
@@ -15,9 +16,7 @@ import '../../widgets/cover_image.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/shimmer_loading.dart';
-import '../../widgets/progress_bar.dart';
 import '../catalog/catalog_detail_page.dart';
-import '../collection/collection_detail_page.dart';
 import '../collection/collection_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -162,7 +161,8 @@ class _HomePageState extends State<HomePage> {
                       final ok = await provider.retryConnection();
                       if (!context.mounted) return;
                       messenger.showSnackBar(SnackBar(
-                        content: Text(ok ? l10n.progressAdded : l10n.stillOffline),
+                        content:
+                            Text(ok ? l10n.reconnected : l10n.stillOffline),
                       ));
                     },
                     child: Text(l10n.retryConnection,
@@ -314,7 +314,7 @@ class _StatCard extends StatelessWidget {
     return Expanded(
       child: Card(
         elevation: 0,
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
           side: BorderSide(color: color.withValues(alpha: 0.3)),
@@ -362,7 +362,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
     if (items.isEmpty) {
       return Card(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         child: Padding(
           padding: const EdgeInsets.all(AppSizes.spacingL),
           child: Column(
@@ -404,54 +404,79 @@ class _ContinueSectionState extends State<_ContinueSection> {
           ],
         ),
         const SizedBox(height: AppSizes.spacingS),
-        ...items.map((e) {
-          final progress = (e.total != null && e.total! > 0)
-              ? (e.progres / e.total!).clamp(0.0, 1.0)
-              : 0.0;
-          final isProcessing = _processingIds.contains(e.id);
 
-          return Card(
-            color: Theme.of(context).cardColor,
-            margin: const EdgeInsets.only(bottom: AppSizes.spacingS),
-            child: ListTile(
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CoverImage(url: e.coverUrl, width: 40, height: 60),
-              ),
-              title: Text(e.judul,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                      '${e.progres} / ${e.total ?? "?"} ${e.jenis.satuanProgres(l10n)}'),
-                  const SizedBox(height: 4),
-                  ProgressBar(value: progress),
-                ],
-              ),
-              trailing: IconButton.filledTonal(
-                icon: isProcessing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child:
-                            CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.add),
-                onPressed:
-                    (e.total != null && e.progres >= e.total!) || isProcessing
-                        ? null
-                        : () => _handleIncrement(e),
-              ),
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) =>
-                          CollectionDetailPage(id: e.id!))),
-            ),
-          );
-        }),
+        SizedBox(
+          height: 220,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            separatorBuilder: (_, __) =>
+                const SizedBox(width: AppSizes.spacingM),
+            itemBuilder: (context, index) {
+              final e = items[index];
+              final isProcessing = _processingIds.contains(e.id);
+
+              return SizedBox(
+                width: 130,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CoverImage(url: e.coverUrl),
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: Material(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: const CircleBorder(),
+                              child: InkWell(
+                                onTap: isProcessing
+                                    ? null
+                                    : () => _handleIncrement(e),
+                                customBorder: const CircleBorder(),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: isProcessing
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.black))
+                                      : const Icon(Icons.add,
+                                          color: Colors.black, size: 20),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${e.jenis.satuanProgres(l10n)} ${e.progres}',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                    Text(e.judul,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -523,7 +548,12 @@ class _PopularSection extends StatelessWidget {
                     .titleMedium
                     ?.copyWith(fontWeight: FontWeight.bold)),
             TextButton(
-              onPressed: () => onNavigateTab?.call(1),
+              onPressed: () {
+                context.read<CatalogProvider>().setJenis(
+                  isAnime ? JenisMedia.anime : JenisMedia.manga
+                );
+                onNavigateTab?.call(1);
+              },
               child: Text(l10n.seeAll),
             ),
           ],

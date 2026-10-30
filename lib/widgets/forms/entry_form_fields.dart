@@ -57,9 +57,10 @@ class EntryFormFields extends StatelessWidget {
         children: [
           if (labels.isNotEmpty) ...[
             DropdownButtonFormField<int>(
+              key: ValueKey('label_$selectedLabelId'),
               initialValue: selectedLabelId,
               decoration: InputDecoration(
-                labelText: l10n.manageCategories,
+                labelText: l10n.categoryName,
                 border: const OutlineInputBorder(),
               ),
               items: [
@@ -74,6 +75,7 @@ class EntryFormFields extends StatelessWidget {
             const SizedBox(height: AppSizes.spacingM),
           ],
           DropdownButtonFormField<StatusKoleksi>(
+            key: ValueKey('status_$status'),
             initialValue: status,
             decoration: InputDecoration(
               labelText: l10n.fieldStatus,
@@ -109,11 +111,11 @@ class EntryFormFields extends StatelessWidget {
                     if (val == null || val.isEmpty) {
                       return l10n.fieldRequired;
                     }
-                    final num = int.tryParse(val);
-                    if (num == null) return l10n.fieldMustBeNumber;
-                    if (num < 0) return l10n.fieldNotNegative;
+                    final parsed = int.tryParse(val);
+                    if (parsed == null) return l10n.fieldMustBeNumber;
+                    if (parsed < 0) return l10n.fieldNotNegative;
                     final total = int.tryParse(totalController.text);
-                    if (total != null && num > total) {
+                    if (total != null && parsed > total) {
                       return l10n.fieldExceedsTotal;
                     }
                     return null;
@@ -133,11 +135,12 @@ class EntryFormFields extends StatelessWidget {
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(7),
                   ],
+                  onChanged: (_) => formKey.currentState?.validate(),
                   validator: (val) {
                     if (val == null || val.isEmpty) return null;
-                    final num = int.tryParse(val);
-                    if (num == null) return l10n.fieldMustBeNumber;
-                    if (num < 1) return l10n.fieldMustBeNumber;
+                    final parsed = int.tryParse(val);
+                    if (parsed == null) return l10n.fieldMustBeNumber;
+                    if (parsed < 1) return l10n.fieldMustBeNumber;
                     return null;
                   },
                 ),
@@ -146,6 +149,7 @@ class EntryFormFields extends StatelessWidget {
           ),
           const SizedBox(height: AppSizes.spacingM),
           DropdownButtonFormField<int>(
+            key: ValueKey('rating_$rating'),
             initialValue: rating,
             decoration: InputDecoration(
               labelText: l10n.fieldRating,

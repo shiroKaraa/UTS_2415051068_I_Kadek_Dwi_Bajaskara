@@ -47,7 +47,7 @@ class EntriKoleksi {
         (e) => e.name == json['jenis'],
         orElse: () => JenisMedia.lainnya,
       ),
-      labelId: json['label_id'] as int?, // <-- SUDAH DIPERBAIKI
+      labelId: json['label_id'] as int?,
       externalId: json['external_id'] as String?,
       judul: json['judul'] as String,
       coverUrl: json['cover_url'] as String?,
