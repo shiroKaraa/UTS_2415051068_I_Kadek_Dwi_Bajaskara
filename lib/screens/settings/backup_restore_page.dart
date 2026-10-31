@@ -185,6 +185,25 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       if (!mounted) return;
 
       if (inserted == 0 && collection.errorMessage != null) {
+        if (mode == _ImportMode.replace && preImportBackupPath != null) {
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Gagal Impor!'),
+              content: Text(
+                'Data saat ini sudah terhapus, namun impor gagal.\n\n'
+                'File backup sebelum impor tersimpan di:\n$preImportBackupPath\n\n'
+                'Silakan gunakan file tersebut untuk memulihkan data secara manual.'
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
         _snack(collection.errorMessage!);
         return;
       } else if (inserted == 0 && collection.isOffline) {

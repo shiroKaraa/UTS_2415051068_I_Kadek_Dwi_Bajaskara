@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
+import '../../core/app_cache_manager.dart';
 import '../../providers/settings_provider.dart';
 
 class StoragePage extends StatefulWidget {
@@ -91,7 +91,8 @@ class _StoragePageState extends State<StoragePage> {
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
     try {
-      await DefaultCacheManager().emptyCache();
+      final cache = await AppCacheManager.getInstance();
+      await cache.emptyCache();
     } catch (_) {}
 
     await _hitungUkuran();
@@ -245,7 +246,7 @@ class _StoragePageState extends State<StoragePage> {
                   child: ListTile(
                     leading: const Icon(Icons.image_outlined,
                         color: AppColors.infoBlue),
-                    title: Text(l10n.imageCache),
+                    title: const Text('Total Cache'),
                     subtitle: Text(_formatBytes(_imageCacheSize)),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline,

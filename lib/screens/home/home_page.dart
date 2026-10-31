@@ -490,37 +490,40 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
   Future<void> _handleIncrement(EntriKoleksi e) async {
     setState(() => _processingIds.add(e.id!));
-
     final provider = context.read<CollectionProvider>();
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
-    final minWait = Future.delayed(const Duration(milliseconds: 400));
-    final result = await provider.incrementProgress(e);
-    await minWait;
+    try {
+      final minWait = Future.delayed(const Duration(milliseconds: 400));
+      final result = await provider.incrementProgress(e);
+      await minWait;
 
-    if (!mounted) return;
-    setState(() => _processingIds.remove(e.id));
-
-    final l10n = AppLocalizations.of(context)!;
-    switch (result) {
-      case HasilIncrement.ok:
-        messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
-        break;
-      case HasilIncrement.offline:
-        messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
-        break;
-      case HasilIncrement.alreadyCompleted:
-        messenger.showSnackBar(
-            SnackBar(content: Text(l10n.congratsCompleted)));
-        break;
-      case HasilIncrement.inFlight:
-        break;
-      case HasilIncrement.error:
-        messenger.showSnackBar(SnackBar(
-          content: Text(provider.errorMessage ?? l10n.errorLoadData),
-        ));
-        break;
+      if (!mounted) return;
+      
+      final l10n = AppLocalizations.of(context)!;
+      switch (result) {
+        case HasilIncrement.ok:
+          messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+          break;
+        case HasilIncrement.offline:
+          messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
+          break;
+        case HasilIncrement.alreadyCompleted:
+          messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
+          break;
+        case HasilIncrement.inFlight:
+          break;
+        case HasilIncrement.error:
+          messenger.showSnackBar(SnackBar(
+            content: Text(provider.errorMessage ?? l10n.errorLoadData),
+          ));
+          break;
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _processingIds.remove(e.id));
+      }
     }
   }
 }

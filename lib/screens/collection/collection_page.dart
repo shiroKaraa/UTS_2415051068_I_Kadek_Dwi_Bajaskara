@@ -975,35 +975,39 @@ class _CollectionPageState extends State<CollectionPage> {
             final provider = context.read<CollectionProvider>();
             final messenger = ScaffoldMessenger.of(context);
             messenger.clearSnackBars();
-            final minWait =
-                Future.delayed(const Duration(milliseconds: 400));
+            try {
+              final minWait = Future.delayed(const Duration(milliseconds: 400));
+              final result = await provider.incrementProgress(entri);
+              await minWait;
 
-            final result = await provider.incrementProgress(entri);
-            await minWait;
-            if (!context.mounted) return;
-            setState(() => _processingIds.remove(entri.id));
+              if (!context.mounted) return;
 
-            if (result == HasilIncrement.inFlight) return;
-            switch (result) {
-              case HasilIncrement.ok:
-                messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.progressAdded)));
-                break;
-              case HasilIncrement.offline:
-                messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.offlineMode)));
-                break;
-              case HasilIncrement.alreadyCompleted:
-                messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.congratsCompleted)));
-                break;
-              case HasilIncrement.inFlight:
-                break;
-              case HasilIncrement.error:
-                messenger.showSnackBar(SnackBar(
-                    content: Text(
-                        provider.errorMessage ?? l10n.errorLoadData)));
-                break;
+              if (result == HasilIncrement.inFlight) return;
+              switch (result) {
+                case HasilIncrement.ok:
+                  messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.progressAdded)));
+                  break;
+                case HasilIncrement.offline:
+                  messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.offlineMode)));
+                  break;
+                case HasilIncrement.alreadyCompleted:
+                  messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.congratsCompleted)));
+                  break;
+                case HasilIncrement.inFlight:
+                  break;
+                case HasilIncrement.error:
+                  messenger.showSnackBar(SnackBar(
+                      content: Text(
+                          provider.errorMessage ?? l10n.errorLoadData)));
+                  break;
+              }
+            } finally {
+              if (mounted) {
+                setState(() => _processingIds.remove(entri.id));
+              }
             }
           },
         );

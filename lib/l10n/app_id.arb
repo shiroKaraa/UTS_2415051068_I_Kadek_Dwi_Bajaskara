@@ -319,7 +319,6 @@
   "confirmClearCacheBody": "Cache akan dihapus. Data di server tidak terpengaruh.",
   "typeOther": "Lainnya",
   "preImportBackupSaved": "Backup sebelumnya disimpan: {filename}",
-  "usernameHint": "3–20 karakter: huruf kecil, angka, underscore.",
   "usernameInvalidChars": "Hanya huruf kecil, angka, dan underscore.",
   "imageCacheDesc": "Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi.",
   "sortAddedDate": "Tanggal Ditambahkan",
@@ -397,6 +396,9 @@
   "faq16Title": "Bagaimana cara mengubah tema atau bahasa aplikasi?",
   "faq16Desc": "Buka Lainnya → Pengaturan. Di 'Tema Aplikasi', pilih Gelap, Terang, atau Ikuti Sistem. Di 'Bahasa / Language', pilih Indonesia atau English. Perubahan berlaku seketika di seluruh aplikasi.",
   "faq17Title": "Apa arti ikon warna di card media?",
-  "faq17Desc": "Titik warna di setiap card menunjukkan jenis media: Biru untuk Anime, Merah untuk Manga, Emas untuk Manhwa, Ungu untuk Manhua. Badge merah '18+' berarti judul mengandung konten dewasa."
+  "faq17Desc": "Titik warna di setiap card menunjukkan jenis media: Biru untuk Anime, Merah untuk Manga, Emas untuk Manhwa, Ungu untuk Manhua. Badge merah '18+' berarti judul mengandung konten dewasa.",
+  "tagLabel": "Tag",
+  "allTags": "Semua Tag",
+  "genreTagInfo": "Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit."  
   
 }

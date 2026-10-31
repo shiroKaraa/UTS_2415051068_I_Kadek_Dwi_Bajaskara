@@ -818,7 +818,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Dengan mendaftar, kamu menyetujui bahwa data koleksi disimpan secara aman dan hanya dapat diakses oleh akunmu.';
 
   @override
-  String get usernameHint => '3–20 karakter: huruf kecil, angka, underscore.';
+  String get usernameHint => '3–20 karakter: huruf, angka, underscore.';
 
   @override
   String get passwordHint => 'Minimal 6 karakter.';
@@ -1231,4 +1231,14 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get faq17Desc =>
       'Titik warna di setiap card menunjukkan jenis media: Biru untuk Anime, Merah untuk Manga, Emas untuk Manhwa, Ungu untuk Manhua. Badge merah \'18+\' berarti judul mengandung konten dewasa.';
+
+  @override
+  String get tagLabel => 'Tag';
+
+  @override
+  String get allTags => 'Semua Tag';
+
+  @override
+  String get genreTagInfo =>
+      'Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.';
 }

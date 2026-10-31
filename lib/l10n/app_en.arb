@@ -318,8 +318,6 @@
   "confirmClearCacheBody": "Cache will be cleared. Data on the server is not affected.",
   "typeOther": "Other",
   "preImportBackupSaved": "Previous backup saved: {filename}",
-  "usernameHint": "3–20 characters: lowercase letters, numbers, underscore.",
-  "usernameInvalidChars": "Only lowercase letters, numbers, and underscore allowed.",
   "imageCacheDesc": "Limit image cache to a maximum of 100MB. When disabled, the cache is unlimited.",
   "sortAddedDate": "Date Added",
   "sortAscending": "Ascending",
@@ -442,6 +440,9 @@
   "faq17Title": "What do the album cover icons mean?",
   "@faq17Title": { "description": "FAQ title" },
   "faq17Desc": "The colored dot on each media card indicates the media type: Blue for Anime, Red for Manga, Gold for Manhwa, Purple for Manhua. A red '18+' badge means the title contains adult content.",
-  "@faq17Desc": { "description": "FAQ description" }
+  "@faq17Desc": { "description": "FAQ description" },
+  "tagLabel": "Tag",
+  "allTags": "All Tags",
+  "genreTagInfo": "Genres and Tags are combined (AND). More selections = fewer results."
   
 }

@@ -818,8 +818,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'By registering, you agree that your collection data is stored securely and only accessible by your account.';
 
   @override
-  String get usernameHint =>
-      '3–20 characters: lowercase letters, numbers, underscore.';
+  String get usernameHint => '3–20 characters: letters, numbers, underscore.';
 
   @override
   String get passwordHint => 'At least 6 characters.';
@@ -835,7 +834,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usernameInvalidChars =>
-      'Only lowercase letters, numbers, and underscore allowed.';
+      'Only letters, numbers, and underscore allowed.';
 
   @override
   String get passwordRequired => 'Password is required.';
@@ -1230,4 +1229,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get faq17Desc =>
       'The colored dot on each media card indicates the media type: Blue for Anime, Red for Manga, Gold for Manhwa, Purple for Manhua. A red \'18+\' badge means the title contains adult content.';
+
+  @override
+  String get tagLabel => 'Tag';
+
+  @override
+  String get allTags => 'All Tags';
+
+  @override
+  String get genreTagInfo =>
+      'Genres and Tags are combined (AND). More selections = fewer results.';
 }

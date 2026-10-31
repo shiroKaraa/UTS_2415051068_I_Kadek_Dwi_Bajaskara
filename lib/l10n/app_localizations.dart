@@ -1625,7 +1625,7 @@ abstract class AppLocalizations {
   /// No description provided for @usernameHint.
   ///
   /// In id, this message translates to:
-  /// **'3–20 karakter: huruf kecil, angka, underscore.'**
+  /// **'3–20 karakter: huruf, angka, underscore.'**
   String get usernameHint;
 
   /// No description provided for @passwordHint.
@@ -2359,6 +2359,24 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Titik warna di setiap card menunjukkan jenis media: Biru untuk Anime, Merah untuk Manga, Emas untuk Manhwa, Ungu untuk Manhua. Badge merah \'18+\' berarti judul mengandung konten dewasa.'**
   String get faq17Desc;
+
+  /// No description provided for @tagLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Tag'**
+  String get tagLabel;
+
+  /// No description provided for @allTags.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua Tag'**
+  String get allTags;
+
+  /// No description provided for @genreTagInfo.
+  ///
+  /// In id, this message translates to:
+  /// **'Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.'**
+  String get genreTagInfo;
 }
 
 class _AppLocalizationsDelegate

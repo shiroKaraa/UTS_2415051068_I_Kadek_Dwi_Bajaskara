@@ -163,6 +163,12 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
         progresBaru = totalBaru;
         _progresController.text = totalBaru.toString();
       } else {
+        if (mounted) {
+          setState(() {
+            _status = widget.initialStatus;
+            _isDirty = false;
+          });
+        }
         messenger.showSnackBar(
           SnackBar(
             content: Text(

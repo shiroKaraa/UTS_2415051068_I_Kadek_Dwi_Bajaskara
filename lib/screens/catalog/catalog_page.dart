@@ -53,25 +53,18 @@ class _CatalogPageState extends State<CatalogPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final catalog = context.read<CatalogProvider>();
-
       final hasInitial = widget.initialJenis != null ||
           (widget.initialGenres != null && widget.initialGenres!.isNotEmpty) ||
           widget.initialTahun != null ||
           widget.initialStatus != null ||
           widget.initialSkorMin != null ||
-          (widget.initialQuery != null &&
-              widget.initialQuery!.trim().isNotEmpty);
-
+          (widget.initialQuery != null && widget.initialQuery!.trim().isNotEmpty);
       if (hasInitial) {
-        if (widget.initialQuery != null &&
-            widget.initialQuery!.trim().isNotEmpty) {
-          final q = widget.initialQuery!.trim();
-          _searchController.text = q;
-          catalog.setQuery(q);
+        if (widget.initialQuery != null && widget.initialQuery!.trim().isNotEmpty) {
+          _searchController.text = widget.initialQuery!.trim();
         }
-        if (widget.initialJenis != null) {
-          catalog.setJenis(widget.initialJenis!);
-        }
+        catalog.setQuery(widget.initialQuery?.trim() ?? '');
+        catalog.setJenis(widget.initialJenis ?? catalog.selectedJenis);
         catalog.setFilters(
           genres: widget.initialGenres ?? const [],
           tahun: widget.initialTahun,
@@ -85,13 +78,8 @@ class _CatalogPageState extends State<CatalogPage> {
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 400) {
-        context.read<CatalogProvider>().loadMore();
-      }
-
-      final shouldShow = _scrollController.position.pixels > 500;
-      if (shouldShow != _showBackToTop.value) {
-        _showBackToTop.value = shouldShow;
+        _scrollController.position.maxScrollExtent - 400) {
+      context.read<CatalogProvider>().loadMore();
       }
     });
   }
@@ -201,11 +189,11 @@ class _CatalogPageState extends State<CatalogPage> {
                               const Divider(),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: const Text('Tag',
+                                title: Text(l10n.tagLabel,
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold)),
                                 subtitle: Text(tempTags.isEmpty
-                                    ? 'Semua Tag'
+                                    ? l10n.allTags
                                     : tempTags.join(', ')),
                                 trailing: catalog.isLoadingTags
                                     ? const SizedBox(
@@ -249,7 +237,7 @@ class _CatalogPageState extends State<CatalogPage> {
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
-                                        'Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.',
+                                        l10n.genreTagInfo,
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: Theme.of(context)
