@@ -1241,4 +1241,7 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get genreTagInfo =>
       'Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.';
+
+  @override
+  String get exitGuestMode => 'Keluar Mode Tamu';
 }

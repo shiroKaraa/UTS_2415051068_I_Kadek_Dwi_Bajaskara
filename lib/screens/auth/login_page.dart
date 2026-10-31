@@ -6,6 +6,7 @@ import '../../../core/app_colors.dart';
 import '../../../core/app_sizes.dart';
 import '../../../providers/auth_provider.dart';
 import 'register_page.dart';
+import 'guest_info_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -131,7 +132,6 @@ class _LoginPageState extends State<LoginPage> {
                       },
                     ),
                     const SizedBox(height: AppSizes.spacingM),
-
                     TextFormField(
                       controller: _passwordController,
                       enabled: !isLoading,
@@ -165,7 +165,6 @@ class _LoginPageState extends State<LoginPage> {
                       },
                     ),
                     const SizedBox(height: AppSizes.spacingXl),
-
                     SizedBox(
                       height: 48,
                       child: ElevatedButton.icon(
@@ -193,7 +192,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: AppSizes.spacingM),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -218,6 +216,38 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
+                    
+                    const SizedBox(height: AppSizes.spacingM),
+                    OutlinedButton.icon(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const GuestInfoPage(),
+                                ),
+                              );
+                            },
+                      icon: const Icon(Icons.person_outline),
+                      label: const Text('Masuk sebagai Tamu'), 
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.spacingXs),
+                    Text(
+                      'Data koleksi tidak akan tersimpan ke akun. '
+                      'Backup manual diperlukan.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),                  
                     const SizedBox(height: AppSizes.spacingXl),
                   ],
                 ),

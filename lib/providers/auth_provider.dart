@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 
-enum AuthStatus { unknown, authenticated, unauthenticated }
+enum AuthStatus { unknown, authenticated, unauthenticated, guest }
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _service;
@@ -27,6 +27,8 @@ class AuthProvider extends ChangeNotifier {
   User? get user => _user;
   String? get username => _username;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
+  bool get isGuest => _status == AuthStatus.guest;
+  bool get isUnauthenticated => _status == AuthStatus.unauthenticated;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get userId => _user?.id;
@@ -40,8 +42,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('profile_bg_${_user?.id ?? "guest"}', preset);
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
   Future<void> _loadLocalBgPreset() async {
@@ -56,7 +57,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void _init() {
+  void _init() async {
     _sub = _service.onAuthStateChange.listen((state) async {
       final user = state.session?.user;
       if (user != null) {
@@ -71,13 +72,14 @@ class AuthProvider extends ChangeNotifier {
         await _loadLocalBgPreset();
         if (_user?.id == user.id) notifyListeners();
       } else {
-        _user = null;
-        _username = null;
-        _status = AuthStatus.unauthenticated;
-        _displayName = null;
-        _avatarEmoji = null;
-        await _loadLocalBgPreset();
-        notifyListeners();
+        if (_status == AuthStatus.guest) return;
+        final prefs = await SharedPreferences.getInstance();
+        final isGuestSaved = prefs.getBool('is_guest_mode') ?? false;
+        _status = isGuestSaved ? AuthStatus.guest : AuthStatus.unauthenticated;
+        Future.microtask(() async {
+          await _loadLocalBgPreset();
+          notifyListeners();
+        });
       }
     });
 
@@ -96,7 +98,10 @@ class AuthProvider extends ChangeNotifier {
         if (_user?.id == current.id) notifyListeners();
       });
     } else {
-      _status = AuthStatus.unauthenticated;
+      final prefs = await SharedPreferences.getInstance();
+      final isGuestSaved = prefs.getBool('is_guest_mode') ?? false;
+      _status = isGuestSaved ? AuthStatus.guest : AuthStatus.unauthenticated;
+      
       Future.microtask(() async {
         await _loadLocalBgPreset();
         notifyListeners();
@@ -128,6 +133,9 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _service.signIn(username: username, password: password);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_guest_mode', false);
+      
       return true;
     } on AuthServiceException catch (e) {
       _error = e.message;
@@ -154,6 +162,10 @@ class AuthProvider extends ChangeNotifier {
           username: username,
           password: password,
           confirmPassword: confirmPassword);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_guest_mode', false);
+
       return true;
     } on AuthServiceException catch (e) {
       _error = e.message;
@@ -172,7 +184,24 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
+      if (_status == AuthStatus.guest) {
+        _user = null;
+        _username = null;
+        _displayName = null;
+        _avatarEmoji = null;
+        _bgPreset = 'default';
+        _status = AuthStatus.unauthenticated;
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('is_guest_mode', false);
+        
+        return true;
+      }
+
       await _service.signOut();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_guest_mode', false);
+
       return true;
     } on AuthServiceException catch (e) {
       _error = e.message;
@@ -228,12 +257,20 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void continueAsGuest() {
+  Future<void> continueAsGuest() async {
     _user = null;
     _username = null;
-    _status = AuthStatus.unauthenticated;
+    _displayName = null;
+    _avatarEmoji = null;
+    _status = AuthStatus.guest;
     _bgPreset = 'default';
+    _isLoading = false;
+    _error = null;
     notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_guest_mode', true);
+    
     _loadLocalBgPreset();
   }
 

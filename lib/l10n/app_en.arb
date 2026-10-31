@@ -443,6 +443,7 @@
   "@faq17Desc": { "description": "FAQ description" },
   "tagLabel": "Tag",
   "allTags": "All Tags",
-  "genreTagInfo": "Genres and Tags are combined (AND). More selections = fewer results."
+  "genreTagInfo": "Genres and Tags are combined (AND). More selections = fewer results.",
+  "exitGuestMode": "Exit Guest Mode"
   
 }

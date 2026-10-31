@@ -53,7 +53,7 @@ class _ResponsiveShellState extends State<ResponsiveShell>
         provider.retryConnection();
       }
     } else if (state == AppLifecycleState.paused ||
-               state == AppLifecycleState.inactive) {
+        state == AppLifecycleState.inactive) {
       provider.flushCache();
     }
   }
@@ -107,13 +107,34 @@ class _ResponsiveShellState extends State<ResponsiveShell>
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
         if (_currentIndex != 0) {
           _onNavigateTab(0);
         } else {
-          SystemNavigator.pop();
+          final shouldPop = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Keluar Aplikasi?'),
+              content:
+                  const Text('Apakah kamu yakin ingin keluar dari Tsuzuki?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Batal'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Keluar'),
+                ),
+              ],
+            ),
+          );
+          
+          if (shouldPop == true) {
+            SystemNavigator.pop();
+          }
         }
       },
       child: LayoutBuilder(

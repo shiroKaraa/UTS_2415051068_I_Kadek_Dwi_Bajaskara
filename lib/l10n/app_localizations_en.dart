@@ -1239,4 +1239,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get genreTagInfo =>
       'Genres and Tags are combined (AND). More selections = fewer results.';
+
+  @override
+  String get exitGuestMode => 'Exit Guest Mode';
 }

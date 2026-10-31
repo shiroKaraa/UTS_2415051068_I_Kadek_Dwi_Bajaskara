@@ -399,6 +399,7 @@
   "faq17Desc": "Titik warna di setiap card menunjukkan jenis media: Biru untuk Anime, Merah untuk Manga, Emas untuk Manhwa, Ungu untuk Manhua. Badge merah '18+' berarti judul mengandung konten dewasa.",
   "tagLabel": "Tag",
   "allTags": "Semua Tag",
-  "genreTagInfo": "Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit."  
+  "genreTagInfo": "Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.",
+  "exitGuestMode": "Keluar Mode Tamu"
   
 }

@@ -2377,6 +2377,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.'**
   String get genreTagInfo;
+
+  /// No description provided for @exitGuestMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluar Mode Tamu'**
+  String get exitGuestMode;
 }
 
 class _AppLocalizationsDelegate

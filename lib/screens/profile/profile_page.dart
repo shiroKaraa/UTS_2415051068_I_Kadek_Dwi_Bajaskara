@@ -93,6 +93,7 @@ class ProfilePage extends StatelessWidget {
                   child: _LogoutButton(
                     onConfirm: () => _konfirmasiLogout(context, l10n),
                     onSignOut: () => context.read<AuthProvider>().signOut(),
+                    isGuest: context.watch<AuthProvider>().isGuest,
                   ),
                 ),
               ),
@@ -702,8 +703,9 @@ class _EmptyProfileState extends StatelessWidget {
 class _LogoutButton extends StatefulWidget {
   final Future<bool> Function() onConfirm;
   final Future<void> Function() onSignOut;
+  final bool isGuest;
 
-  const _LogoutButton({required this.onConfirm, required this.onSignOut});
+  const _LogoutButton({required this.onConfirm, required this.onSignOut, required this.isGuest,});
 
   @override
   State<_LogoutButton> createState() => _LogoutButtonState();
@@ -751,7 +753,9 @@ class _LogoutButtonState extends State<_LogoutButton> {
               )
             : Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
         label: Text(
-          _isLoading ? l10n.processing : l10n.logoutConfirmBtn,
+          _isLoading
+              ? l10n.processing
+              : (widget.isGuest ? l10n.exitGuestMode : l10n.logoutConfirmBtn),
           style: TextStyle(
             color: Theme.of(context).colorScheme.error,
             fontWeight: FontWeight.w600,
