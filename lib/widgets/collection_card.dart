@@ -45,12 +45,12 @@ class _CollectionCardState extends State<CollectionCard> {
 
     switch (result) {
       case HasilIncrement.ok:
-        messenger.showSnackBar(
-            SnackBar(content: Text(l10n.progressAdded)));
+        messenger
+            .showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
         break;
       case HasilIncrement.offline:
-        messenger.showSnackBar(
-            SnackBar(content: Text(l10n.offlineMode)));
+        messenger
+            .showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
         break;
       case HasilIncrement.alreadyCompleted:
         messenger.showSnackBar(
@@ -77,6 +77,7 @@ class _CollectionCardState extends State<CollectionCard> {
     final bool isSelesai = entri.status == StatusKoleksi.selesai;
     final label = context.select<LabelProvider, LabelKustom?>(
         (p) => p.findById(entri.labelId));
+    final hasCatatan = entri.catatan != null && entri.catatan!.isNotEmpty;
 
     return InkWell(
       onTap: widget.onTap,
@@ -167,10 +168,36 @@ class _CollectionCardState extends State<CollectionCard> {
           if (label != null)
             Text(
               label.nama,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                   fontSize: 10,
                   color: AppColors.infoBlue,
                   fontWeight: FontWeight.w600),
+            ),
+          if (hasCatatan)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.sticky_note_2_outlined,
+                      size: 11, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 3),
+                  Expanded(
+                    child: Text(
+                      entri.catatan!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           Text(
             entri.status.netralLabel(l10n),
