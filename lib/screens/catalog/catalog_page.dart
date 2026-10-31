@@ -476,46 +476,65 @@ class _CatalogPageState extends State<CatalogPage> {
       appBar: AppBar(
         title: Text(l10n.navCatalog),
         actions: [
-          IconButton(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(Icons.filter_list),
-                if (catalog.hasActiveFilters)
-                  Positioned(
-                    right: -2,
-                    top: -2,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.redAccent,
-                        shape: BoxShape.circle,
-                      ),
+        IconButton(
+          icon: const Icon(Icons.shuffle),
+          tooltip: l10n.randomPick,
+          onPressed: () {
+            final item = catalog.getRandomItem();
+            if (item == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.noResults)),
+              );
+              return;
+            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CatalogDetailPage(item: item),
+              ),
+            );
+          },
+        ),
+        IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.filter_list),
+              if (catalog.hasActiveFilters)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
                     ),
                   ),
-              ],
-            ),
-            tooltip: l10n.filterTooltip,
-            onPressed: () => _showFilterSheet(context, l10n),
+                ),
+            ],
           ),
-          IconButton(
-            icon: Icon(catalog.isListView ? Icons.grid_view : Icons.view_list),
-            tooltip: catalog.isListView ? l10n.gridView : l10n.listView,
-            onPressed: () => catalog.toggleView(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.view_quilt_outlined),
-            tooltip: 'Tampilan',
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => const DisplayModeSheet(),
-              );
-            },
-          ),
-        ],
+          tooltip: l10n.filterTooltip,
+          onPressed: () => _showFilterSheet(context, l10n),
+        ),
+        IconButton(
+          icon: Icon(catalog.isListView ? Icons.grid_view : Icons.view_list),
+          tooltip: catalog.isListView ? l10n.gridView : l10n.listView,
+          onPressed: () => catalog.toggleView(),
+        ),
+        IconButton(
+          icon: const Icon(Icons.view_quilt_outlined),
+          tooltip: l10n.displayMode,
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => const DisplayModeSheet(),
+            );
+          },
+        ),
+      ],
       ),
       body: Column(
         children: [

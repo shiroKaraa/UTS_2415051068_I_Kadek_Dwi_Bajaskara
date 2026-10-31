@@ -12,6 +12,7 @@ import '../../services/translation_service.dart';
 import '../../widgets/adult_badge.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/cover_preview_dialog.dart';
+import '../../widgets/alternative_titles_section.dart';
 import '../../widgets/media_type_chip.dart';
 import '../catalog/catalog_page.dart';
 import '../collection/collection_detail_page.dart';
@@ -369,6 +370,9 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                 }).toList(),
               ),
             ],
+            const SizedBox(height: AppSizes.spacingL),
+            AlternativeTitlesSection(item: item),
+
             if (_detailFailed) ...[
               const SizedBox(height: AppSizes.spacingM),
               Container(

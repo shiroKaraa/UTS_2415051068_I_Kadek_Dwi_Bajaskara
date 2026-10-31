@@ -16,6 +16,7 @@ import '../info/help_page.dart';
 import '../settings/settings_page.dart';
 import '../info/statistics_page.dart';
 import '../settings/storage_page.dart';
+import '../debug/debug_info_page.dart';
 
 class OtherPage extends StatelessWidget {
   const OtherPage({super.key});
@@ -295,6 +296,14 @@ class _ManageGrid extends StatelessWidget {
           title: l10n.storage,
           onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const StoragePage())),
+        ),
+        _LinkTile(
+          icon: Icons.bug_report_outlined,
+          title: l10n.debugInfo,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DebugInfoPage()),
+          ),
         ),
       ],
     );

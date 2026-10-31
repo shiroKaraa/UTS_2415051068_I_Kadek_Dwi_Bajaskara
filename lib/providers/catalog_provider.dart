@@ -306,6 +306,12 @@ class CatalogProvider extends ChangeNotifier {
     loadMore();
   }
 
+  ItemKatalog? getRandomItem() {
+    if (_items.isEmpty) return null;
+    final random = DateTime.now().millisecondsSinceEpoch % _items.length;
+    return _items[random];
+  }
+
   void _handleError(Object e) {
     if (e is RateLimitException) {
       _errorType = TipeError.rateLimit;

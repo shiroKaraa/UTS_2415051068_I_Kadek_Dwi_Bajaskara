@@ -1105,4 +1105,130 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get itemsPerRow => 'Item per baris';
+
+  @override
+  String get alternativeTitles => 'Judul Alternatif';
+
+  @override
+  String get randomPick => 'Acak';
+
+  @override
+  String get debugInfo => 'Debug Info';
+
+  @override
+  String get helpSearchHint => 'Cari bantuan...';
+
+  @override
+  String get helpNoResults => 'Tidak ada hasil untuk pencarianmu.';
+
+  @override
+  String get helpCatGettingStarted => 'Memulai';
+
+  @override
+  String get helpCatCatalog => 'Katalog & Pencarian';
+
+  @override
+  String get helpCatCollection => 'Koleksi & Progres';
+
+  @override
+  String get helpCatSettings => 'Pengaturan & Tampilan';
+
+  @override
+  String get helpCatData => 'Data & Backup';
+
+  @override
+  String get helpCatTroubleshooting => 'Troubleshooting';
+
+  @override
+  String get faq5Title => 'Bagaimana cara mengubah ukuran card atau tampilan?';
+
+  @override
+  String get faq5Desc =>
+      'Buka tab Katalog atau Koleksi, tekan ikon \'Tampilan\' (view_quilt) di kanan atas, lalu pilih Grid atau Daftar, pilih ukuran card (Kecil/Sedang/Besar), atau geser \'Item per baris\' (2-6). Perubahan berlaku seketika.';
+
+  @override
+  String get faq6Title => 'Bagaimana cara menambah label dengan warna custom?';
+
+  @override
+  String get faq6Desc =>
+      'Buka Lainnya → Kelola Label. Tekan tombol +, masukkan nama, pilih warna dari palet, lalu simpan. Saat menambah atau mengedit koleksi, kamu bisa memilih label ini. Warnanya akan muncul di card koleksimu.';
+
+  @override
+  String get faq7Title => 'Apa fungsi tombol Acak (shuffle)?';
+
+  @override
+  String get faq7Desc =>
+      'Di tab Katalog, tekan ikon shuffle di bar atas. Aplikasi akan membuka halaman detail salah satu judul yang sedang dimuat secara acak. Berguna saat kamu bingung mau nonton atau baca apa.';
+
+  @override
+  String get faq8Title => 'Bagaimana cara backup atau restore koleksi?';
+
+  @override
+  String get faq8Desc =>
+      'Buka Lainnya → Pengaturan → Backup & Restore. Tekan \'Ekspor\' untuk menyimpan koleksi sebagai file JSON (bagikan ke Drive/Files). Tekan \'Impor\' untuk memulihkan dari file. Kamu bisa pilih Gabungkan (tambah judul baru) atau Ganti Semua (hapus saat ini dan ganti).';
+
+  @override
+  String get faq9Title => 'Mengapa perubahan saya gagal saat offline?';
+
+  @override
+  String get faq9Desc =>
+      'Saat offline, aplikasi menampilkan data cache untuk mencegah konflik data. Operasi Tambah, Edit, dan Hapus memerlukan koneksi ke Supabase. Saat koneksi kembali, tekan \'Coba Lagi\' pada banner kuning mode offline untuk sinkronisasi.';
+
+  @override
+  String get faq10Title => 'Apa itu Debug Info dan bagaimana menggunakannya?';
+
+  @override
+  String get faq10Desc =>
+      'Buka Lainnya → Debug Info. Halaman ini menampilkan versi aplikasi, status koneksi (Supabase & AniList), pengaturan aktif, dan error terakhir. Tekan ikon copy di kanan atas untuk menyalin semua info — berguna untuk melaporkan bug ke developer.';
+
+  @override
+  String get faq11Title => 'Bagaimana cara mengaktifkan konten NSFW (18+)?';
+
+  @override
+  String get faq11Desc =>
+      'Buka Lainnya → Pengaturan → toggle \'Konten NSFW (18+)\'. Kamu harus konfirmasi berusia 18+ sebelum mengaktifkan. Saat aktif, katalog akan menampilkan judul 18+ dengan badge merah \'18+\'. Pengaturan ini hanya mempengaruhi Katalog, bukan koleksimu.';
+
+  @override
+  String get faq12Title =>
+      'Bagaimana cara memfilter katalog berdasarkan genre, tahun, atau status?';
+
+  @override
+  String get faq12Desc =>
+      'Di tab Katalog, tekan ikon filter di bar atas untuk membuka panel filter. Kamu bisa filter berdasarkan genre, tag, tahun, status, skor minimum, dan urutan. Dari halaman detail mana pun, kamu bisa menekan chip tahun/status/genre untuk langsung menuju katalog terfilter.';
+
+  @override
+  String get faq13Title =>
+      'Bagaimana cara menggunakan aksi massal (hapus, label, status)?';
+
+  @override
+  String get faq13Desc =>
+      'Di tab Koleksi, tekan ikon checklist di bar atas (atau long-press salah satu item) untuk masuk mode pilih. Pilih beberapa item, lalu gunakan bar bawah untuk Hapus, Ubah Label, atau Ubah Status secara bersamaan.';
+
+  @override
+  String get faq14Title => 'Bagaimana cara menandai item sebagai Favorit?';
+
+  @override
+  String get faq14Desc =>
+      'Buka halaman detail koleksi, lalu tekan ikon hati di kanan atas. Favorit muncul di Profil → Favorit Saya, di mana kamu bisa memfilter berdasarkan Anime atau Komik.';
+
+  @override
+  String get faq15Title => 'Apa fungsi validasi progres?';
+
+  @override
+  String get faq15Desc =>
+      'Progres tidak boleh negatif dan tidak boleh melebihi total episode/chapter. Jika kamu set status \'Selesai\', aplikasi akan menawarkan untuk mengisi otomatis progres ke total. Jika progres mencapai total, status akan otomatis berubah menjadi \'Selesai\'.';
+
+  @override
+  String get faq16Title => 'Bagaimana cara mengubah tema atau bahasa aplikasi?';
+
+  @override
+  String get faq16Desc =>
+      'Buka Lainnya → Pengaturan. Di \'Tema Aplikasi\', pilih Gelap, Terang, atau Ikuti Sistem. Di \'Bahasa / Language\', pilih Indonesia atau English. Perubahan berlaku seketika di seluruh aplikasi.';
+
+  @override
+  String get faq17Title => 'Apa arti ikon warna di card media?';
+
+  @override
+  String get faq17Desc =>
+      'Titik warna di setiap card menunjukkan jenis media: Biru untuk Anime, Merah untuk Manga, Emas untuk Manhwa, Ungu untuk Manhua. Badge merah \'18+\' berarti judul mengandung konten dewasa.';
 }

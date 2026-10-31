@@ -2137,6 +2137,228 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Item per baris'**
   String get itemsPerRow;
+
+  /// No description provided for @alternativeTitles.
+  ///
+  /// In id, this message translates to:
+  /// **'Judul Alternatif'**
+  String get alternativeTitles;
+
+  /// No description provided for @randomPick.
+  ///
+  /// In id, this message translates to:
+  /// **'Acak'**
+  String get randomPick;
+
+  /// No description provided for @debugInfo.
+  ///
+  /// In id, this message translates to:
+  /// **'Debug Info'**
+  String get debugInfo;
+
+  /// No description provided for @helpSearchHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Cari bantuan...'**
+  String get helpSearchHint;
+
+  /// No description provided for @helpNoResults.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada hasil untuk pencarianmu.'**
+  String get helpNoResults;
+
+  /// No description provided for @helpCatGettingStarted.
+  ///
+  /// In id, this message translates to:
+  /// **'Memulai'**
+  String get helpCatGettingStarted;
+
+  /// No description provided for @helpCatCatalog.
+  ///
+  /// In id, this message translates to:
+  /// **'Katalog & Pencarian'**
+  String get helpCatCatalog;
+
+  /// No description provided for @helpCatCollection.
+  ///
+  /// In id, this message translates to:
+  /// **'Koleksi & Progres'**
+  String get helpCatCollection;
+
+  /// No description provided for @helpCatSettings.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengaturan & Tampilan'**
+  String get helpCatSettings;
+
+  /// No description provided for @helpCatData.
+  ///
+  /// In id, this message translates to:
+  /// **'Data & Backup'**
+  String get helpCatData;
+
+  /// No description provided for @helpCatTroubleshooting.
+  ///
+  /// In id, this message translates to:
+  /// **'Troubleshooting'**
+  String get helpCatTroubleshooting;
+
+  /// No description provided for @faq5Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara mengubah ukuran card atau tampilan?'**
+  String get faq5Title;
+
+  /// No description provided for @faq5Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka tab Katalog atau Koleksi, tekan ikon \'Tampilan\' (view_quilt) di kanan atas, lalu pilih Grid atau Daftar, pilih ukuran card (Kecil/Sedang/Besar), atau geser \'Item per baris\' (2-6). Perubahan berlaku seketika.'**
+  String get faq5Desc;
+
+  /// No description provided for @faq6Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara menambah label dengan warna custom?'**
+  String get faq6Title;
+
+  /// No description provided for @faq6Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Lainnya → Kelola Label. Tekan tombol +, masukkan nama, pilih warna dari palet, lalu simpan. Saat menambah atau mengedit koleksi, kamu bisa memilih label ini. Warnanya akan muncul di card koleksimu.'**
+  String get faq6Desc;
+
+  /// No description provided for @faq7Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Apa fungsi tombol Acak (shuffle)?'**
+  String get faq7Title;
+
+  /// No description provided for @faq7Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Di tab Katalog, tekan ikon shuffle di bar atas. Aplikasi akan membuka halaman detail salah satu judul yang sedang dimuat secara acak. Berguna saat kamu bingung mau nonton atau baca apa.'**
+  String get faq7Desc;
+
+  /// No description provided for @faq8Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara backup atau restore koleksi?'**
+  String get faq8Title;
+
+  /// No description provided for @faq8Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Lainnya → Pengaturan → Backup & Restore. Tekan \'Ekspor\' untuk menyimpan koleksi sebagai file JSON (bagikan ke Drive/Files). Tekan \'Impor\' untuk memulihkan dari file. Kamu bisa pilih Gabungkan (tambah judul baru) atau Ganti Semua (hapus saat ini dan ganti).'**
+  String get faq8Desc;
+
+  /// No description provided for @faq9Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Mengapa perubahan saya gagal saat offline?'**
+  String get faq9Title;
+
+  /// No description provided for @faq9Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Saat offline, aplikasi menampilkan data cache untuk mencegah konflik data. Operasi Tambah, Edit, dan Hapus memerlukan koneksi ke Supabase. Saat koneksi kembali, tekan \'Coba Lagi\' pada banner kuning mode offline untuk sinkronisasi.'**
+  String get faq9Desc;
+
+  /// No description provided for @faq10Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Apa itu Debug Info dan bagaimana menggunakannya?'**
+  String get faq10Title;
+
+  /// No description provided for @faq10Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Lainnya → Debug Info. Halaman ini menampilkan versi aplikasi, status koneksi (Supabase & AniList), pengaturan aktif, dan error terakhir. Tekan ikon copy di kanan atas untuk menyalin semua info — berguna untuk melaporkan bug ke developer.'**
+  String get faq10Desc;
+
+  /// No description provided for @faq11Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara mengaktifkan konten NSFW (18+)?'**
+  String get faq11Title;
+
+  /// No description provided for @faq11Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Lainnya → Pengaturan → toggle \'Konten NSFW (18+)\'. Kamu harus konfirmasi berusia 18+ sebelum mengaktifkan. Saat aktif, katalog akan menampilkan judul 18+ dengan badge merah \'18+\'. Pengaturan ini hanya mempengaruhi Katalog, bukan koleksimu.'**
+  String get faq11Desc;
+
+  /// No description provided for @faq12Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara memfilter katalog berdasarkan genre, tahun, atau status?'**
+  String get faq12Title;
+
+  /// No description provided for @faq12Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Di tab Katalog, tekan ikon filter di bar atas untuk membuka panel filter. Kamu bisa filter berdasarkan genre, tag, tahun, status, skor minimum, dan urutan. Dari halaman detail mana pun, kamu bisa menekan chip tahun/status/genre untuk langsung menuju katalog terfilter.'**
+  String get faq12Desc;
+
+  /// No description provided for @faq13Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara menggunakan aksi massal (hapus, label, status)?'**
+  String get faq13Title;
+
+  /// No description provided for @faq13Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Di tab Koleksi, tekan ikon checklist di bar atas (atau long-press salah satu item) untuk masuk mode pilih. Pilih beberapa item, lalu gunakan bar bawah untuk Hapus, Ubah Label, atau Ubah Status secara bersamaan.'**
+  String get faq13Desc;
+
+  /// No description provided for @faq14Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara menandai item sebagai Favorit?'**
+  String get faq14Title;
+
+  /// No description provided for @faq14Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka halaman detail koleksi, lalu tekan ikon hati di kanan atas. Favorit muncul di Profil → Favorit Saya, di mana kamu bisa memfilter berdasarkan Anime atau Komik.'**
+  String get faq14Desc;
+
+  /// No description provided for @faq15Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Apa fungsi validasi progres?'**
+  String get faq15Title;
+
+  /// No description provided for @faq15Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Progres tidak boleh negatif dan tidak boleh melebihi total episode/chapter. Jika kamu set status \'Selesai\', aplikasi akan menawarkan untuk mengisi otomatis progres ke total. Jika progres mencapai total, status akan otomatis berubah menjadi \'Selesai\'.'**
+  String get faq15Desc;
+
+  /// No description provided for @faq16Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagaimana cara mengubah tema atau bahasa aplikasi?'**
+  String get faq16Title;
+
+  /// No description provided for @faq16Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Lainnya → Pengaturan. Di \'Tema Aplikasi\', pilih Gelap, Terang, atau Ikuti Sistem. Di \'Bahasa / Language\', pilih Indonesia atau English. Perubahan berlaku seketika di seluruh aplikasi.'**
+  String get faq16Desc;
+
+  /// No description provided for @faq17Title.
+  ///
+  /// In id, this message translates to:
+  /// **'Apa arti ikon warna di card media?'**
+  String get faq17Title;
+
+  /// No description provided for @faq17Desc.
+  ///
+  /// In id, this message translates to:
+  /// **'Titik warna di setiap card menunjukkan jenis media: Biru untuk Anime, Merah untuk Manga, Emas untuk Manhwa, Ungu untuk Manhua. Badge merah \'18+\' berarti judul mengandung konten dewasa.'**
+  String get faq17Desc;
 }
 
 class _AppLocalizationsDelegate

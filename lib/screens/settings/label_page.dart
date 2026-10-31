@@ -7,11 +7,24 @@ import '../../models/custom_label.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/label_provider.dart';
 
+Color _parseHex(String hex) {
+  try {
+    final clean = hex.replaceFirst('#', '').replaceAll(' ', '');
+    if (clean.length != 6) return AppColors.primaryGreen;
+    return Color(int.parse('FF$clean', radix: 16));
+  } catch (_) {
+    return AppColors.primaryGreen;
+  }
+}
+
 class LabelPage extends StatelessWidget {
   const LabelPage({super.key});
 
-  void _showFormDialog(BuildContext context, AppLocalizations l10n,
-      [LabelKustom? label]) {
+  void _showFormDialog(
+    BuildContext context,
+    AppLocalizations l10n, [
+    LabelKustom? label,
+  ]) {
     showDialog(
       context: context,
       builder: (dialogCtx) => _LabelFormDialog(l10n: l10n, label: label),
@@ -19,7 +32,10 @@ class LabelPage extends StatelessWidget {
   }
 
   Future<void> _konfirmasiHapus(
-      BuildContext context, AppLocalizations l10n, LabelKustom label) async {
+    BuildContext context,
+    AppLocalizations l10n,
+    LabelKustom label,
+  ) async {
     final provider = context.read<LabelProvider>();
     final collection = context.read<CollectionProvider>();
 
@@ -81,8 +97,7 @@ class LabelPage extends StatelessWidget {
                       l10n.noCategory,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color:
-                            Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -92,12 +107,13 @@ class LabelPage extends StatelessWidget {
                   itemCount: provider.labels.length,
                   itemBuilder: (context, index) {
                     final label = provider.labels[index];
+                    final labelColor = _parseHex(label.warna);
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
-                        leading: const Icon(
+                        leading: Icon(
                           Icons.label_outline,
-                          color: AppColors.primaryGreen,
+                          color: labelColor, 
                         ),
                         title: Text(label.nama),
                         trailing: Row(
@@ -145,14 +161,25 @@ class _LabelFormDialog extends StatefulWidget {
 }
 
 class _LabelFormDialogState extends State<_LabelFormDialog> {
+  static const _palette = [
+    '#5FCB97', // primaryGreen
+    '#6FA8E8', // infoBlue
+    '#E3B964', // goldPrimary
+    '#E88A7A', // typeManga
+    '#B08AE8', // typeManhua
+    '#E57373', // danger
+    '#8C9E96', // other
+  ];
+
   late final TextEditingController _namaController;
+  String _selectedWarna = '#5FCB97';
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _namaController =
-        TextEditingController(text: widget.label?.nama ?? '');
+    _namaController = TextEditingController(text: widget.label?.nama ?? '');
+    _selectedWarna = widget.label?.warna ?? '#5FCB97';
   }
 
   @override
@@ -169,10 +196,16 @@ class _LabelFormDialogState extends State<_LabelFormDialog> {
     bool success;
 
     if (widget.label == null) {
-      success = await provider.createLabel(_namaController.text.trim());
+      success = await provider.createLabel(
+        _namaController.text.trim(),
+        warna: _selectedWarna,
+      );
     } else {
       success = await provider.updateLabel(
-        widget.label!.copyWith(nama: _namaController.text.trim()),
+        widget.label!.copyWith(
+          nama: _namaController.text.trim(),
+          warna: _selectedWarna,
+        ),
       );
     }
 
@@ -213,6 +246,38 @@ class _LabelFormDialogState extends State<_LabelFormDialog> {
               ),
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _isSaving ? null : _simpan(),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Warna Label',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _palette.map((hex) {
+                final color = _parseHex(hex);
+                final isSelected = _selectedWarna == hex;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedWarna = hex),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? Colors.black : Colors.transparent,
+                        width: 3,
+                      ),
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, color: Colors.white, size: 20)
+                        : null,
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),

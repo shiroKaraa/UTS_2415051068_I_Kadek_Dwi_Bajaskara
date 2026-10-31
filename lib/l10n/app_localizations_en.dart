@@ -1105,4 +1105,129 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get itemsPerRow => 'Items per row';
+
+  @override
+  String get alternativeTitles => 'Alternative Titles';
+
+  @override
+  String get randomPick => 'Random';
+
+  @override
+  String get debugInfo => 'Debug Info';
+
+  @override
+  String get helpSearchHint => 'Search help...';
+
+  @override
+  String get helpNoResults => 'No results found for your search.';
+
+  @override
+  String get helpCatGettingStarted => 'Getting Started';
+
+  @override
+  String get helpCatCatalog => 'Catalog & Search';
+
+  @override
+  String get helpCatCollection => 'Collection & Progress';
+
+  @override
+  String get helpCatSettings => 'Settings & Display';
+
+  @override
+  String get helpCatData => 'Data & Backup';
+
+  @override
+  String get helpCatTroubleshooting => 'Troubleshooting';
+
+  @override
+  String get faq5Title => 'How do I change the card size or layout?';
+
+  @override
+  String get faq5Desc =>
+      'Open the Catalog or Collection tab, tap the \'Layout\' icon (view_quilt) in the top right, then choose Grid or List, select a card size (Small/Medium/Large), or slide \'Items per row\' (2-6). Changes apply instantly.';
+
+  @override
+  String get faq6Title => 'How do I add a custom colored label?';
+
+  @override
+  String get faq6Desc =>
+      'Go to Others → Manage Labels. Tap the + button, enter a name, choose a color from the palette, and save. When adding or editing a collection, you can assign this label. The color will appear in your collection cards.';
+
+  @override
+  String get faq7Title => 'What is the Random Pick (shuffle) button?';
+
+  @override
+  String get faq7Desc =>
+      'In the Catalog tab, tap the shuffle icon in the top bar. It randomly opens the detail page of one of the currently loaded titles. Useful when you\'re indecisive about what to watch or read.';
+
+  @override
+  String get faq8Title => 'How do I backup or restore my collection?';
+
+  @override
+  String get faq8Desc =>
+      'Go to Others → Settings → Backup & Restore. Tap \'Export\' to save your collection as a JSON file (share to Drive/Files). Tap \'Import\' to restore from a file. You can choose to Merge (add new titles) or Replace All (delete current and replace).';
+
+  @override
+  String get faq9Title => 'Why do my changes fail when offline?';
+
+  @override
+  String get faq9Desc =>
+      'When offline, the app displays cached data to prevent sync conflicts. Add, Edit, and Delete operations require an internet connection to Supabase. When your connection returns, tap \'Retry Connection\' on the yellow offline banner to sync.';
+
+  @override
+  String get faq10Title => 'What is Debug Info and how do I use it?';
+
+  @override
+  String get faq10Desc =>
+      'Go to Others → Debug Info. This page shows app version, connection status (Supabase & AniList), active settings, and the last error. Tap the copy icon in the top right to copy all info — useful for reporting bugs to the developer.';
+
+  @override
+  String get faq11Title => 'How do I enable NSFW (18+) content?';
+
+  @override
+  String get faq11Desc =>
+      'Go to Others → Settings → toggle \'NSFW Content (18+)\'. You must confirm you are 18+ before enabling. When enabled, the catalog will show 18+ titles with a red \'18+\' badge. This setting only affects the Catalog, not your collection.';
+
+  @override
+  String get faq12Title =>
+      'How do I filter the catalog by genre, year, or status?';
+
+  @override
+  String get faq12Desc =>
+      'In the Catalog tab, tap the filter icon in the top bar to open the filter sheet. You can filter by genre, tag, year, status, minimum score, and sort order. From any detail page, you can tap the year/status/genre chips to jump directly to a filtered catalog.';
+
+  @override
+  String get faq13Title => 'How do I use bulk actions (delete, label, status)?';
+
+  @override
+  String get faq13Desc =>
+      'In the Collection tab, tap the checklist icon in the top bar (or long-press an item) to enter selection mode. Select multiple items, then use the bottom bar to Delete, Change Label, or Change Status in bulk.';
+
+  @override
+  String get faq14Title => 'How do I mark an item as Favorite?';
+
+  @override
+  String get faq14Desc =>
+      'Open a collection detail page, then tap the heart icon in the top right. Favorites appear in Profile → My Favorites, where you can filter by Anime or Comic.';
+
+  @override
+  String get faq15Title => 'What do the progress validation rules do?';
+
+  @override
+  String get faq15Desc =>
+      'Progress cannot be negative and cannot exceed the total episode/chapter count. If you set status to \'Completed\', the app will offer to auto-fill progress to the total. If progress reaches the total, the status will auto-update to \'Completed\'.';
+
+  @override
+  String get faq16Title => 'How do I change the app theme or language?';
+
+  @override
+  String get faq16Desc =>
+      'Go to Others → Settings. Under \'App Theme\', choose Dark, Light, or Follow System. Under \'Language\', choose Indonesian or English. Changes apply instantly across the entire app.';
+
+  @override
+  String get faq17Title => 'What do the album cover icons mean?';
+
+  @override
+  String get faq17Desc =>
+      'The colored dot on each media card indicates the media type: Blue for Anime, Red for Manga, Gold for Manhwa, Purple for Manhua. A red \'18+\' badge means the title contains adult content.';
 }

@@ -49,7 +49,7 @@ class LabelProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createLabel(String nama) async {
+  Future<bool> createLabel(String nama, {String warna = '#5FCB97'}) async {
     final userId = _userId;
     if (userId == null) return false;
     try {
@@ -57,6 +57,7 @@ class LabelProvider extends ChangeNotifier {
         LabelKustom(
           userId: userId,
           nama: nama,
+          warna: warna,
         ),
       );
       _labels.add(newLabel);
