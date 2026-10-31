@@ -579,6 +579,20 @@ class CollectionProvider extends ChangeNotifier {
     return updateEntryPreserveUpdatedAt(updated, entri.updatedAt);
   }
 
+  void clearLabelFromEntries(int labelId) {
+    bool changed = false;
+    for (int i = 0; i < _entries.length; i++) {
+      if (_entries[i].labelId == labelId) {
+        _entries[i] = _entries[i].copyWith(clearLabelId: true);
+        changed = true;
+      }
+    }
+    if (changed) {
+      _scheduleSaveCache();
+      _notifyDataChanged();
+    }
+  }
+
   Future<bool> updateEntryPreserveUpdatedAt(
     EntriKoleksi entri,
     DateTime? preserveUpdatedAt,

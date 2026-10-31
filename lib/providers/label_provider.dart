@@ -49,7 +49,7 @@ class LabelProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createLabel(String nama, String satuan) async {
+  Future<bool> createLabel(String nama) async {
     final userId = _userId;
     if (userId == null) return false;
     try {
@@ -57,7 +57,6 @@ class LabelProvider extends ChangeNotifier {
         LabelKustom(
           userId: userId,
           nama: nama,
-          satuanProgres: satuan,
         ),
       );
       _labels.add(newLabel);
@@ -97,7 +96,7 @@ class LabelProvider extends ChangeNotifier {
     if (id == null) return false;
 
     try {
-      await _service.deleteLabel(id);
+      await _service.deleteLabel(id, label.userId);
       _labels.removeWhere((c) => c.id == id);
       notifyListeners();
       return true;

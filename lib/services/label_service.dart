@@ -40,7 +40,13 @@ class LabelService {
     return LabelKustom.fromJson(response);
   }
 
-  Future<void> deleteLabel(int id) async {
+  Future<void> deleteLabel(int id, String userId) async {
+    await _supabase
+        .from('koleksi')
+        .update({'label_id': null})
+        .eq('label_id', id)
+        .eq('user_id', userId);
+
     await _supabase
         .from('label_kustom')
         .delete()
