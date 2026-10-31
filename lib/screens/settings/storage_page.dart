@@ -67,11 +67,33 @@ class _StoragePageState extends State<StoragePage> {
   }
 
   Future<void> _hapusCacheGambar(AppLocalizations l10n) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(l10n.confirmClearCacheTitle),
+        content: Text(l10n.confirmClearCacheBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
     try {
       await DefaultCacheManager().emptyCache();
     } catch (_) {}
+
     await _hitungUkuran();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

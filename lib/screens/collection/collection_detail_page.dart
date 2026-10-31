@@ -24,11 +24,67 @@ class CollectionDetailPage extends StatelessWidget {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: Text(l10n.delete),
-        content: Text('${l10n.delete} "${entri.judul}"?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${l10n.delete} "${entri.judul}"?',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            _buildDeleteInfoRow(
+              Icons.category_outlined,
+              entri.jenis.label(l10n),
+            ),
+            _buildDeleteInfoRow(
+              Icons.flag_outlined,
+              entri.status.label(entri.jenis, l10n),
+            ),
+            _buildDeleteInfoRow(
+              Icons.play_circle_outline,
+              '${entri.progres}/${entri.total ?? "?"} '
+                  '${entri.jenis.satuanProgres(l10n)}',
+            ),
+            if (entri.rating != null)
+              _buildDeleteInfoRow(
+                Icons.star_rounded,
+                'Rating: ${entri.rating}/5',
+              ),
+            if (entri.catatan != null && entri.catatan!.isNotEmpty)
+              _buildDeleteInfoRow(
+                Icons.sticky_note_2_outlined,
+                'Catatan: ${entri.catatan!.length} karakter',
+              ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      size: 16, color: Colors.redAccent),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Progress, rating, dan catatan akan hilang. '
+                      'Tindakan ini dapat di-undo lewat SnackBar.',
+                      style: TextStyle(fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(dialogCtx, false),
-              child: Text(l10n.cancel)),
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(l10n.cancel),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
@@ -68,6 +124,21 @@ class CollectionDetailPage extends StatelessWidget {
             }
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildDeleteInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: const TextStyle(fontSize: 12)),
+          ),
+        ],
       ),
     );
   }

@@ -561,12 +561,91 @@ class _CollectionPageState extends State<CollectionPage> {
                   context: context,
                   builder: (dialogCtx) => AlertDialog(
                     title: Text(l10n.delete),
-                    content: Text('${l10n.delete} "${entri.judul}"?'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${l10n.delete} "${entri.judul}"?',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              Icon(Icons.category_outlined,
+                                  size: 14, color: Colors.grey),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(entri.jenis.label(l10n),
+                                    style: const TextStyle(fontSize: 12)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              Icon(Icons.flag_outlined,
+                                  size: 14, color: Colors.grey),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                    entri.status.label(entri.jenis, l10n),
+                                    style: const TextStyle(fontSize: 12)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              Icon(Icons.play_circle_outline,
+                                  size: 14, color: Colors.grey),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${entri.progres}/${entri.total ?? "?"} '
+                                  '${entri.jenis.satuanProgres(l10n)}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color:
+                                Colors.redAccent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.warning_amber_rounded,
+                                  size: 16, color: Colors.redAccent),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Data akan dihapus. Bisa di-undo lewat SnackBar.',
+                                  style: TextStyle(fontSize: 11),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                     actions: [
                       TextButton(
-                          onPressed: () =>
-                              Navigator.pop(dialogCtx, false),
-                          child: Text(l10n.cancel)),
+                        onPressed: () => Navigator.pop(dialogCtx, false),
+                        child: Text(l10n.cancel),
+                      ),
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, true),
                         style: TextButton.styleFrom(
@@ -597,7 +676,9 @@ class _CollectionPageState extends State<CollectionPage> {
                         final ok = await collection.createEntry(entri);
                         if (!ok && collection.errorMessage != null) {
                           messenger.showSnackBar(
-                            SnackBar(content: Text(collection.errorMessage!)),
+                            SnackBar(
+                                content:
+                                    Text(collection.errorMessage!)),
                           );
                         }
                       },
