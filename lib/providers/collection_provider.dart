@@ -384,7 +384,6 @@ class CollectionProvider extends ChangeNotifier {
   bool hasDuplicateTitle(String judul, JenisMedia jenis) {
     final key = judul.trim().toLowerCase();
     return _entries.any((e) =>
-        e.externalId == null &&
         e.jenis == jenis &&
         e.judul.trim().toLowerCase() == key);
   }

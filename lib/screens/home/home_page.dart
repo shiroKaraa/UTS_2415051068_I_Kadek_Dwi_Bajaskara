@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<RefreshIndicatorState> _refreshKey =
       GlobalKey<RefreshIndicatorState>();
   bool _claimChecked = false;
+  bool _claimDialogShown = false;
 
   @override
   void initState() {
@@ -49,8 +50,12 @@ class _HomePageState extends State<HomePage> {
     final auth = context.read<AuthProvider>();
     if (auth.isAuthenticated && !_claimChecked) {
       _claimChecked = true;
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) _maybeOfferClaim();
+      Future.delayed(const Duration(milliseconds: 500), () async {
+        if (!mounted) return;
+        try {
+          await _maybeOfferClaim();
+        } finally {
+        }
       });
     } else if (!auth.isAuthenticated) {
       _claimChecked = false;
@@ -58,6 +63,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _maybeOfferClaim() async {
+    if (_claimDialogShown) return;
     final auth = context.read<AuthProvider>();
     final settings = context.read<SettingsProvider>();
     final collection = context.read<CollectionProvider>();
@@ -74,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     final count = await collection.countClaimableCollections(deviceId);
     if (count <= 0 || !mounted) return;
 
+    _claimDialogShown = true;
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,

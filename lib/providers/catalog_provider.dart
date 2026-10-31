@@ -13,7 +13,7 @@ enum TipeError { network, rateLimit, api, unknown }
 class CatalogProvider extends ChangeNotifier {
   final AniListService _service = AniListService();
   String get _cacheKeyPopular => 'cache_popular_home_${_isNsfwEnabled ? 'nsfw' : 'sfw'}';
-  static const Duration _cacheTtl = Duration(minutes: 30);
+  static const Duration _cacheTtl = Duration(hours: 2);
   List<ItemKatalog> _items = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
@@ -413,12 +413,16 @@ class CatalogProvider extends ChangeNotifier {
     _safeNotify();
 
     try {
-      int failCount = 0;
+      AniListResult? rAnime, rManga, rManhwa, rManhua;
       final results = await Future.wait([
-        _service.fetchPage(jenis: JenisMedia.anime, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
-        _service.fetchPage(jenis: JenisMedia.manga, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
-        _service.fetchPage(jenis: JenisMedia.manhwa, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
-        _service.fetchPage(jenis: JenisMedia.manhua, page: 1, isAdult: nsfw).catchError((_) { failCount++; return AniListResult(media: [], hasNextPage: false, total: 0); }),
+        _service.fetchPage(jenis: JenisMedia.anime, page: 1, isAdult: nsfw)
+            .then((r) => rAnime = r).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.manga, page: 1, isAdult: nsfw)
+            .then((r) => rManga = r).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.manhwa, page: 1, isAdult: nsfw)
+            .then((r) => rManhwa = r).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
+        _service.fetchPage(jenis: JenisMedia.manhua, page: 1, isAdult: nsfw)
+            .then((r) => rManhua = r).catchError((_) => AniListResult(media: [], hasNextPage: false, total: 0)),
       ]);
 
       if (gen != _popularGen) return;
@@ -442,6 +446,9 @@ class CatalogProvider extends ChangeNotifier {
         _popularError = 'Gagal memuat data populer.';
       } else {
         _hasFetchedPopular = true;
+        final failCount = [
+          rAnime, rManga, rManhwa, rManhua
+        ].where((r) => r == null || (r.media.isEmpty && r.total == 0)).length;
         if (failCount == 0) {
           await _savePopularToCache(
             cacheKey,

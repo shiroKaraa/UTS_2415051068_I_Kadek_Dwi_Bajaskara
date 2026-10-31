@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthServiceException implements Exception {
   final String message;
@@ -128,11 +129,14 @@ class AuthService {
     if (response.session == null) {
       try {
         await _supabase.rpc('delete_own_account');
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Zombie account rollback failed: $e');
+      }
       throw AuthServiceException(
-        'Registrasi berhasil tetapi sesi belum aktif. '
-        'Pastikan "Confirm email" dimatikan di Dashboard Supabase '
-        '(Authentication → Providers → Email).',
+        'Registrasi tidak selesai: sesi belum aktif.\n\n'
+        'PENTING: Admin harus mematikan "Confirm email" di '
+        'Supabase Dashboard → Authentication → Providers → Email.\n\n'
+        'Hubungi developer jika masalah berlanjut.',
       );
     }
 

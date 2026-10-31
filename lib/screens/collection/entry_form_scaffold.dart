@@ -5,6 +5,7 @@ import '../../core/app_sizes.dart';
 import '../../models/collection_entry.dart';
 import '../../models/status_collection_enum.dart';
 import '../../models/catalog_item.dart';
+import '../../models/media_type_enum.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/label_provider.dart';
 import '../../widgets/cover_image.dart';
@@ -40,7 +41,11 @@ class EntryFormScaffold extends StatefulWidget {
     this.isEditing = false,
     this.existingEntry,
     this.item,
-  });
+  }) : assert(
+          isEditing ? existingEntry != null : item != null,
+          'EntryFormScaffold: jika isEditing=true, existingEntry wajib ada. '
+          'Jika isEditing=false, item wajib ada.',
+        );
 
   @override
   State<EntryFormScaffold> createState() => _EntryFormScaffoldState();
@@ -216,7 +221,8 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
       );
       berhasil = await collection.updateEntry(entriUpdate);
     } else {
-      if (collection.hasDuplicateTitle(widget.judul, widget.item!.jenis)) {
+      final jenis = widget.item?.jenis ?? JenisMedia.lainnya;
+      if (collection.hasDuplicateTitle(widget.judul, jenis)) {
         final lanjut = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -239,9 +245,9 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
       }
 
       final entriBaru = EntriKoleksi(
-        jenis: widget.item!.jenis,
+        jenis: jenis,
         labelId: _labelId,
-        externalId: 'al:${widget.item!.anilistId}',
+        externalId: widget.item != null ? 'al:${widget.item!.anilistId}' : null,
         judul: widget.judul,
         coverUrl: widget.coverUrl,
         status: statusUntukSimpan,
@@ -256,6 +262,7 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
     if (!mounted) return;
 
     if (berhasil) {
+      if (mounted) setState(() => _isDirty = false);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
@@ -335,8 +342,9 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
               ),
               const SizedBox(height: AppSizes.spacingM),
               EntryFormFields(
-                jenisMedia:
-                    widget.existingEntry?.jenis ?? widget.item!.jenis,
+                jenisMedia: widget.existingEntry?.jenis ??
+                    widget.item?.jenis ??
+                    JenisMedia.lainnya,
                 formKey: _formKey,
                 progresKey: _progresKey,
                 totalKey: _totalKey,
