@@ -155,7 +155,19 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   void _safeNotify() {
-    if (!_disposed) notifyListeners();
+    if (_disposed) return;
+    try {
+      notifyListeners();
+    } catch (e) {
+      if (e.toString().contains('setState') ||
+          e.toString().contains('markNeedsBuild')) {
+        Future.microtask(() {
+          if (!_disposed) notifyListeners();
+        });
+      } else {
+        rethrow;
+      }
+    }
   }
 
   bool _isNetworkError(Object e) {

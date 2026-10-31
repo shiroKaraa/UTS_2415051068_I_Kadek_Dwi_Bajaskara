@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/app_colors.dart';
 import '../../../core/app_sizes.dart';
 import '../../../core/profile_backgrounds.dart';
@@ -38,6 +39,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _confirmController = TextEditingController();
     _selectedEmoji = auth.avatarEmoji ?? '👤';
     _selectedBgPreset = auth.bgPreset;
+    _loadBgPresetDirect();
+  }
+
+  Future<void> _loadBgPresetDirect() async {
+    try {
+      final auth = context.read<AuthProvider>();
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'profile_bg_${auth.userId ?? "guest"}';
+      final saved = prefs.getString(key);
+      if (saved != null && mounted) {
+        setState(() => _selectedBgPreset = saved);
+      }
+    } catch (_) {}
   }
 
   @override

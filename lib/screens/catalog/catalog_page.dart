@@ -43,8 +43,8 @@ class CatalogPage extends StatefulWidget {
 class _CatalogPageState extends State<CatalogPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ValueNotifier<bool> _showBackToTop = ValueNotifier(false);
   Timer? _debounceTimer;
-  bool _showBackToTop = false;
 
   @override
   void initState() {
@@ -90,10 +90,8 @@ class _CatalogPageState extends State<CatalogPage> {
       }
 
       final shouldShow = _scrollController.position.pixels > 500;
-      if (shouldShow != _showBackToTop) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) setState(() => _showBackToTop = shouldShow);
-        });
+      if (shouldShow != _showBackToTop.value) {
+        _showBackToTop.value = shouldShow;
       }
     });
   }
@@ -103,6 +101,7 @@ class _CatalogPageState extends State<CatalogPage> {
     _searchController.dispose();
     _scrollController.dispose();
     _debounceTimer?.cancel();
+    _showBackToTop.dispose();
     super.dispose();
   }
 
@@ -674,12 +673,16 @@ class _CatalogPageState extends State<CatalogPage> {
           ),
         ],
       ),
-      floatingActionButton: _showBackToTop
-          ? FloatingActionButton.small(
-              onPressed: _scrollToTop,
-              child: const Icon(Icons.arrow_upward),
-            )
-          : null,
+      floatingActionButton: ValueListenableBuilder<bool>(
+        valueListenable: _showBackToTop,
+        builder: (context, show, _) {
+          if (!show) return const SizedBox.shrink();
+          return FloatingActionButton.small(
+            onPressed: _scrollToTop,
+            child: const Icon(Icons.arrow_upward),
+          );
+        },
+      ),
     );
   }
 

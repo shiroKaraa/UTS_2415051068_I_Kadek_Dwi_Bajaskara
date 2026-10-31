@@ -103,13 +103,17 @@ class TranslationService {
       } catch (_) {}
     }
     await prefs.remove(_indexKey);
-
-    final oldKeys = prefs
-        .getKeys()
-        .where((k) => k.startsWith('tr_id_') && !k.startsWith(_cachePrefix))
-        .toList();
-    for (final k in oldKeys) {
-      await prefs.remove(k);
+    
+    final allKeys = prefs.getKeys().toList();
+    for (final k in allKeys) {
+      if (k.startsWith(_cachePrefix)) {
+        await prefs.remove(k);
+      }
+    } 
+    for (final k in allKeys) {
+      if (k.startsWith('tr_id_') && !k.startsWith(_cachePrefix)) {
+        await prefs.remove(k);
+      }
     }
   }
 }
