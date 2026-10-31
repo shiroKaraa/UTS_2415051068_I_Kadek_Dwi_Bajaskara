@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_sizes.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/card_size_enum.dart';
 import '../../models/collection_entry.dart';
 import '../../models/media_type_enum.dart';
 import '../../providers/collection_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/collection_card.dart';
 import 'collection_detail_page.dart';
@@ -26,6 +28,20 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
+
+    final cardSize =
+        context.select<SettingsProvider, CardSize>((s) => s.cardSize);
+    final itemsPerRow =
+        context.select<SettingsProvider, int>((s) => s.itemsPerRow);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    const padding = AppSizes.spacingM * 2;
+    const spacing = 16.0;
+    final columnWidth =
+        (screenWidth - padding - (spacing * (itemsPerRow - 1))) / itemsPerRow;
+
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final posterHeight = columnWidth / (2 / 3);
+    final mainAxisExtent = posterHeight + (cardSize.textExtra * textScale);
 
     final allFavorites =
         collection.allEntries.where((e) => e.isFavorite).toList();
@@ -82,11 +98,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     : GridView.builder(
                         padding: const EdgeInsets.all(AppSizes.spacingM),
                         gridDelegate:
-                            const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 180,
-                          childAspectRatio: 0.6,
+                            SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: itemsPerRow,
                           mainAxisSpacing: 16,
                           crossAxisSpacing: 16,
+                          mainAxisExtent: mainAxisExtent,
                         ),
                         itemCount: favorites.length,
                         itemBuilder: (context, index) {

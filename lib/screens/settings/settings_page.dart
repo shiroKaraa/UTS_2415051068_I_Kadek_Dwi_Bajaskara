@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/card_size_enum.dart';
 import '../../providers/settings_provider.dart';
 import 'backup_restore_page.dart';
 
@@ -64,6 +65,27 @@ class SettingsPage extends StatelessWidget {
           ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.grid_view_rounded),
+            title: Text(l10n.cardSizeTitle),
+            subtitle: Text(l10n.cardSizeSubtitle),
+            trailing: DropdownButton<CardSize>(
+              value: settings.cardSize,
+              onChanged: (CardSize? newSize) {
+                if (newSize != null) {
+                  context.read<SettingsProvider>().setCardSize(newSize);
+                }
+              },
+              items: CardSize.values
+                  .map((s) => DropdownMenuItem(
+                        value: s,
+                        child: Text(s.label(l10n)),
+                      ))
+                  .toList(),
+            ),
+          ),
+          const Divider(),
+
+          ListTile(
             leading: const Icon(Icons.backup_outlined),
             title: Text(l10n.backupRestore),
             subtitle: Text(l10n.backupDesc),
@@ -98,7 +120,8 @@ class SettingsPage extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx, true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                        style: TextButton.styleFrom(
+                            foregroundColor: Colors.redAccent),
                         child: Text(l10n.yes),
                       ),
                     ],

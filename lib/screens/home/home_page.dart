@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final auth = context.watch<AuthProvider>();
+    final auth = context.read<AuthProvider>();
     if (auth.isAuthenticated && !_claimChecked) {
       _claimChecked = true;
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -488,7 +488,9 @@ class _ContinueSectionState extends State<_ContinueSection> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
+    final minWait = Future.delayed(const Duration(milliseconds: 400));
     final result = await provider.incrementProgress(e);
+    await minWait;
 
     if (!mounted) return;
     setState(() => _processingIds.remove(e.id));
@@ -579,11 +581,12 @@ class _PopularSection extends StatelessWidget {
             ),
           )
         else if (items.isEmpty)
-          const EmptyView(
-              title: 'Belum Ada Data',
-              subtitle: 'Data populer tidak dapat dimuat.',
-              icon: Icons.inbox_outlined,
-              scrollable: false)
+          EmptyView(
+            title: l10n.errorEmptyData,
+            subtitle: l10n.errorPopularData,
+            icon: Icons.inbox_outlined,
+            scrollable: false,
+          )
         else
           SizedBox(
             height: listHeight,

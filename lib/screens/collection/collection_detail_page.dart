@@ -244,16 +244,17 @@ class CollectionDetailPage extends StatelessWidget {
                 Text(entri.status.label(entri.jenis, l10n),
                     style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant)),
-              
+
                 if (label != null) ...[
                   const SizedBox(width: AppSizes.spacingM),
-                  Icon(Icons.label_outline, size: 16, color: AppColors.infoBlue),
+                  const Icon(Icons.label_outline,
+                      size: 16, color: AppColors.infoBlue),
                   const SizedBox(width: AppSizes.spacingXs),
                   Text(label.nama,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.infoBlue, fontWeight: FontWeight.bold)),
+                          color: AppColors.infoBlue,
+                          fontWeight: FontWeight.bold)),
                 ],
-                
               ],
             ),
             const SizedBox(height: AppSizes.spacingL),
@@ -278,61 +279,7 @@ class CollectionDetailPage extends StatelessWidget {
                     const SizedBox(height: AppSizes.spacingS),
                     ProgressBar(value: progress),
                     const SizedBox(height: AppSizes.spacingM),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.filledTonal(
-                          icon: const Icon(Icons.remove),
-                          onPressed: entri.progres > 0
-                              ? () async {
-                                  final provider =
-                                      context.read<CollectionProvider>();
-                                  final ok = await provider
-                                      .decrementProgress(entri);
-                                  if (!context.mounted) return;
-                                  if (!ok) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(
-                                            content: Text(
-                                                provider.errorMessage ??
-                                                    'Gagal')));
-                                  }
-                                }
-                              : null,
-                        ),
-                        const SizedBox(width: AppSizes.spacingL),
-                        IconButton.filledTonal(
-                          icon: const Icon(Icons.add),
-                          onPressed: () async {
-                            final provider = context.read<CollectionProvider>();
-                            final result = await provider.incrementProgress(entri);
-                            if (!context.mounted) return;
-
-                            if (result == HasilIncrement.inFlight) return;
-                            if (result == HasilIncrement.ok) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(l10n.progressAdded)),
-                              );
-                            } else if (result == HasilIncrement.offline) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(l10n.offlineMode)),
-                              );
-                            } else if (result == HasilIncrement.alreadyCompleted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(l10n.congratsCompleted)),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text(provider.errorMessage ?? l10n.errorLoadData),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
+                    _ProgressControls(entri: entri),
                   ],
                 ),
               ),
@@ -388,6 +335,111 @@ class CollectionDetailPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProgressControls extends StatefulWidget {
+  final EntriKoleksi entri;
+  const _ProgressControls({required this.entri});
+
+  @override
+  State<_ProgressControls> createState() => _ProgressControlsState();
+}
+
+class _ProgressControlsState extends State<_ProgressControls> {
+  bool _busy = false;
+
+  Future<void> _run({required bool increment}) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+
+    final provider = context.read<CollectionProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    messenger.clearSnackBars();
+    final minWait = Future.delayed(const Duration(milliseconds: 450));
+
+    HasilIncrement result;
+    try {
+      if (increment) {
+        result = await provider.incrementProgress(widget.entri);
+      } else {
+        result = await provider.decrementProgress(widget.entri);
+      }
+    } catch (_) {
+      result = HasilIncrement.error;
+    }
+
+    await minWait;
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (result == HasilIncrement.inFlight) return;
+
+    switch (result) {
+      case HasilIncrement.ok:
+        if (increment) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.progressAdded)),
+          );
+        } else {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.progressRemoved)),
+          );
+        }
+        break;
+      case HasilIncrement.offline:
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.offlineMode)),
+        );
+        break;
+      case HasilIncrement.alreadyCompleted:
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.congratsCompleted)),
+        );
+        break;
+      case HasilIncrement.error:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(provider.errorMessage ?? l10n.errorLoadData),
+          ),
+        );
+        break;
+      case HasilIncrement.inFlight:
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entri = widget.entri;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton.filledTonal(
+          icon: _busy && entri.progres > 0
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.remove),
+          onPressed: (entri.progres <= 0 || _busy)
+              ? null
+              : () => _run(increment: false),
+        ),
+        const SizedBox(width: AppSizes.spacingL),
+        IconButton.filledTonal(
+          icon: _busy
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.add),
+          onPressed: _busy ? null : () => _run(increment: true),
+        ),
+      ],
     );
   }
 }

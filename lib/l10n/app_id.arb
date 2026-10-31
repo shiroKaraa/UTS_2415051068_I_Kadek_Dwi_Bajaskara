@@ -338,5 +338,24 @@
   "bulkDeleted": "{count} koleksi dihapus.",
   "bulkUpdated": "{count} koleksi diperbarui.",
   "comic": "Komik",
-  "sortPickOrder": "Urutkan berdasarkan"
+  "sortPickOrder": "Urutkan berdasarkan",
+  "showingResultsPartial": "Menampilkan {count} dari {total} · scroll untuk memuat lebih",
+  "cardSizeTitle": "Ukuran Card",
+  "cardSizeSubtitle": "Sesuaikan ukuran card media",
+  "cardSizeSmall": "Kecil",
+  "cardSizeMedium": "Sedang",
+  "cardSizeLarge": "Besar",
+  "copy": " salin ",
+  "@copy": {
+    "description": "Menu action to copy the title to clipboard"
+  },
+  "copiedToClipboard": "Disalin ke clipboard",
+  "@copiedToClipboard": {
+    "description": "Snackbar shown after copying the title"
+  },
+  "displayMode": "Tampilan",
+  "displayGrid": "Grid",
+  "displayList": "Daftar",
+  "displayCardSize": "Ukuran card",
+  "itemsPerRow": "Item per baris"
 }

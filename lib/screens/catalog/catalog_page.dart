@@ -4,18 +4,37 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
+import '../../core/title_actions.dart';
+import '../../models/card_size_enum.dart';
 import '../../models/media_type_enum.dart';
 import '../../providers/catalog_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/empty_view.dart';
+import '../../widgets/display_mode_sheet.dart';
 import '../../widgets/skeleton/skeleton_grid_card.dart';
 import '../../widgets/skeleton/skeleton_list_card.dart';
 import 'catalog_detail_page.dart';
 
 class CatalogPage extends StatefulWidget {
-  const CatalogPage({super.key});
+  final JenisMedia? initialJenis;
+  final List<String>? initialGenres;
+  final int? initialTahun;
+  final String? initialStatus;
+  final int? initialSkorMin;
+  final String? initialQuery;
+
+  const CatalogPage({
+    super.key,
+    this.initialJenis,
+    this.initialGenres,
+    this.initialTahun,
+    this.initialStatus,
+    this.initialSkorMin,
+    this.initialQuery,
+  });
 
   @override
   State<CatalogPage> createState() => _CatalogPageState();
@@ -32,8 +51,34 @@ class _CatalogPageState extends State<CatalogPage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final catalog = context.read<CatalogProvider>();
-      if (catalog.items.isEmpty) {
+
+      final hasInitial = widget.initialJenis != null ||
+          (widget.initialGenres != null && widget.initialGenres!.isNotEmpty) ||
+          widget.initialTahun != null ||
+          widget.initialStatus != null ||
+          widget.initialSkorMin != null ||
+          (widget.initialQuery != null &&
+              widget.initialQuery!.trim().isNotEmpty);
+
+      if (hasInitial) {
+        if (widget.initialQuery != null &&
+            widget.initialQuery!.trim().isNotEmpty) {
+          final q = widget.initialQuery!.trim();
+          _searchController.text = q;
+          catalog.setQuery(q);
+        }
+        if (widget.initialJenis != null) {
+          catalog.setJenis(widget.initialJenis!);
+        }
+        catalog.setFilters(
+          genres: widget.initialGenres ?? const [],
+          tahun: widget.initialTahun,
+          status: widget.initialStatus,
+          skorMin: widget.initialSkorMin,
+        );
+      } else if (catalog.items.isEmpty) {
         catalog.fetchCatalog();
       }
     });
@@ -71,6 +116,13 @@ class _CatalogPageState extends State<CatalogPage> {
     }
   }
 
+  void _searchByTitle(String title) {
+    _debounceTimer?.cancel();
+    _searchController.text = title;
+    context.read<CatalogProvider>().setQuery(title);
+    _scrollToTop();
+  }
+
   void _showFilterSheet(BuildContext context, AppLocalizations l10n) {
     final catalog = context.read<CatalogProvider>();
     catalog.ensureGenres();
@@ -101,9 +153,11 @@ class _CatalogPageState extends State<CatalogPage> {
                     return Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(AppSizes.spacingM, AppSizes.spacingM, AppSizes.spacingM, 0),
+                          padding: const EdgeInsets.fromLTRB(AppSizes.spacingM,
+                              AppSizes.spacingM, AppSizes.spacingM, 0),
                           child: Text(l10n.filterCatalog,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                         Expanded(
                           child: ListView(
@@ -112,10 +166,18 @@ class _CatalogPageState extends State<CatalogPage> {
                             children: [
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.filterGenre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                subtitle: Text(tempGenres.isEmpty ? l10n.allGenres : tempGenres.join(', ')),
+                                title: Text(l10n.filterGenre,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                subtitle: Text(tempGenres.isEmpty
+                                    ? l10n.allGenres
+                                    : tempGenres.join(', ')),
                                 trailing: catalog.isLoadingGenres
-                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))
                                     : const Icon(Icons.arrow_drop_down),
                                 onTap: () {
                                   if (catalog.isLoadingGenres) return;
@@ -131,17 +193,27 @@ class _CatalogPageState extends State<CatalogPage> {
                                       selected: tempGenres,
                                     ),
                                   ).then((selected) {
-                                    if (selected != null) setState(() => tempGenres = selected);
+                                    if (selected != null) {
+                                      setState(() => tempGenres = selected);
+                                    }
                                   });
                                 },
                               ),
                               const Divider(),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: const Text('Tag', style: TextStyle(fontWeight: FontWeight.bold)),
-                                subtitle: Text(tempTags.isEmpty ? 'Semua Tag' : tempTags.join(', ')),
+                                title: const Text('Tag',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                subtitle: Text(tempTags.isEmpty
+                                    ? 'Semua Tag'
+                                    : tempTags.join(', ')),
                                 trailing: catalog.isLoadingTags
-                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))
                                     : const Icon(Icons.arrow_drop_down),
                                 onTap: () {
                                   if (catalog.isLoadingTags) return;
@@ -157,13 +229,15 @@ class _CatalogPageState extends State<CatalogPage> {
                                       selected: tempTags,
                                     ),
                                   ).then((selected) {
-                                    if (selected != null) setState(() => tempTags = selected);
+                                    if (selected != null) {
+                                      setState(() => tempTags = selected);
+                                    }
                                   });
                                 },
                               ),
                               Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 2, bottom: 6),
+                                padding:
+                                    const EdgeInsets.only(top: 2, bottom: 6),
                                 child: Row(
                                   children: [
                                     Icon(
@@ -190,49 +264,122 @@ class _CatalogPageState extends State<CatalogPage> {
                               ),
                               const Divider(),
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: AppSizes.spacingS),
                                 child: DropdownButtonFormField<int>(
                                   initialValue: tempTahun,
-                                  decoration: InputDecoration(labelText: l10n.filterYear, border: const OutlineInputBorder(), isDense: true),
+                                  decoration: InputDecoration(
+                                      labelText: l10n.filterYear,
+                                      border: const OutlineInputBorder(),
+                                      isDense: true),
                                   items: [
-                                    DropdownMenuItem(value: null, child: Text(l10n.all)),
-                                    ...List.generate(30, (i) => DateTime.now().year - i).map((thn) {
-                                      return DropdownMenuItem(value: thn, child: Text(thn.toString()));
+                                    DropdownMenuItem(
+                                        value: null, child: Text(l10n.all)),
+                                    ...List.generate(
+                                            30, (i) => DateTime.now().year - i)
+                                        .map((thn) {
+                                      return DropdownMenuItem(
+                                          value: thn,
+                                          child: Text(thn.toString()));
                                     }),
                                   ],
-                                  onChanged: (val) => setState(() => tempTahun = val),
+                                  onChanged: (val) =>
+                                      setState(() => tempTahun = val),
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: AppSizes.spacingS),
                                 child: DropdownButtonFormField<int>(
                                   initialValue: tempSkorMin,
-                                  decoration: InputDecoration(labelText: l10n.filterScore, border: const OutlineInputBorder(), isDense: true),
+                                  decoration: InputDecoration(
+                                      labelText: l10n.filterScore,
+                                      border: const OutlineInputBorder(),
+                                      isDense: true),
                                   items: [
-                                    DropdownMenuItem(value: null, child: Text(l10n.all)),
-                                    DropdownMenuItem(value: 5, child: Text('≥ 5')),
-                                    DropdownMenuItem(value: 6, child: Text('≥ 6')),
-                                    DropdownMenuItem(value: 7, child: Text('≥ 7')),
-                                    DropdownMenuItem(value: 8, child: Text('≥ 8')),
-                                    DropdownMenuItem(value: 9, child: Text('≥ 9')),
+                                    DropdownMenuItem(
+                                        value: null, child: Text(l10n.all)),
+                                    DropdownMenuItem(
+                                        value: 5, child: Text('≥ 5')),
+                                    DropdownMenuItem(
+                                        value: 6, child: Text('≥ 6')),
+                                    DropdownMenuItem(
+                                        value: 7, child: Text('≥ 7')),
+                                    DropdownMenuItem(
+                                        value: 8, child: Text('≥ 8')),
+                                    DropdownMenuItem(
+                                        value: 9, child: Text('≥ 9')),
                                   ],
-                                  onChanged: (val) => setState(() => tempSkorMin = val),
+                                  onChanged: (val) =>
+                                      setState(() => tempSkorMin = val),
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
-                                child: DropdownButtonFormField<UrutanKatalog>(
-                                  initialValue: tempUrutan,
-                                  decoration: InputDecoration(labelText: l10n.sortBy, border: const OutlineInputBorder(), isDense: true),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: AppSizes.spacingS),
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: tempStatus,
+                                  decoration: InputDecoration(
+                                    labelText: l10n.filterStatus,
+                                    border: const OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
                                   items: [
-                                    DropdownMenuItem(value: UrutanKatalog.populer, child: Text(l10n.sortPopular)),
-                                    if (catalog.query.isNotEmpty)
-                                      DropdownMenuItem(value: UrutanKatalog.relevan, child: const Text('Relevan')),
-                                    DropdownMenuItem(value: UrutanKatalog.skor, child: Text(l10n.sortScore)),
-                                    DropdownMenuItem(value: UrutanKatalog.terbaru, child: Text(l10n.sortNewest)),
-                                    DropdownMenuItem(value: UrutanKatalog.judul, child: Text(l10n.sortTitle)),
+                                    DropdownMenuItem(
+                                        value: null, child: Text(l10n.all)),
+                                    DropdownMenuItem(
+                                        value: 'RELEASING',
+                                        child: Text(l10n.statusAiring)),
+                                    DropdownMenuItem(
+                                        value: 'FINISHED',
+                                        child: Text(l10n.statusFinished)),
+                                    DropdownMenuItem(
+                                        value: 'NOT_YET_RELEASED',
+                                        child: Text(l10n.statusUpcoming)),
+                                    DropdownMenuItem(
+                                        value: 'CANCELLED',
+                                        child: Text(l10n.statusDropped)),
+                                    DropdownMenuItem(
+                                        value: 'HIATUS',
+                                        child: Text(l10n.statusPaused)),
                                   ],
-                                  onChanged: (val) { if (val != null) setState(() => tempUrutan = val); },
+                                  onChanged: (val) =>
+                                      setState(() => tempStatus = val),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: AppSizes.spacingS),
+                                child:
+                                    DropdownButtonFormField<UrutanKatalog>(
+                                  initialValue: tempUrutan,
+                                  decoration: InputDecoration(
+                                      labelText: l10n.sortBy,
+                                      border: const OutlineInputBorder(),
+                                      isDense: true),
+                                  items: [
+                                    DropdownMenuItem(
+                                        value: UrutanKatalog.populer,
+                                        child: Text(l10n.sortPopular)),
+                                    if (catalog.query.isNotEmpty)
+                                      DropdownMenuItem(
+                                          value: UrutanKatalog.relevan,
+                                          child: const Text('Relevan')),
+                                    DropdownMenuItem(
+                                        value: UrutanKatalog.skor,
+                                        child: Text(l10n.sortScore)),
+                                    DropdownMenuItem(
+                                        value: UrutanKatalog.terbaru,
+                                        child: Text(l10n.sortNewest)),
+                                    DropdownMenuItem(
+                                        value: UrutanKatalog.judul,
+                                        child: Text(l10n.sortTitle)),
+                                  ],
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      setState(() => tempUrutan = val);
+                                    }
+                                  },
                                 ),
                               ),
                               const SizedBox(height: AppSizes.spacingXl),
@@ -251,8 +398,12 @@ class _CatalogPageState extends State<CatalogPage> {
                                       Navigator.pop(sheetCtx);
                                     },
                                     style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
-                                      side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      side: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .outline),
                                     ),
                                     child: Text(l10n.reset),
                                   ),
@@ -272,12 +423,18 @@ class _CatalogPageState extends State<CatalogPage> {
                                       Navigator.pop(sheetCtx);
                                     },
                                     style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
-                                      backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.15),
-                                      side: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      backgroundColor: AppColors.primaryGreen
+                                          .withValues(alpha: 0.15),
+                                      side: const BorderSide(
+                                          color: AppColors.primaryGreen,
+                                          width: 1.5),
                                     ),
                                     child: Text(l10n.apply,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryGreen)),
                                   ),
                                 ),
                               ],
@@ -300,6 +457,20 @@ class _CatalogPageState extends State<CatalogPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final catalog = context.watch<CatalogProvider>();
+    context.watch<SettingsProvider>();
+
+    final cardSize =
+        context.select<SettingsProvider, CardSize>((s) => s.cardSize);
+    final itemsPerRow =
+        context.select<SettingsProvider, int>((s) => s.itemsPerRow);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    const padding = AppSizes.spacingM * 2;
+    const spacing = 16.0;
+    final columnWidth =
+        (screenWidth - padding - (spacing * (itemsPerRow - 1))) / itemsPerRow;
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final posterHeight = columnWidth / (2 / 3);
+    final mainAxisExtent = posterHeight + (cardSize.textExtra * textScale);
 
     return Scaffold(
       appBar: AppBar(
@@ -332,6 +503,17 @@ class _CatalogPageState extends State<CatalogPage> {
             icon: Icon(catalog.isListView ? Icons.grid_view : Icons.view_list),
             tooltip: catalog.isListView ? l10n.gridView : l10n.listView,
             onPressed: () => catalog.toggleView(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.view_quilt_outlined),
+            tooltip: 'Tampilan',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => const DisplayModeSheet(),
+              );
+            },
           ),
         ],
       ),
@@ -378,13 +560,15 @@ class _CatalogPageState extends State<CatalogPage> {
               ),
             ),
           ),
-
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
             child: Row(
               children: [
-                ...JenisMedia.values.where((jenis) => jenis != JenisMedia.lainnya).map((jenis) {
+                ...JenisMedia.values
+                    .where((jenis) => jenis != JenisMedia.lainnya)
+                    .map((jenis) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: ChoiceChip(
@@ -417,22 +601,24 @@ class _CatalogPageState extends State<CatalogPage> {
           const SizedBox(height: AppSizes.spacingS),
           if (!catalog.isLoading && catalog.items.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.spacingM),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      catalog.totalResults >= catalog.items.length
-                          ? l10n.showingResults(
+                      (catalog.hasNextPage &&
+                              catalog.items.length < catalog.totalResults)
+                          ? l10n.showingResultsPartial(
                               catalog.items.length, catalog.totalResults)
-                          : l10n.showingResults(catalog.items.length,
-                              catalog.items.length),
+                          : l10n.showingResults(
+                              catalog.items.length,
+                              catalog.totalResults > 0
+                                  ? catalog.totalResults
+                                  : catalog.items.length),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -443,26 +629,28 @@ class _CatalogPageState extends State<CatalogPage> {
                           size: 14, color: Colors.redAccent),
                       label: const Text(
                         'Coba Lagi',
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.redAccent),
+                        style: TextStyle(fontSize: 11, color: Colors.redAccent),
                       ),
                       style: TextButton.styleFrom(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         minimumSize: Size.zero,
-                        tapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
                       ),
                     ),
                 ],
               ),
             ),
-
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => context.read<CatalogProvider>().refresh(),
-              child: _buildContent(context, catalog, l10n),
+              child: _buildContent(
+                context,
+                catalog,
+                l10n,
+                itemsPerRow,
+                mainAxisExtent,
+              ),
             ),
           ),
         ],
@@ -477,7 +665,12 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   Widget _buildContent(
-      BuildContext context, CatalogProvider catalog, AppLocalizations l10n) {
+    BuildContext context,
+    CatalogProvider catalog,
+    AppLocalizations l10n,
+    int itemsPerRow,
+    double mainAxisExtent,
+  ) {
     if (catalog.isLoading) {
       if (catalog.isListView) {
         return ListView.builder(
@@ -488,12 +681,11 @@ class _CatalogPageState extends State<CatalogPage> {
       }
       return GridView.builder(
         padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 180,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: itemsPerRow,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          mainAxisExtent: 180 * 1.5 +
-              (56 * MediaQuery.textScalerOf(context).scale(1.0)),
+          mainAxisExtent: mainAxisExtent,
         ),
         itemCount: 12,
         itemBuilder: (context, index) => const SkeletonGridCard(),
@@ -554,10 +746,19 @@ class _CatalogPageState extends State<CatalogPage> {
                 borderRadius: BorderRadius.circular(8),
                 child: CoverImage(url: item.coverUrl, width: 50, height: 70),
               ),
-              title: Text(item.displayTitle,
+              title: GestureDetector(
+                onLongPress: () => showTitleActions(
+                  context,
+                  title: item.displayTitle,
+                  onSearch: () => _searchByTitle(item.displayTitle),
+                ),
+                child: Text(
+                  item.displayTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               subtitle: Text(
                 '${item.total ?? "?"} ${item.jenis.satuanProgres(l10n)}',
                 style: TextStyle(
@@ -595,12 +796,11 @@ class _CatalogPageState extends State<CatalogPage> {
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
           sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 180,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: itemsPerRow,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              mainAxisExtent: 180 * 1.5 +
-                  (56 * MediaQuery.textScalerOf(context).scale(1.0)),
+              mainAxisExtent: mainAxisExtent,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -616,6 +816,7 @@ class _CatalogPageState extends State<CatalogPage> {
                       ),
                     );
                   },
+                  onSearch: () => _searchByTitle(item.displayTitle),
                 );
               },
               childCount: catalog.items.length,

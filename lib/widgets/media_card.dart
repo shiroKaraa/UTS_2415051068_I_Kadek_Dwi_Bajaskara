@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
+import '../../core/app_extras.dart'; 
 import '../../core/app_sizes.dart';
+import '../../core/title_actions.dart';
 import '../../models/catalog_item.dart';
-import '../../models/media_type_enum.dart';
 import 'adult_badge.dart';
 import 'cover_image.dart';
 import 'media_type_chip.dart';
@@ -12,6 +13,7 @@ class MediaCard extends StatelessWidget {
   final ItemKatalog item;
   final VoidCallback onTap;
   final VoidCallback? onAddProgress;
+  final VoidCallback? onSearch;
   final double? width;
   final String? heroTag;
   final bool showAdultBadge;
@@ -21,6 +23,7 @@ class MediaCard extends StatelessWidget {
     required this.item,
     required this.onTap,
     this.onAddProgress,
+    this.onSearch,
     this.width,
     this.heroTag,
     this.showAdultBadge = true,
@@ -30,6 +33,7 @@ class MediaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final satuan = item.jenis.satuanProgres(l10n);
+    final x = context.extras;
 
     final poster = ClipRRect(
       borderRadius: BorderRadius.circular(AppSizes.radiusM),
@@ -77,7 +81,7 @@ class MediaCard extends StatelessWidget {
             left: AppSizes.spacingS,
             child: MediaTypeChip(
               label: item.jenis.label(l10n),
-              dotColor: _getColorForType(item.jenis),
+              dotColor: x.typeColor(item.jenis),
             ),
           ),
           if (showAdultBadge && item.isAdult)
@@ -105,12 +109,19 @@ class MediaCard extends StatelessWidget {
                   : poster,
             ),
             const SizedBox(height: AppSizes.spacingS),
-            Text(
-              item.displayTitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            GestureDetector(
+              onLongPress: () => showTitleActions(
+                context,
+                title: item.displayTitle,
+                onSearch: onSearch,
+              ),
+              child: Text(
+                item.displayTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 14),
+              ),
             ),
             Text(
               '${item.total ?? "?"} $satuan',
@@ -124,18 +135,4 @@ class MediaCard extends StatelessWidget {
     );
   }
 
-  Color _getColorForType(JenisMedia jenis) {
-    switch (jenis) {
-      case JenisMedia.anime:
-        return AppColors.typeAnime;
-      case JenisMedia.manga:
-        return AppColors.typeManga;
-      case JenisMedia.manhwa:
-        return AppColors.typeManhwa;
-      case JenisMedia.manhua:
-        return AppColors.typeManhua;
-      default:
-        return AppColors.typeLainnya;
-    }
-  }
 }

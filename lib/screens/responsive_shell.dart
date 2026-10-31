@@ -45,11 +45,16 @@ class _ResponsiveShellState extends State<ResponsiveShell>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!mounted) return;
+    final provider = context.read<CollectionProvider>();
+
     if (state == AppLifecycleState.resumed) {
-      final provider = context.read<CollectionProvider>();
       if (provider.isOffline) {
         provider.retryConnection();
       }
+    } else if (state == AppLifecycleState.paused ||
+               state == AppLifecycleState.inactive) {
+      provider.flushCache();
     }
   }
 

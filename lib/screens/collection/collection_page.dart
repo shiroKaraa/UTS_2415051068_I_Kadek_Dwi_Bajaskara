@@ -5,15 +5,18 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
+import '../../models/card_size_enum.dart';
 import '../../models/custom_label.dart';
 import '../../models/media_type_enum.dart';
 import '../../models/status_collection_enum.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/label_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/skeleton/skeleton_grid_card.dart';
 import '../../widgets/skeleton/skeleton_list_card.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/empty_view.dart';
+import '../../widgets/display_mode_sheet.dart';
 import '../../widgets/collection_card.dart';
 import '../../widgets/collection_list_card.dart';
 import '../catalog/catalog_page.dart';
@@ -124,7 +127,6 @@ class _CollectionPageState extends State<CollectionPage> {
                   }).toList(),
                 ),
               ),
-              // ▲ UBAH ▲
               const Divider(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -458,6 +460,7 @@ class _CollectionPageState extends State<CollectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
+    context.watch<SettingsProvider>(); 
 
     if (collection.query != _lastQuery) {
       _lastQuery = collection.query;
@@ -668,6 +671,17 @@ class _CollectionPageState extends State<CollectionPage> {
           tooltip: l10n.selectItems,
           onPressed: () => _enterSelectionMode(),
         ),
+        IconButton(
+        icon: const Icon(Icons.view_quilt_outlined),
+          tooltip: 'Tampilan',
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => const DisplayModeSheet(),
+            );
+          },
+        ),
       ],
     );
   }
@@ -786,8 +800,30 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
+  ({int itemsPerRow, double mainAxisExtent}) _computeGridMetrics(
+      BuildContext context, CardSize cardSize) {
+    final settings = context.read<SettingsProvider>();
+    final itemsPerRow = settings.itemsPerRow;
+
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final padding = AppSizes.spacingM * 2;
+    const spacing = 16.0;
+    final columnWidth =
+        (screenWidth - padding - (spacing * (itemsPerRow - 1))) / itemsPerRow;
+
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final posterHeight = columnWidth / (2 / 3);
+    final mainAxisExtent = posterHeight + (cardSize.textExtra * textScale);
+
+    return (itemsPerRow: itemsPerRow, mainAxisExtent: mainAxisExtent);
+  }
+
   Widget _buildContent(BuildContext context, CollectionProvider collection,
       AppLocalizations l10n) {
+    final cardSize =
+        context.select<SettingsProvider, CardSize>((s) => s.cardSize);
+    final metrics = _computeGridMetrics(context, cardSize);
+
     if (collection.isLoading && collection.allEntries.isEmpty) {
       if (collection.isListView) {
         return ListView.builder(
@@ -800,12 +836,11 @@ class _CollectionPageState extends State<CollectionPage> {
       return GridView.builder(
         padding: const EdgeInsets.all(AppSizes.spacingM),
         physics: const AlwaysScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 180,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: metrics.itemsPerRow,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          mainAxisExtent: 180 * 1.5 +
-              (72 * MediaQuery.textScalerOf(context).scale(1.0)),
+          mainAxisExtent: metrics.mainAxisExtent,
         ),
         itemCount: 6,
         itemBuilder: (context, index) => const SkeletonGridCard(),
@@ -843,21 +878,23 @@ class _CollectionPageState extends State<CollectionPage> {
     if (collection.isListView) {
       return _buildListView(context, collection, l10n);
     } else {
-      return _buildGridView(context, collection);
+      return _buildGridView(context, collection, metrics);
     }
   }
 
   Widget _buildGridView(
-      BuildContext context, CollectionProvider collection) {
+    BuildContext context,
+    CollectionProvider collection,
+    ({int itemsPerRow, double mainAxisExtent}) metrics,
+  ) {
     return GridView.builder(
       padding: const EdgeInsets.all(AppSizes.spacingM),
       physics: const AlwaysScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 180,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: metrics.itemsPerRow,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        mainAxisExtent: 180 * 1.5 +
-            (72 * MediaQuery.textScalerOf(context).scale(1.0)),
+        mainAxisExtent: metrics.mainAxisExtent,
       ),
       itemCount: collection.entries.length,
       itemBuilder: (context, index) {
@@ -938,25 +975,35 @@ class _CollectionPageState extends State<CollectionPage> {
             final provider = context.read<CollectionProvider>();
             final messenger = ScaffoldMessenger.of(context);
             messenger.clearSnackBars();
+            final minWait =
+                Future.delayed(const Duration(milliseconds: 400));
 
             final result = await provider.incrementProgress(entri);
+            await minWait;
             if (!context.mounted) return;
             setState(() => _processingIds.remove(entri.id));
 
             if (result == HasilIncrement.inFlight) return;
-            if (result == HasilIncrement.ok) {
-              messenger.showSnackBar(
-                  SnackBar(content: Text(l10n.progressAdded)));
-            } else if (result == HasilIncrement.offline) {
-              messenger.showSnackBar(
-                  SnackBar(content: Text(l10n.offlineMode)));
-            } else if (result == HasilIncrement.alreadyCompleted) {
-              messenger.showSnackBar(
-                  SnackBar(content: Text(l10n.congratsCompleted)));
-            } else {
-              messenger.showSnackBar(SnackBar(
-                  content:
-                      Text(provider.errorMessage ?? l10n.errorLoadData)));
+            switch (result) {
+              case HasilIncrement.ok:
+                messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.progressAdded)));
+                break;
+              case HasilIncrement.offline:
+                messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.offlineMode)));
+                break;
+              case HasilIncrement.alreadyCompleted:
+                messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.congratsCompleted)));
+                break;
+              case HasilIncrement.inFlight:
+                break;
+              case HasilIncrement.error:
+                messenger.showSnackBar(SnackBar(
+                    content: Text(
+                        provider.errorMessage ?? l10n.errorLoadData)));
+                break;
             }
           },
         );

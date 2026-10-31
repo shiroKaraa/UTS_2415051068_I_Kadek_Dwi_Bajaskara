@@ -34,13 +34,21 @@ class _BackupRestorePageState extends State<BackupRestorePage> {
       return;
     }
 
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = (box != null && box.hasSize)
+        ? box.localToGlobal(Offset.zero) & box.size
+        : const Rect.fromLTWH(0, 0, 1, 1);
+
     setState(() {
       _isProcessing = true;
       _progressText = null;
     });
 
     try {
-      final path = await _backupService.exportToJson(collection.allEntries);
+      final path = await _backupService.exportToJson(
+        collection.allEntries,
+        sharePositionOrigin: origin,
+      );
       if (!mounted) return;
       _snack('${l10n.exportTitle}: ${p.basename(path)}');
     } on BackupException catch (e) {

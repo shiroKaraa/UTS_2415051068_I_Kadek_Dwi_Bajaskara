@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
+import '../../core/app_extras.dart';
 import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
 import '../../models/media_type_enum.dart';
@@ -12,6 +13,7 @@ import '../../widgets/adult_badge.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/cover_preview_dialog.dart';
 import '../../widgets/media_type_chip.dart';
+import '../catalog/catalog_page.dart';
 import '../collection/collection_detail_page.dart';
 import '../collection/entry_form_page.dart';
 
@@ -47,6 +49,40 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
   void dispose() {
     _anilist.dispose();
     super.dispose();
+  }
+
+  Future<void> _openCatalogWithFilters({
+    JenisMedia? jenis,
+    List<String>? genres,
+    int? tahun,
+    String? status,
+    int? skorMin,
+    String? query,
+  }) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CatalogPage(
+          initialJenis: jenis,
+          initialGenres: genres,
+          initialTahun: tahun,
+          initialStatus: status,
+          initialSkorMin: skorMin,
+          initialQuery: query,
+        ),
+      ),
+    );
+  }
+
+  bool _anilistStatusIsFilterable(String status) {
+    const allowed = {
+      'RELEASING',
+      'FINISHED',
+      'NOT_YET_RELEASED',
+      'CANCELLED',
+      'HIATUS',
+    };
+    return allowed.contains(status);
   }
 
   Future<void> _muatDetailLengkap() async {
@@ -113,21 +149,6 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
     return text;
   }
 
-  Color _getColorForType(JenisMedia jenis) {
-    switch (jenis) {
-      case JenisMedia.anime:
-        return AppColors.typeAnime;
-      case JenisMedia.manga:
-        return AppColors.typeManga;
-      case JenisMedia.manhwa:
-        return AppColors.typeManhwa;
-      case JenisMedia.manhua:
-        return AppColors.typeManhua;
-      default:
-        return AppColors.typeLainnya;
-    }
-  }
-
   void _openCoverPreview(String? url, String title) {
     if (url == null || url.isEmpty) return;
     showDialog(
@@ -142,19 +163,17 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
     final theme = Theme.of(context);
     final isId = l10n.localeName.startsWith('id');
     final item = _detail ?? widget.item;
+    final x = context.extras;
 
     final sinopsisTampil = !isId
         ? _rawSinopsis
         : (_sinopsisTerjemahan ?? _rawSinopsis);
     final sinopsisKosong = _rawSinopsis.isEmpty;
 
-    final existingEntry =
-        context.select<CollectionProvider, EntriKoleksiView?>((p) {
-      final e = p.findByExternal('al:${item.anilistId}', item.jenis);
-      if (e == null) return null;
-      return EntriKoleksiView(id: e.id!, judul: e.judul);
-    });
-    final inCollection = existingEntry != null;
+    final existingId = context.select<CollectionProvider, int?>(
+      (p) => p.findByExternal('al:${item.anilistId}', item.jenis)?.id,
+    );
+    final inCollection = existingId != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -209,7 +228,7 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                             children: [
                               MediaTypeChip(
                                 label: item.jenis.label(l10n),
-                                dotColor: _getColorForType(item.jenis),
+                                dotColor: x.typeColor(item.jenis),
                               ),
                               if (item.isAdult) ...[
                                 const SizedBox(width: 6),
@@ -280,6 +299,16 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                     icon: Icons.star_rounded,
                     label: item.skor!.toStringAsFixed(1),
                     color: AppColors.goldPrimary,
+                    tooltip: l10n.filterScore,
+                    onTap: () {
+                      final rounded = item.skor!.round().clamp(1, 10);
+                      if (rounded >= 5) {
+                        _openCatalogWithFilters(
+                          jenis: item.jenis,
+                          skorMin: rounded,
+                        );
+                      }
+                    },
                   ),
                 if (item.tahunRilis != null)
                   _infoChip(
@@ -287,6 +316,13 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                     icon: Icons.calendar_today,
                     label: item.tahunRilis.toString(),
                     color: AppColors.infoBlue,
+                    tooltip: l10n.filterYear,
+                    onTap: () {
+                      _openCatalogWithFilters(
+                        jenis: item.jenis,
+                        tahun: item.tahunRilis,
+                      );
+                    },
                   ),
                 if (item.statusTayang != null)
                   _infoChip(
@@ -294,13 +330,22 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                     icon: Icons.play_circle_outline,
                     label: item.statusTayang!,
                     color: AppColors.primaryGreen,
+                    tooltip: l10n.filterStatus,
+                    onTap: _anilistStatusIsFilterable(item.statusTayang!)
+                        ? () {
+                            _openCatalogWithFilters(
+                              jenis: item.jenis,
+                              status: item.statusTayang,
+                            );
+                          }
+                        : null,
                   ),
                 if (item.total != null)
                   _infoChip(
                     context,
                     icon: Icons.menu_book_outlined,
                     label: '${item.total} ${item.jenis.satuanProgres(l10n)}',
-                    color: _getColorForType(item.jenis),
+                    color: x.typeColor(item.jenis),
                   ),
               ],
             ),
@@ -309,8 +354,19 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
               Wrap(
                 spacing: AppSizes.spacingS,
                 runSpacing: AppSizes.spacingS,
-                children:
-                    item.genres.map((g) => Chip(label: Text(g))).toList(),
+                children: item.genres.map((g) {
+                  return ActionChip(
+                    avatar: const Icon(Icons.filter_alt_outlined, size: 16),
+                    label: Text(g),
+                    tooltip: '${l10n.filterGenre}: $g',
+                    onPressed: () {
+                      _openCatalogWithFilters(
+                        jenis: item.jenis,
+                        genres: [g],
+                      );
+                    },
+                  );
+                }).toList(),
               ),
             ],
             if (_detailFailed) ...[
@@ -399,9 +455,7 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CollectionDetailPage(
-                              id: existingEntry.id,
-                            ),
+                            builder: (context) => CollectionDetailPage(id: existingId),
                           ),
                         );
                       },
@@ -445,8 +499,10 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
     required IconData icon,
     required String label,
     required Color color,
+    VoidCallback? onTap,
+    String? tooltip,
   }) {
-    return Container(
+    final content = Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSizes.spacingM,
         vertical: AppSizes.spacingS,
@@ -469,25 +525,31 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
               fontWeight: FontWeight.w600,
             ),
           ),
+          if (onTap != null) ...[
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right,
+                size: 14, color: color.withValues(alpha: 0.7)),
+          ],
         ],
       ),
     );
+
+    if (onTap == null) return content;
+
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppSizes.radiusM),
+            child: content,
+          ),
+        ),
+      ),
+    );
   }
-}
-
-class EntriKoleksiView {
-  final int id;
-  final String judul;
-  EntriKoleksiView({required this.id, required this.judul});
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is EntriKoleksiView &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          judul == other.judul;
-
-  @override
-  int get hashCode => id.hashCode ^ judul.hashCode;
 }

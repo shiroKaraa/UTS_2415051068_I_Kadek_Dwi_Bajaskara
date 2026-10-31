@@ -30,7 +30,8 @@ class AniListService {
   static const String _lightFields = '''
     id
     idMal
-    title { romaji english }
+    title { romaji english native }
+    synonyms
     coverImage { large }
     averageScore
     episodes
@@ -46,6 +47,7 @@ class AniListService {
     id
     idMal
     title { romaji english native }
+    synonyms
     coverImage { large extraLarge }
     bannerImage
     averageScore

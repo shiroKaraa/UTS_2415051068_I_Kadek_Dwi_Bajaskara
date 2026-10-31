@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_extras.dart';
 import '../core/app_sizes.dart';
+import '../core/title_actions.dart';
 import '../l10n/app_localizations.dart';
 import '../models/collection_entry.dart';
 import '../models/status_collection_enum.dart';
@@ -41,6 +42,8 @@ class CollectionListCard extends StatelessWidget {
     final statusColor = x.statusColor(entri.status);
     final done = entri.status == StatusKoleksi.selesai;
     final unit = entri.jenis.satuanProgres(l10n);
+    final hasCatatan = entri.catatan != null && entri.catatan!.isNotEmpty;
+    const double contentHeight = 140;
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSizes.spacingM),
@@ -64,7 +67,7 @@ class CollectionListCard extends StatelessWidget {
             children: [
               if (isSelectionMode) ...[
                 Padding(
-                  padding: const EdgeInsets.only(right: 8, top: 50),
+                  padding: const EdgeInsets.only(right: 8, top: 60),
                   child: Icon(
                     isSelected
                         ? Icons.check_circle
@@ -95,22 +98,55 @@ class CollectionListCard extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: SizedBox(
-                  height: 126,
+                  height: contentHeight,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        entri.judul,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                      GestureDetector(
+                        onLongPress: () => showTitleActions(
+                          context,
+                          title: entri.judul,
+                        ),
+                        child: Text(
+                          entri.judul,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 6),
                       _StatusPill(
                         label: entri.status.netralLabel(l10n),
                         color: statusColor,
                       ),
+                      if (hasCatatan) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.sticky_note_2_outlined,
+                              size: 11,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 3),
+                            Expanded(
+                              child: Text(
+                                entri.catatan!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontStyle: FontStyle.italic,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const Spacer(),
                       Row(
                         children: [

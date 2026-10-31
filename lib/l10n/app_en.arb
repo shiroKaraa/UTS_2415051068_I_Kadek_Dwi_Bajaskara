@@ -337,5 +337,24 @@
   "bulkDeleted": "{count} items deleted.",
   "bulkUpdated": "{count} items updated.",
   "comic": "Comic",
-  "sortPickOrder": "Sort by"
+  "sortPickOrder": "Sort by",
+  "showingResultsPartial": "Showing {count} of {total} · scroll to load more",
+  "cardSizeTitle": "Card Size",
+  "cardSizeSubtitle": "Adjust the size of media cards",
+  "cardSizeSmall": "Small",
+  "cardSizeMedium": "Medium",
+  "cardSizeLarge": "Large",
+  "copy": "Copy",
+  "@copy": {
+    "description": "Menu action to copy the title to clipboard"
+  },
+  "copiedToClipboard": "Copied to clipboard",
+  "@copiedToClipboard": {
+    "description": "Snackbar shown after copying the title"
+  },
+  "displayMode": "Display",
+  "displayGrid": "Grid",
+  "displayList": "List",
+  "displayCardSize": "Card size",
+  "itemsPerRow": "Items per row"
 }

@@ -1064,4 +1064,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sortPickOrder => 'Sort by';
+
+  @override
+  String showingResultsPartial(Object count, Object total) {
+    return 'Showing $count of $total · scroll to load more';
+  }
+
+  @override
+  String get cardSizeTitle => 'Card Size';
+
+  @override
+  String get cardSizeSubtitle => 'Adjust the size of media cards';
+
+  @override
+  String get cardSizeSmall => 'Small';
+
+  @override
+  String get cardSizeMedium => 'Medium';
+
+  @override
+  String get cardSizeLarge => 'Large';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get displayMode => 'Display';
+
+  @override
+  String get displayGrid => 'Grid';
+
+  @override
+  String get displayList => 'List';
+
+  @override
+  String get displayCardSize => 'Card size';
+
+  @override
+  String get itemsPerRow => 'Items per row';
 }

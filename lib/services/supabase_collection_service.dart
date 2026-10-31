@@ -93,18 +93,50 @@ class SupabaseCollectionService implements CollectionDataSource {
       throw Exception('Gagal update: Entri belum tersimpan (ID kosong).');
     }
     final userId = _requireUserId();
-    final payload = entri.toJson()
-      ..remove('user_id')
-      ..remove('device_id');
-    final response = await _supabase
-        .from('koleksi')
-        .update(payload)
-        .eq('id', id)
-        .eq('user_id', userId)
-        .select()
-        .single()
-        .timeout(_timeout, onTimeout: () => throw TimeoutException('Update timeout'));
-    return EntriKoleksi.fromJson(response);
+    final payload = <String, dynamic>{
+      'jenis': entri.jenis.name,
+      'label_id': entri.labelId,
+      'external_id': entri.externalId,
+      'judul': entri.judul,
+      'cover_url': entri.coverUrl,
+      'status': entri.status.name,
+      'progres': entri.progres,
+      'total': entri.total,
+      'rating': entri.rating,
+      'catatan': entri.catatan,
+      'is_favorite': entri.isFavorite,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+
+    try {
+      final response = await _supabase
+          .from('koleksi')
+          .update(payload)
+          .eq('id', id)
+          .eq('user_id', userId)
+          .select()
+          .maybeSingle()
+          .timeout(
+            _timeout,
+            onTimeout: () => throw TimeoutException('Update timeout'),
+          );
+      if (response == null) {
+        throw Exception(
+          'Entri tidak ditemukan di server. Mungkin sudah dihapus dari '
+          'perangkat lain. Coba refresh koleksi.',
+        );
+      }
+      return EntriKoleksi.fromJson(response);
+    } on PostgrestException catch (e) {
+      debugPrint('updateEntry PostgrestException: code=${e.code} msg=${e.message}');
+      if (e.code == 'PGRST116') {
+        throw Exception('Entri tidak ditemukan atau tidak bisa diakses.');
+      }
+      if (e.code == '42501') {
+        throw Exception('Tidak diizinkan mengubah entri ini.');
+      }
+      throw Exception('Gagal menyimpan: ${e.message}');
+    }
   }
 
   @override

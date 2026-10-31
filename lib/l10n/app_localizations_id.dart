@@ -1064,4 +1064,45 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get sortPickOrder => 'Urutkan berdasarkan';
+
+  @override
+  String showingResultsPartial(Object count, Object total) {
+    return 'Menampilkan $count dari $total · scroll untuk memuat lebih';
+  }
+
+  @override
+  String get cardSizeTitle => 'Ukuran Card';
+
+  @override
+  String get cardSizeSubtitle => 'Sesuaikan ukuran card media';
+
+  @override
+  String get cardSizeSmall => 'Kecil';
+
+  @override
+  String get cardSizeMedium => 'Sedang';
+
+  @override
+  String get cardSizeLarge => 'Besar';
+
+  @override
+  String get copy => ' salin ';
+
+  @override
+  String get copiedToClipboard => 'Disalin ke clipboard';
+
+  @override
+  String get displayMode => 'Tampilan';
+
+  @override
+  String get displayGrid => 'Grid';
+
+  @override
+  String get displayList => 'Daftar';
+
+  @override
+  String get displayCardSize => 'Ukuran card';
+
+  @override
+  String get itemsPerRow => 'Item per baris';
 }

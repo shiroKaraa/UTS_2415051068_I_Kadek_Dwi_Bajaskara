@@ -126,55 +126,57 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
         : _catatanController.text.trim();
 
     var statusUntukSimpan = _status;
-
     if (statusUntukSimpan == StatusKoleksi.selesai &&
         totalBaru != null &&
+        totalBaru > 0 &&
         progresBaru < totalBaru) {
-      if (progresBaru == 0) {
+      final fill = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.statusSuggestCompleted),
+          content: Text(
+            'Status diubah ke Selesai, tetapi progres baru '
+            '$progresBaru/$totalBaru.\n\n'
+            'Isi otomatis progres menjadi $totalBaru/$totalBaru?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.no),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.yes),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+
+      if (fill == true) {
         progresBaru = totalBaru;
         _progresController.text = totalBaru.toString();
       } else {
-        final fill = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(l10n.statusSuggestCompleted),
+        messenger.showSnackBar(
+          SnackBar(
             content: Text(
-              'Progresmu ($progresBaru/$totalBaru) belum penuh. '
-              'Sesuaikan ke $totalBaru/$totalBaru agar status Selesai valid?',
+              'Status Selesai membutuhkan progres penuh. '
+              'Ubah status atau isi progres terlebih dahulu.',
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l10n.no),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(l10n.yes),
-              ),
-            ],
           ),
         );
-        if (!mounted) return;
-        if (fill != true) {
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(
-                'Ubah progres menjadi $totalBaru atau ganti status sebelum menyimpan.',
-              ),
-            ),
-          );
-          return;
-        }
-        progresBaru = totalBaru;
-        _progresController.text = totalBaru.toString();
+        return;
       }
     }
 
     if (totalBaru != null &&
+        totalBaru > 0 &&
         progresBaru >= totalBaru &&
         statusUntukSimpan != StatusKoleksi.selesai) {
       final suggest = await showDialog<bool>(
         context: context,
+        barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           title: Text(l10n.statusSuggestCompleted),
           content: Text(l10n.statusSuggestCompletedDesc),
@@ -191,7 +193,10 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
         ),
       );
       if (!mounted) return;
-      if (suggest == true) statusUntukSimpan = StatusKoleksi.selesai;
+
+      if (suggest == true) {
+        statusUntukSimpan = StatusKoleksi.selesai;
+      }
     }
 
     bool berhasil;
@@ -262,8 +267,8 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
     } else {
       messenger.showSnackBar(
         SnackBar(
-            content:
-                Text(collection.errorMessage ?? l10n.errorLoadData)),
+          content: Text(collection.errorMessage ?? l10n.errorLoadData),
+        ),
       );
     }
   }

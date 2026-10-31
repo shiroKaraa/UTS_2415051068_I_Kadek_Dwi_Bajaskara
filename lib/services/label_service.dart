@@ -19,7 +19,6 @@ class LabelService {
   Future<LabelKustom> createLabel(LabelKustom label) async {
     final payload = {
       'nama': label.nama,
-      'satuan_progres': label.satuanProgres,
       'user_id': label.userId,
     };
     final response = await _supabase

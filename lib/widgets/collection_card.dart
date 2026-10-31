@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../core/app_colors.dart';
 import '../core/app_extras.dart';
+import '../core/title_actions.dart';
 import '../models/collection_entry.dart';
 import '../models/custom_label.dart';
 import '../models/status_collection_enum.dart';
@@ -43,11 +44,19 @@ class _CollectionCardState extends State<CollectionCard> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
-    final result = await provider.incrementProgress(widget.entri);
+    final minWait = Future.delayed(const Duration(milliseconds: 400));
+    HasilIncrement result;
+    try {
+      result = await provider.incrementProgress(widget.entri);
+    } catch (_) {
+      result = HasilIncrement.error;
+    }
 
+    await minWait;
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
+    if (result == HasilIncrement.inFlight) return;
     switch (result) {
       case HasilIncrement.ok:
         messenger
@@ -182,11 +191,17 @@ class _CollectionCardState extends State<CollectionCard> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          entri.judul,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        GestureDetector(
+          onLongPress: () => showTitleActions(
+            context,
+            title: entri.judul,
+          ),
+          child: Text(
+            entri.judul,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         if (label != null)
           Text(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
+import '../../core/app_extras.dart';
 import '../../core/app_sizes.dart';
 
 class ShimmerLoading extends StatefulWidget {
@@ -33,6 +33,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
 
   @override
   Widget build(BuildContext context) {
+    final x = context.extras;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -45,15 +46,15 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
               begin: Alignment(-1.0 + _controller.value * 2, 0),
               end: Alignment(1.0 + _controller.value * 2, 0),
               colors: [
-                AppColors.shimmerBase,
-                AppColors.shimmerHighlight,
-                AppColors.shimmerBase,
+                x.shimmerBase,
+                x.shimmerHighlight,
+                x.shimmerBase,
               ],
               stops: const [0.0, 0.5, 1.0],
             ),
           ),
-          child: const Center(
-            child: Icon(Icons.image_outlined, color: AppColors.shimmerHighlight),
+          child: Center(
+            child: Icon(Icons.image_outlined, color: x.shimmerHighlight),
           ),
         );
       },

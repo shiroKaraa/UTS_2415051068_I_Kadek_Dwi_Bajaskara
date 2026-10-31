@@ -169,14 +169,17 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   String _getSortParam() {
-    if (_query.isNotEmpty && _urutan == UrutanKatalog.populer) return 'SEARCH_MATCH';
-    if (_query.isNotEmpty && _urutan == UrutanKatalog.relevan) return 'SEARCH_MATCH';
     switch (_urutan) {
-      case UrutanKatalog.populer: return 'POPULARITY_DESC';
-      case UrutanKatalog.skor: return 'SCORE_DESC';
-      case UrutanKatalog.terbaru: return 'START_DATE_DESC';
-      case UrutanKatalog.judul: return 'TITLE_ROMAJI';
-      case UrutanKatalog.relevan: return 'SEARCH_MATCH';
+      case UrutanKatalog.populer:
+        return 'POPULARITY_DESC';
+      case UrutanKatalog.skor:
+        return 'SCORE_DESC';
+      case UrutanKatalog.terbaru:
+        return 'START_DATE_DESC';
+      case UrutanKatalog.judul:
+        return 'TITLE_ROMAJI';
+      case UrutanKatalog.relevan:
+        return 'SEARCH_MATCH';
     }
   }
 

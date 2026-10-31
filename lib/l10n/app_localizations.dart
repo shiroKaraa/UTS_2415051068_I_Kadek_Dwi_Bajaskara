@@ -2059,6 +2059,84 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Urutkan berdasarkan'**
   String get sortPickOrder;
+
+  /// No description provided for @showingResultsPartial.
+  ///
+  /// In id, this message translates to:
+  /// **'Menampilkan {count} dari {total} · scroll untuk memuat lebih'**
+  String showingResultsPartial(Object count, Object total);
+
+  /// No description provided for @cardSizeTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ukuran Card'**
+  String get cardSizeTitle;
+
+  /// No description provided for @cardSizeSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Sesuaikan ukuran card media'**
+  String get cardSizeSubtitle;
+
+  /// No description provided for @cardSizeSmall.
+  ///
+  /// In id, this message translates to:
+  /// **'Kecil'**
+  String get cardSizeSmall;
+
+  /// No description provided for @cardSizeMedium.
+  ///
+  /// In id, this message translates to:
+  /// **'Sedang'**
+  String get cardSizeMedium;
+
+  /// No description provided for @cardSizeLarge.
+  ///
+  /// In id, this message translates to:
+  /// **'Besar'**
+  String get cardSizeLarge;
+
+  /// Menu action to copy the title to clipboard
+  ///
+  /// In id, this message translates to:
+  /// **' salin '**
+  String get copy;
+
+  /// Snackbar shown after copying the title
+  ///
+  /// In id, this message translates to:
+  /// **'Disalin ke clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @displayMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilan'**
+  String get displayMode;
+
+  /// No description provided for @displayGrid.
+  ///
+  /// In id, this message translates to:
+  /// **'Grid'**
+  String get displayGrid;
+
+  /// No description provided for @displayList.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar'**
+  String get displayList;
+
+  /// No description provided for @displayCardSize.
+  ///
+  /// In id, this message translates to:
+  /// **'Ukuran card'**
+  String get displayCardSize;
+
+  /// No description provided for @itemsPerRow.
+  ///
+  /// In id, this message translates to:
+  /// **'Item per baris'**
+  String get itemsPerRow;
 }
 
 class _AppLocalizationsDelegate

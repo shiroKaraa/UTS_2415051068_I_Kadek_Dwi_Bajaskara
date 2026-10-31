@@ -146,7 +146,7 @@ class CollectionProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  void _notifyDataChanged() {
+  void _invalidateAndNotify() {
     _cachedStats = null;
     _filteredCache = null;
     _continueCache = null;
@@ -182,18 +182,23 @@ class CollectionProvider extends ChangeNotifier {
   }
 
   EntriKoleksi _reconcileStatus(EntriKoleksi entri) {
-    if (entri.total == null) return entri;
+    if (entri.total == null || entri.total! <= 0) return entri;
 
-    final isFull = entri.progres >= entri.total!;
+    final total = entri.total!;
+    final isFull = entri.progres >= total;
 
     if (isFull && entri.status != StatusKoleksi.selesai) {
       return entri.copyWith(status: StatusKoleksi.selesai);
-    } else if (!isFull && entri.status == StatusKoleksi.selesai) {
-      return entri.copyWith(status: StatusKoleksi.sedang);
-    } else if (entri.progres > 0 &&
-        entri.status == StatusKoleksi.direncanakan) {
+    }
+
+    if (!isFull && entri.status == StatusKoleksi.selesai && entri.progres > 0) {
       return entri.copyWith(status: StatusKoleksi.sedang);
     }
+
+    if (entri.progres > 0 && entri.status == StatusKoleksi.direncanakan) {
+      return entri.copyWith(status: StatusKoleksi.sedang);
+    }
+
     return entri;
   }
 
@@ -257,6 +262,11 @@ class CollectionProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
+  Future<void> flushCache() async {
+    _cacheTimer?.cancel();
+    await _saveCache();
+  }
+
   Future<void> fetchCollection() async {
     final userId = _userId;
     if (userId == null) return;
@@ -274,7 +284,7 @@ class CollectionProvider extends ChangeNotifier {
       _isOffline = false;
       _reconnectTimer?.cancel();
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
     } catch (e) {
       if (gen != _fetchGen || _userId != userId) return;
 
@@ -311,7 +321,7 @@ class CollectionProvider extends ChangeNotifier {
         _errorMessage =
             'Terjadi kesalahan sistem: ${e.toString().replaceAll('Exception: ', '')}';
       }
-      _notifyDataChanged();
+      _invalidateAndNotify();
     } finally {
       if (gen == _fetchGen) {
         _isLoading = false;
@@ -404,7 +414,7 @@ class CollectionProvider extends ChangeNotifier {
       final newEntry = await _repository.createEntry(toInsert);
       _entries.insert(0, newEntry);
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return true;
     } catch (e) {
       _errorMessage = _friendlyError(e);
@@ -425,7 +435,7 @@ class CollectionProvider extends ChangeNotifier {
       final newEntries = await _repository.createEntries(entries);
       _entries.insertAll(0, newEntries);
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return newEntries.length;
     } catch (e) {
       _errorMessage = _friendlyError(e);
@@ -449,7 +459,7 @@ class CollectionProvider extends ChangeNotifier {
       final index = _entries.indexWhere((e) => e.id == updated.id);
       if (index != -1) _entries[index] = updated;
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return true;
     }, onError: false);
   }
@@ -469,7 +479,7 @@ class CollectionProvider extends ChangeNotifier {
       await _repository.deleteEntry(id);
       _entries.removeWhere((e) => e.id == id);
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return true;
     }, onError: false);
   }
@@ -488,7 +498,7 @@ class CollectionProvider extends ChangeNotifier {
       await _repository.deleteAll(_userId!);
       _entries.clear();
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return count;
     }, onError: 0);
   }
@@ -506,7 +516,7 @@ class CollectionProvider extends ChangeNotifier {
       await _repository.deleteEntries(idList);
       _entries.removeWhere((e) => ids.contains(e.id));
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return idList.length;
     }, onError: 0);
   }
@@ -522,18 +532,45 @@ class CollectionProvider extends ChangeNotifier {
     return _runSaving(() async {
       final idList = ids.toList(growable: false);
       final nowUtc = DateTime.now().toUtc().toIso8601String();
-      await _repository.updateEntriesFields(idList, {
-        'status': status.name,
-        'updated_at': nowUtc,
-      });
       final now = DateTime.now();
+      final updatesById = <int, Map<String, dynamic>>{};
+      for (final e in _entries) {
+        if (!ids.contains(e.id)) continue;
+        final map = <String, dynamic>{
+          'status': status.name,
+          'updated_at': nowUtc,
+        };
+        if (status == StatusKoleksi.selesai &&
+            e.total != null &&
+            e.total! > 0 &&
+            e.progres < e.total!) {
+          map['progres'] = e.total;
+        }
+        updatesById[e.id!] = map;
+      }
+      final grouped = <String, List<int>>{};
+      for (final entry in updatesById.entries) {
+        final key = jsonEncode(entry.value);
+        grouped.putIfAbsent(key, () => []).add(entry.key);
+      }
+      for (final group in grouped.entries) {
+        final data = jsonDecode(group.key) as Map<String, dynamic>;
+        await _repository.updateEntriesFields(group.value, data);
+      }
       for (int i = 0; i < _entries.length; i++) {
         final e = _entries[i];
         if (!ids.contains(e.id)) continue;
-        _entries[i] = e.copyWith(status: status, updatedAt: now);
+        final updates = updatesById[e.id!]!;
+        _entries[i] = e.copyWith(
+          status: status,
+          progres: updates.containsKey('progres')
+              ? updates['progres'] as int
+              : null,
+          updatedAt: now,
+        );
       }
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return idList.length;
     }, onError: 0);
   }
@@ -564,7 +601,7 @@ class CollectionProvider extends ChangeNotifier {
         );
       }
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return idList.length;
     }, onError: 0);
   }
@@ -577,90 +614,132 @@ class CollectionProvider extends ChangeNotifier {
       return HasilIncrement.error;
     }
     if (_isOffline) return HasilIncrement.offline;
-    if (entri.status == StatusKoleksi.selesai) {
+
+    _errorMessage = null;
+
+    final current = findById(id);
+    if (current == null) {
+      _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
+      _safeNotify();
+      return HasilIncrement.error;
+    }
+    if (current.status == StatusKoleksi.selesai) {
       return HasilIncrement.alreadyCompleted;
     }
+    if (current.total != null && current.progres >= current.total!) {
+      return HasilIncrement.alreadyCompleted;
+    }
+
     if (!_inFlight.add(id)) return HasilIncrement.inFlight;
+
+    final index = _entries.indexWhere((e) => e.id == id);
+    if (index == -1) {
+      _inFlight.remove(id);
+      _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
+      _safeNotify();
+      return HasilIncrement.error;
+    }
+
+    final old = _entries[index];
+    final newProgres = current.progres + 1;
+
+    StatusKoleksi newStatus = current.status;
+    if (current.total != null && newProgres >= current.total!) {
+      newStatus = StatusKoleksi.selesai;
+    } else if (current.status == StatusKoleksi.direncanakan) {
+      newStatus = StatusKoleksi.sedang;
+    }
+
+    final updated = _reconcileStatus(current.copyWith(
+      progres: newProgres,
+      status: newStatus,
+      updatedAt: DateTime.now(),
+    ));
+
+    _entries[index] = updated;
+    _scheduleSaveCache();
+    _invalidateAndNotify();
+
     try {
-      final current = findById(id);
-      if (current == null) {
-        _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
-        _safeNotify();
-        return HasilIncrement.error;
-      }
-
-      if (current.total != null && current.progres >= current.total!) {
-        return HasilIncrement.alreadyCompleted;
-      }
-
-      final index = _entries.indexWhere((e) => e.id == id);
-      if (index == -1) {
-        _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
-        _safeNotify();
-        return HasilIncrement.error;
-      }
-
-      final old = _entries[index];
-      final newProgres = current.progres + 1;
-      final isSelesai =
-          current.total != null && newProgres >= current.total!;
-
-      StatusKoleksi newStatus = current.status;
-      if (isSelesai) {
-        newStatus = StatusKoleksi.selesai;
-      } else if (current.status == StatusKoleksi.direncanakan) {
-        newStatus = StatusKoleksi.sedang;
-      }
-
-      final updated = _reconcileStatus(current.copyWith(
-        progres: newProgres,
-        status: newStatus,
-        updatedAt: DateTime.now(),
-      ));
-
-      _entries[index] = updated;
-      _notifyDataChanged();
-
-      try {
-        final saved = await _repository.updateEntry(updated);
-        final i = _entries.indexWhere((e) => e.id == saved.id);
-        if (i != -1) _entries[i] = saved;
+      final saved = await _repository.updateEntry(updated);
+      final i = _entries.indexWhere((e) => e.id == id);
+      if (i != -1) _entries[i] = saved;
+      _scheduleSaveCache();
+      _invalidateAndNotify();
+      return HasilIncrement.ok;
+    } catch (e) {
+      final i = _entries.indexWhere((e) => e.id == id);
+      if (i != -1) {
+        _entries[i] = old;
         _scheduleSaveCache();
-        _notifyDataChanged();
-        return HasilIncrement.ok;
-      } catch (e) {
-        final i = _entries
-            .indexWhere((e) => e.id == old.id && e.progres == newProgres);
-        if (i != -1) _entries[i] = old;
-        _errorMessage = _friendlyError(e);
-        _notifyDataChanged();
-        return HasilIncrement.error;
+        _invalidateAndNotify();
       }
+      _errorMessage = _friendlyError(e);
+      return HasilIncrement.error;
     } finally {
       _inFlight.remove(id);
     }
   }
 
-  Future<bool> decrementProgress(EntriKoleksi entri) async {
-    if (_isOffline || _isSaving) return false;
-    if (entri.progres <= 0) return false;
+  Future<HasilIncrement> decrementProgress(EntriKoleksi entri) async {
+    final id = entri.id;
+    if (id == null) {
+      _errorMessage = 'Entri tidak valid.';
+      _safeNotify();
+      return HasilIncrement.error;
+    }
+    if (_isOffline) return HasilIncrement.offline;
+    _errorMessage = null;
 
-    final newProgres = entri.progres - 1;
-
-    StatusKoleksi newStatus = entri.status;
-    if (newProgres == 0) {
-      newStatus = StatusKoleksi.direncanakan;
-    } else if (entri.status == StatusKoleksi.selesai &&
-        (entri.total == null || newProgres < entri.total!)) {
-      newStatus = StatusKoleksi.sedang;
+    final current = findById(id);
+    if (current == null) {
+      _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
+      _safeNotify();
+      return HasilIncrement.error;
+    }
+    if (current.progres <= 0) {
+      return HasilIncrement.ok;
     }
 
-    final updated = _reconcileStatus(entri.copyWith(
+    if (!_inFlight.add(id)) return HasilIncrement.inFlight;
+
+    final index = _entries.indexWhere((e) => e.id == id);
+    if (index == -1) {
+      _inFlight.remove(id);
+      _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
+      _safeNotify();
+      return HasilIncrement.error;
+    }
+
+    final old = _entries[index];
+    final newProgres = current.progres - 1;
+
+    final updated = _reconcileStatus(current.copyWith(
       progres: newProgres,
-      status: newStatus,
       updatedAt: DateTime.now(),
     ));
-    return updateEntry(updated);
+
+    _entries[index] = updated;
+    _scheduleSaveCache();
+    _invalidateAndNotify();
+
+    try {
+      final saved = await _repository.updateEntry(updated);
+      final i = _entries.indexWhere((e) => e.id == id);
+      if (i != -1) _entries[i] = saved;
+      _scheduleSaveCache();
+      _invalidateAndNotify();
+      return HasilIncrement.ok;
+    } catch (e) {
+      final i = _entries.indexWhere((e) => e.id == id);
+      if (i != -1) _entries[i] = old;
+      _errorMessage = _friendlyError(e);
+      _scheduleSaveCache();
+      _invalidateAndNotify();
+      return HasilIncrement.error;
+    } finally {
+      _inFlight.remove(id);
+    }
   }
 
   Future<bool> toggleFavorite(EntriKoleksi entri) async {
@@ -678,7 +757,7 @@ class CollectionProvider extends ChangeNotifier {
     }
     if (changed) {
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
     }
   }
 
@@ -703,7 +782,7 @@ class CollectionProvider extends ChangeNotifier {
                 : updated;
       }
       _scheduleSaveCache();
-      _notifyDataChanged();
+      _invalidateAndNotify();
       return true;
     }, onError: false);
   }
@@ -740,7 +819,7 @@ class CollectionProvider extends ChangeNotifier {
   void setFilterFavorit(bool value) {
     if (_filterFavorit == value) return;
     _filterFavorit = value;
-    _notifyDataChanged();
+    _invalidateAndNotify();
   }
 
   void setUrutan(UrutanKoleksi urutan) {
@@ -757,32 +836,32 @@ class CollectionProvider extends ChangeNotifier {
         _urutanAsc = false;
         break;
     }
-    _notifyDataChanged();
+    _invalidateAndNotify();
   }
 
   void setUrutanDirection(bool ascending) {
     if (_urutanAsc == ascending) return;
     _urutanAsc = ascending;
-    _notifyDataChanged();
+    _invalidateAndNotify();
   }
 
   void setFilterStatus(StatusKoleksi? status) {
     if (_filterStatus == status) return;
     _filterStatus = status;
-    _notifyDataChanged();
+    _invalidateAndNotify();
   }
 
   void setQuery(String query) {
     if (_query == query) return;
     _query = query;
-    _notifyDataChanged();
+    _invalidateAndNotify();
   }
 
   void setFilters({JenisMedia? jenis, int? rating, StatusKoleksi? status}) {
     _filterJenis = jenis;
     _filterRating = rating;
     _filterStatus = status;
-    _notifyDataChanged();
+    _invalidateAndNotify();
   }
 
   void clearFilters() {
@@ -791,7 +870,7 @@ class CollectionProvider extends ChangeNotifier {
     _filterStatus = null;
     _query = '';
     _filterFavorit = false;
-    _notifyDataChanged();
+    _invalidateAndNotify();
   }
 
   void toggleView() {
