@@ -204,6 +204,7 @@ class CatalogProvider extends ChangeNotifier {
     _loadMoreError = null;
     _currentPage = 1;
     _hasNextPage = true;
+    _items = [];
     _totalResults = 0;
     _safeNotify();
 
@@ -211,7 +212,9 @@ class CatalogProvider extends ChangeNotifier {
       final result = await _fetch(_currentPage);
       if (gen != _requestGeneration) return;
 
-      _items = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
+      _items = result.media
+          .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
+          .toList();
       _hasNextPage = result.hasNextPage;
       _totalResults = result.total;
     } catch (e) {
@@ -239,7 +242,9 @@ class CatalogProvider extends ChangeNotifier {
     try {
       final result = await _fetch(_currentPage);
       if (gen != _requestGeneration) return;
-      _items = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
+      _items = result.media
+          .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
+          .toList();
       _hasNextPage = result.hasNextPage;
       _totalResults = result.total;
     } catch (e) {
@@ -253,7 +258,12 @@ class CatalogProvider extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasNextPage || _isLoading || _loadMoreError != null) return;
+    if (_isLoadingMore ||
+        !_hasNextPage ||
+        _isLoading ||
+        _loadMoreError != null) {
+      return;
+    }
 
     final gen = _requestGeneration;
     _isLoadingMore = true;
@@ -268,11 +278,15 @@ class CatalogProvider extends ChangeNotifier {
         _hasNextPage = false;
       } else {
         _currentPage = nextPage;
-        final newItems = result.media.map((json) => ItemKatalog.fromAniList(json, _selectedJenis)).toList();
+        final newItems = result.media
+            .map((json) => ItemKatalog.fromAniList(json, _selectedJenis))
+            .toList();
         final existingIds = _items.map((e) => e.anilistId).toSet();
-        final uniqueNewItems = newItems.where((e) => !existingIds.contains(e.anilistId)).toList();
+        final uniqueNewItems =
+            newItems.where((e) => !existingIds.contains(e.anilistId)).toList();
         _items.addAll(uniqueNewItems);
         _hasNextPage = result.hasNextPage;
+        _totalResults = result.total;
       }
     } catch (e) {
       if (gen == _requestGeneration) _handleLoadMoreError(e);
@@ -292,22 +306,24 @@ class CatalogProvider extends ChangeNotifier {
   void _handleError(Object e) {
     if (e is RateLimitException) {
       _errorType = TipeError.rateLimit;
-      _errorMessage = 'Terlalu banyak permintaan. Tunggu sebentar.';
+      _errorMessage =
+          'Terlalu banyak permintaan ke server. Tunggu 30 detik lalu coba lagi.';
     } else if (e is NetworkException) {
       _errorType = TipeError.network;
-      _errorMessage = 'Tidak ada koneksi internet.';
+      _errorMessage = 'Tidak ada koneksi internet. Periksa jaringan Anda.';
     } else if (e is ApiException) {
       _errorType = TipeError.api;
-      _errorMessage = 'Terjadi kesalahan server.';
+      _errorMessage = 'Server sedang bermasalah. Coba lagi nanti.';
     } else {
       _errorType = TipeError.unknown;
-      _errorMessage = 'Terjadi kesalahan tidak diketahui.';
+      _errorMessage = 'Terjadi kesalahan tidak diketahui. Coba lagi.';
     }
   }
 
   void _handleLoadMoreError(Object e) {
     if (e is RateLimitException) {
-      _loadMoreError = 'Batas permintaan tercapai. Coba lagi nanti.';
+      _loadMoreError =
+          'Batas permintaan tercapai. Tunggu 30 detik lalu coba lagi.';
     } else if (e is NetworkException) {
       _loadMoreError = 'Koneksi terputus. Ketuk untuk coba lagi.';
     } else {

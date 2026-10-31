@@ -161,21 +161,34 @@ class _CatalogPageState extends State<CatalogPage> {
                                   });
                                 },
                               ),
-                              const Divider(),
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
-                                child: DropdownButtonFormField<String>(
-                                  initialValue: tempStatus,
-                                  decoration: InputDecoration(labelText: l10n.filterStatus, border: const OutlineInputBorder(), isDense: true),
-                                  items: [
-                                    DropdownMenuItem(value: null, child: Text(l10n.all)),
-                                    DropdownMenuItem(value: 'RELEASING', child: Text(l10n.statusAiring)),
-                                    DropdownMenuItem(value: 'FINISHED', child: Text(l10n.statusFinished)),
-                                    DropdownMenuItem(value: 'NOT_YET_RELEASED', child: Text(l10n.statusUpcoming)),
+                                padding: const EdgeInsets.only(
+                                    top: 2, bottom: 6),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        'Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
                                   ],
-                                  onChanged: (val) => setState(() => tempStatus = val),
                                 ),
                               ),
+                              const Divider(),
                               Padding(
                                 padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
                                 child: DropdownButtonFormField<int>(
@@ -402,21 +415,47 @@ class _CatalogPageState extends State<CatalogPage> {
             ),
           ),
           const SizedBox(height: AppSizes.spacingS),
-
-          if (!catalog.isLoading &&
-              catalog.errorMessage == null &&
-              catalog.items.isNotEmpty)
+          if (!catalog.isLoading && catalog.items.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingM),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  l10n.showingResults(
-                      catalog.items.length, catalog.totalResults),
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingM),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      catalog.totalResults >= catalog.items.length
+                          ? l10n.showingResults(
+                              catalog.items.length, catalog.totalResults)
+                          : l10n.showingResults(catalog.items.length,
+                              catalog.items.length),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  if (catalog.errorMessage != null)
+                    TextButton.icon(
+                      onPressed: () => catalog.refresh(),
+                      icon: const Icon(Icons.refresh,
+                          size: 14, color: Colors.redAccent),
+                      label: const Text(
+                        'Coba Lagi',
+                        style: TextStyle(
+                            fontSize: 11, color: Colors.redAccent),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                ],
               ),
             ),
 
@@ -453,20 +492,19 @@ class _CatalogPageState extends State<CatalogPage> {
           maxCrossAxisExtent: 180,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          mainAxisExtent: 180 * 1.5 + (56 * MediaQuery.textScalerOf(context).scale(1.0)),
+          mainAxisExtent: 180 * 1.5 +
+              (56 * MediaQuery.textScalerOf(context).scale(1.0)),
         ),
         itemCount: 12,
         itemBuilder: (context, index) => const SkeletonGridCard(),
       );
     }
-
-    if (catalog.errorMessage != null) {
+    if (catalog.errorMessage != null && catalog.items.isEmpty) {
       return ErrorView(
         message: catalog.errorMessage!,
         onRetry: () => catalog.refresh(),
       );
     }
-
     if (catalog.items.isEmpty) {
       return EmptyView(
         title: l10n.noResults,
@@ -479,7 +517,6 @@ class _CatalogPageState extends State<CatalogPage> {
         },
       );
     }
-
     if (catalog.isListView) {
       return ListView.builder(
         controller: _scrollController,
@@ -515,8 +552,7 @@ class _CatalogPageState extends State<CatalogPage> {
             child: ListTile(
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child:
-                    CoverImage(url: item.coverUrl, width: 50, height: 70),
+                child: CoverImage(url: item.coverUrl, width: 50, height: 70),
               ),
               title: Text(item.displayTitle,
                   maxLines: 1,
@@ -563,7 +599,8 @@ class _CatalogPageState extends State<CatalogPage> {
               maxCrossAxisExtent: 180,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              mainAxisExtent: 180 * 1.5 + (56 * MediaQuery.textScalerOf(context).scale(1.0)),
+              mainAxisExtent: 180 * 1.5 +
+                  (56 * MediaQuery.textScalerOf(context).scale(1.0)),
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
