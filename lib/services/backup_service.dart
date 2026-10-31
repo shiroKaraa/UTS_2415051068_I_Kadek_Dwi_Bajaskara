@@ -45,14 +45,15 @@ class BackupService {
 
     final sizeKb = (jsonString.length / 1024).toStringAsFixed(1);
 
-    await Share.shareXFiles(
-      [XFile(file.path, mimeType: 'application/json')],
+    final params = ShareParams(
+      files: [XFile(file.path, mimeType: 'application/json')],
       subject: 'Tsuzuki Collection Backup',
       text:
           'Tsuzuki collection backup file (${entries.length} items, ~$sizeKb KB). '
           'Store this file in a safe place (Google Drive, Files, etc).',
       sharePositionOrigin: sharePositionOrigin,
     );
+    await SharePlus.instance.share(params);
 
     try {
       await file.delete();

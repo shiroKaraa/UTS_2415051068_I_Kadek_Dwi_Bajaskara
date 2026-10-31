@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
 import '../models/status_collection_enum.dart';
@@ -193,7 +194,8 @@ class CollectionProvider extends ChangeNotifier {
     return raw;
   }
 
-  EntriKoleksi _reconcileStatus(EntriKoleksi entri) {
+  @visibleForTesting
+  EntriKoleksi reconcileStatus(EntriKoleksi entri) {
     if (entri.total == null || entri.total! <= 0) return entri;
 
     final total = entri.total!;
@@ -661,7 +663,7 @@ class CollectionProvider extends ChangeNotifier {
       newStatus = StatusKoleksi.sedang;
     }
 
-    final updated = _reconcileStatus(current.copyWith(
+    final updated = reconcileStatus(current.copyWith(
       progres: newProgres,
       status: newStatus,
       updatedAt: DateTime.now(),
@@ -725,7 +727,7 @@ class CollectionProvider extends ChangeNotifier {
     final old = _entries[index];
     final newProgres = current.progres - 1;
 
-    final updated = _reconcileStatus(current.copyWith(
+    final updated = reconcileStatus(current.copyWith(
       progres: newProgres,
       updatedAt: DateTime.now(),
     ));
