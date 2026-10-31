@@ -3,58 +3,124 @@ import 'package:provider/provider.dart';
 import '../../core/app_sizes.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/collection_entry.dart';
+import '../../models/media_type_enum.dart';
 import '../../providers/collection_provider.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/collection_card.dart';
 import 'collection_detail_page.dart';
 import 'edit_entry_page.dart';
 
-class FavoritesPage extends StatelessWidget {
+enum _FavFilter { all, anime, comic }
+
+class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
+
+  @override
+  State<FavoritesPage> createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
+  _FavFilter _filter = _FavFilter.all;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
-    final favorites =
+
+    final allFavorites =
         collection.allEntries.where((e) => e.isFavorite).toList();
+
+    final favorites = allFavorites.where((e) {
+      switch (_filter) {
+        case _FavFilter.all:
+          return true;
+        case _FavFilter.anime:
+          return e.jenis == JenisMedia.anime;
+        case _FavFilter.comic:
+          return e.jenis == JenisMedia.manga ||
+              e.jenis == JenisMedia.manhwa ||
+              e.jenis == JenisMedia.manhua;
+      }
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.favoriteTitle)),
-      body: favorites.isEmpty
-          ? EmptyView(
-              title: l10n.noFavoritesTitle,
-              subtitle: l10n.noFavoritesDesc,
-              icon: Icons.favorite_border_rounded,
-            )
-          : GridView.builder(
-              padding: const EdgeInsets.all(AppSizes.spacingM),
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 180,
-                childAspectRatio: 0.6,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
+      body: Column(
+        children: [
+          if (allFavorites.isNotEmpty)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.spacingM,
+                  vertical: AppSizes.spacingS),
+              child: Row(
+                children: [
+                  _chip(l10n.all, _FavFilter.all),
+                  const SizedBox(width: 8),
+                  _chip(l10n.anime, _FavFilter.anime),
+                  const SizedBox(width: 8),
+                  _chip(l10n.comic, _FavFilter.comic),
+                ],
               ),
-              itemCount: favorites.length,
-              itemBuilder: (context, index) {
-                final entri = favorites[index];
-                return CollectionCard(
-                  key: ValueKey(entri.id),
-                  entri: entri,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CollectionDetailPage(id: entri.id!),
-                      ),
-                    );
-                  },
-                  onLongPress: () =>
-                      _showQuickMenu(context, entri, l10n),
-                );
-              },
             ),
+          Expanded(
+            child: allFavorites.isEmpty
+                ? EmptyView(
+                    title: l10n.noFavoritesTitle,
+                    subtitle: l10n.noFavoritesDesc,
+                    icon: Icons.favorite_border_rounded,
+                  )
+                : favorites.isEmpty
+                    ? EmptyView(
+                        title: l10n.noResults,
+                        subtitle: l10n.noResultsDesc,
+                        icon: Icons.search_off,
+                        actionLabel: l10n.resetFilter,
+                        onAction: () =>
+                            setState(() => _filter = _FavFilter.all),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(AppSizes.spacingM),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 180,
+                          childAspectRatio: 0.6,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                        ),
+                        itemCount: favorites.length,
+                        itemBuilder: (context, index) {
+                          final entri = favorites[index];
+                          return CollectionCard(
+                            key: ValueKey(entri.id),
+                            entri: entri,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      CollectionDetailPage(id: entri.id!),
+                                ),
+                              );
+                            },
+                            onLongPress: () =>
+                                _showQuickMenu(context, entri, l10n),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(String label, _FavFilter value) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: _filter == value,
+      onSelected: (selected) {
+        if (selected) setState(() => _filter = value);
+      },
     );
   }
 
@@ -107,7 +173,7 @@ class FavoritesPage extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Row(
                             children: [
-                              Icon(Icons.category_outlined,
+                              const Icon(Icons.category_outlined,
                                   size: 14, color: Colors.grey),
                               const SizedBox(width: 8),
                               Expanded(
@@ -122,7 +188,7 @@ class FavoritesPage extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Row(
                             children: [
-                              Icon(Icons.flag_outlined,
+                              const Icon(Icons.flag_outlined,
                                   size: 14, color: Colors.grey),
                               const SizedBox(width: 8),
                               Expanded(

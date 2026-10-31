@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
-import '../../models/collection_entry.dart';
+import '../../models/custom_label.dart';
 import '../../models/media_type_enum.dart';
 import '../../models/status_collection_enum.dart';
 import '../../providers/collection_provider.dart';
+import '../../providers/label_provider.dart';
 import '../../widgets/skeleton/skeleton_grid_card.dart';
 import '../../widgets/skeleton/skeleton_list_card.dart';
 import '../../widgets/error_view.dart';
@@ -16,7 +18,6 @@ import '../../widgets/collection_card.dart';
 import '../../widgets/collection_list_card.dart';
 import '../catalog/catalog_page.dart';
 import 'collection_detail_page.dart';
-import 'edit_entry_page.dart';
 
 class CollectionPage extends StatefulWidget {
   final StatusKoleksi? initialStatus;
@@ -32,6 +33,8 @@ class _CollectionPageState extends State<CollectionPage> {
   Timer? _debounceTimer;
   String _lastQuery = '';
   final Set<int> _processingIds = {};
+  bool _isSelectionMode = false;
+  final Set<int> _selectedIds = {};
 
   @override
   void initState() {
@@ -49,6 +52,142 @@ class _CollectionPageState extends State<CollectionPage> {
     _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _enterSelectionMode({int? initialId}) {
+    setState(() {
+      _isSelectionMode = true;
+      if (initialId != null) _selectedIds.add(initialId);
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _toggleSelection(int id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) _isSelectionMode = false;
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  void _selectAll(CollectionProvider collection) {
+    setState(() {
+      _selectedIds.addAll(
+        collection.entries.map((e) => e.id).whereType<int>(),
+      );
+    });
+  }
+
+  void _showSortSheet(BuildContext context, AppLocalizations l10n) {
+    final collection = context.read<CollectionProvider>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Text(
+                  l10n.sortPickOrder,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              RadioGroup<UrutanKoleksi>(
+                groupValue: collection.urutan,
+                onChanged: (v) {
+                  if (v != null) collection.setUrutan(v);
+                  Navigator.pop(sheetCtx);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: UrutanKoleksi.values.map((u) {
+                    return RadioListTile<UrutanKoleksi>(
+                      value: u,
+                      title: Text(_labelForUrutan(u, l10n)),
+                    );
+                  }).toList(),
+                ),
+              ),
+              // ▲ UBAH ▲
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Text(
+                  l10n.sortDirection,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              RadioGroup<bool>(
+                groupValue: collection.urutanAsc,
+                onChanged: (v) {
+                  if (v != null) {
+                    collection.setUrutanDirection(v);
+                    Navigator.pop(sheetCtx);
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<bool>(
+                      value: true,
+                      title: Row(
+                        children: [
+                          const Icon(Icons.arrow_upward, size: 18),
+                          const SizedBox(width: 8),
+                          Text(l10n.sortAscending),
+                        ],
+                      ),
+                    ),
+                    RadioListTile<bool>(
+                      value: false,
+                      title: Row(
+                        children: [
+                          const Icon(Icons.arrow_downward, size: 18),
+                          const SizedBox(width: 8),
+                          Text(l10n.sortDescending),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _labelForUrutan(UrutanKoleksi u, AppLocalizations l10n) {
+    switch (u) {
+      case UrutanKoleksi.terbaru:
+        return l10n.sortNewest;
+      case UrutanKoleksi.ditambahkan:
+        return l10n.sortAddedDate;
+      case UrutanKoleksi.judul:
+        return l10n.sortTitle;
+      case UrutanKoleksi.progres:
+        return l10n.sortProgress;
+      case UrutanKoleksi.rating:
+        return l10n.sortRating;
+    }
   }
 
   void _showFilterSheet(BuildContext context, AppLocalizations l10n) {
@@ -167,6 +306,154 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
+  Future<void> _deleteSelected(AppLocalizations l10n) async {
+    final collection = context.read<CollectionProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final count = _selectedIds.length;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(l10n.confirmDeleteMultiple(count)),
+        content: Text(l10n.confirmDeleteMultipleDesc),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    final deleted = await collection.deleteMany(Set.from(_selectedIds));
+    if (!mounted) return;
+
+    if (deleted > 0) {
+      _exitSelectionMode();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.bulkDeleted(deleted))),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(collection.errorMessage ?? l10n.errorLoadData),
+        ),
+      );
+    }
+  }
+
+  Future<void> _changeLabelSelected(AppLocalizations l10n) async {
+    final collection = context.read<CollectionProvider>();
+    final labels = context.read<LabelProvider>().labels;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final selected = await showModalBottomSheet<Object?>(
+      context: context,
+      builder: (sheetCtx) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(
+              title: Text(
+                l10n.changeLabel,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.label_off_outlined),
+              title: Text(l10n.noLabel),
+              onTap: () => Navigator.pop(sheetCtx, 'none'),
+            ),
+            ...labels.map(
+              (LabelKustom lbl) => ListTile(
+                leading: const Icon(Icons.label_outline,
+                    color: AppColors.infoBlue),
+                title: Text(lbl.nama),
+                onTap: () => Navigator.pop(sheetCtx, lbl.id),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selected == null) return;
+    if (!mounted) return;
+
+    final int? labelId = selected == 'none' ? null : selected as int?;
+    final updated =
+        await collection.updateManyLabel(Set.from(_selectedIds), labelId);
+    if (!mounted) return;
+
+    if (updated > 0) {
+      _exitSelectionMode();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.bulkUpdated(updated))),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(collection.errorMessage ?? l10n.errorLoadData),
+        ),
+      );
+    }
+  }
+
+  Future<void> _changeStatusSelected(AppLocalizations l10n) async {
+    final collection = context.read<CollectionProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final selected = await showModalBottomSheet<StatusKoleksi>(
+      context: context,
+      builder: (sheetCtx) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(
+              title: Text(
+                l10n.changeStatus,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            ...StatusKoleksi.values.map(
+              (s) => ListTile(
+                leading: Icon(Icons.flag_outlined,
+                    color: AppColors.primaryGreen),
+                title: Text(s.netralLabel(l10n)),
+                onTap: () => Navigator.pop(sheetCtx, s),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selected == null) return;
+    if (!mounted) return;
+
+    final updated =
+        await collection.updateManyStatus(Set.from(_selectedIds), selected);
+    if (!mounted) return;
+
+    if (updated > 0) {
+      _exitSelectionMode();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.bulkUpdated(updated))),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(collection.errorMessage ?? l10n.errorLoadData),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -186,166 +473,300 @@ class _CollectionPageState extends State<CollectionPage> {
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.navCollection),
-        actions: [
-          IconButton(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(Icons.filter_list),
-                if (collection.hasActiveFilters)
-                  Positioned(
-                    right: -2,
-                    top: -2,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.redAccent,
-                        shape: BoxShape.circle,
+    final validIds = collection.allEntries.map((e) => e.id).toSet();
+    if (_selectedIds.isNotEmpty) {
+      final stale = _selectedIds.difference(validIds.cast<int>());
+      if (stale.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _selectedIds.removeAll(stale);
+            if (_selectedIds.isEmpty) _isSelectionMode = false;
+          });
+        });
+      }
+    }
+
+    return PopScope(
+      canPop: !_isSelectionMode,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_isSelectionMode) _exitSelectionMode();
+      },
+      child: Scaffold(
+        appBar: _isSelectionMode
+            ? _buildSelectionAppBar(l10n, collection)
+            : _buildNormalAppBar(l10n, collection),
+        body: _isSelectionMode
+            ? _buildContent(context, collection, l10n)
+            : Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(AppSizes.spacingM,
+                        AppSizes.spacingS, AppSizes.spacingM, 0),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) {
+                        _debounceTimer?.cancel();
+                        _debounceTimer =
+                            Timer(const Duration(milliseconds: 300), () {
+                          if (mounted) collection.setQuery(val.trim());
+                        });
+                      },
+                      onSubmitted: (val) {
+                        _debounceTimer?.cancel();
+                        collection.setQuery(val.trim());
+                      },
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: l10n.searchInCollection,
+                        prefixIcon: const Icon(Icons.search),
+                        isDense: true,
+                        suffixIcon:
+                            ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _searchController,
+                          builder: (context, value, child) {
+                            return value.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      _debounceTimer?.cancel();
+                                      _searchController.clear();
+                                      collection.setQuery('');
+                                    },
+                                  )
+                                : const SizedBox.shrink();
+                          },
+                        ),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ),
-              ],
-            ),
-            tooltip: l10n.activeFilter,
-            onPressed: () => _showFilterSheet(context, l10n),
-          ),
-          IconButton(
-            icon: Icon(
-                collection.isListView ? Icons.grid_view : Icons.view_list),
-            tooltip: collection.isListView ? l10n.gridView : l10n.listView,
-            onPressed: () => collection.toggleView(),
-          ),
-          PopupMenuButton<UrutanKoleksi>(
-            icon: const Icon(Icons.sort),
-            tooltip: l10n.sortBy,
-            onSelected: (value) => collection.setUrutan(value),
-            itemBuilder: (context) => [
-              _buildSortItem(l10n.sortNewest, UrutanKoleksi.terbaru,
-                  collection.urutan),
-              _buildSortItem(
-                  l10n.sortTitle, UrutanKoleksi.judul, collection.urutan),
-              _buildSortItem(l10n.sortProgress, UrutanKoleksi.progres,
-                  collection.urutan),
-              _buildSortItem(
-                  l10n.sortRating, UrutanKoleksi.rating, collection.urutan),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSizes.spacingM, AppSizes.spacingS, AppSizes.spacingM, 0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) {
-                _debounceTimer?.cancel();
-                _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-                  if (mounted) collection.setQuery(val.trim());
-                });
-              },
-              onSubmitted: (val) {
-                _debounceTimer?.cancel();
-                collection.setQuery(val.trim());
-              },
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: l10n.searchInCollection,
-                prefixIcon: const Icon(Icons.search),
-                isDense: true,
-                suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _searchController,
-                  builder: (context, value, child) {
-                    return value.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _debounceTimer?.cancel();
-                              _searchController.clear();
-                              collection.setQuery('');
-                            },
-                          )
-                        : const SizedBox.shrink();
-                  },
-                ),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.spacingM, vertical: AppSizes.spacingS),
-            child: Row(
-              children: [
-                _buildStatusChip(context, l10n.all, null, collection),
-                ...StatusKoleksi.values.map((status) => _buildStatusChip(
-                    context, status.netralLabel(l10n), status, collection)),
-              ],
-            ),
-          ),
-          if (!collection.isLoading &&
-              collection.errorMessage == null &&
-              collection.entries.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.spacingM),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '${collection.entries.length} ${l10n.trackedTitles('').trim()}',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant),
-                ),
-              ),
-            ),
-          if (collection.isOffline)
-            Container(
-              width: double.infinity,
-              color: AppColors.goldPrimary.withValues(alpha: 0.2),
-              padding:
-                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: Row(
-                children: [
-                  const Icon(Icons.wifi_off,
-                      size: 16, color: AppColors.goldPrimary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(l10n.offlineBanner,
-                        style: const TextStyle(fontSize: 12)),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.spacingM,
+                        vertical: AppSizes.spacingS),
+                    child: Row(
+                      children: [
+                        _buildStatusChip(
+                            context, l10n.all, null, collection),
+                        ...StatusKoleksi.values.map((status) =>
+                            _buildStatusChip(context,
+                                status.netralLabel(l10n), status, collection)),
+                      ],
+                    ),
                   ),
-                  TextButton(
-                    onPressed: () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final ok = await collection.retryConnection();
-                      if (!context.mounted) return;
-                      messenger.showSnackBar(SnackBar(
-                        content:
-                            Text(ok ? l10n.reconnected : l10n.stillOffline),
-                      ));
-                    },
-                    child: Text(l10n.retryConnection,
-                        style: const TextStyle(fontSize: 12)),
+                  if (!collection.isLoading &&
+                      collection.errorMessage == null &&
+                      collection.entries.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.spacingM),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${collection.entries.length} ${l10n.trackedTitles('').trim()}',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant),
+                        ),
+                      ),
+                    ),
+                  if (collection.isOffline)
+                    Container(
+                      width: double.infinity,
+                      color: AppColors.goldPrimary.withValues(alpha: 0.2),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.wifi_off,
+                              size: 16, color: AppColors.goldPrimary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(l10n.offlineBanner,
+                                style: const TextStyle(fontSize: 12)),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final messenger =
+                                  ScaffoldMessenger.of(context);
+                              final ok =
+                                  await collection.retryConnection();
+                              if (!context.mounted) return;
+                              messenger.showSnackBar(SnackBar(
+                                content: Text(ok
+                                    ? l10n.reconnected
+                                    : l10n.stillOffline),
+                              ));
+                            },
+                            child: Text(l10n.retryConnection,
+                                style: const TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () => collection.refresh(),
+                      child: _buildContent(context, collection, l10n),
+                    ),
                   ),
                 ],
               ),
-            ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => collection.refresh(),
-              child: _buildContent(context, collection, l10n),
+        bottomNavigationBar:
+            _isSelectionMode ? _buildSelectionBottomBar(l10n) : null,
+      ),
+    );
+  }
+
+  AppBar _buildNormalAppBar(
+      AppLocalizations l10n, CollectionProvider collection) {
+    return AppBar(
+      title: Text(l10n.navCollection),
+      actions: [
+        IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.filter_list),
+              if (collection.hasActiveFilters)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          tooltip: l10n.activeFilter,
+          onPressed: () => _showFilterSheet(context, l10n),
+        ),
+        IconButton(
+          icon: Icon(
+              collection.isListView ? Icons.grid_view : Icons.view_list),
+          tooltip: collection.isListView ? l10n.gridView : l10n.listView,
+          onPressed: () => collection.toggleView(),
+        ),
+        IconButton(
+          icon: const Icon(Icons.sort),
+          tooltip: l10n.sortBy,
+          onPressed: () => _showSortSheet(context, l10n),
+        ),
+        IconButton(
+          icon: const Icon(Icons.checklist),
+          tooltip: l10n.selectItems,
+          onPressed: () => _enterSelectionMode(),
+        ),
+      ],
+    );
+  }
+
+  AppBar _buildSelectionAppBar(
+      AppLocalizations l10n, CollectionProvider collection) {
+    return AppBar(
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: _exitSelectionMode,
+      ),
+      title: Text(l10n.selectedCount(_selectedIds.length)),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.select_all),
+          tooltip: l10n.selectAll,
+          onPressed: () => _selectAll(collection),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectionBottomBar(AppLocalizations l10n) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
             ),
           ),
-        ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _selectionAction(
+                icon: Icons.delete_outline,
+                label: l10n.delete,
+                color: Colors.redAccent,
+                onTap: _selectedIds.isEmpty
+                    ? null
+                    : () => _deleteSelected(l10n),
+              ),
+            ),
+            Expanded(
+              child: _selectionAction(
+                icon: Icons.label_outline,
+                label: l10n.changeLabel,
+                color: AppColors.infoBlue,
+                onTap: _selectedIds.isEmpty
+                    ? null
+                    : () => _changeLabelSelected(l10n),
+              ),
+            ),
+            Expanded(
+              child: _selectionAction(
+                icon: Icons.flag_outlined,
+                label: l10n.changeStatus,
+                color: AppColors.primaryGreen,
+                onTap: _selectedIds.isEmpty
+                    ? null
+                    : () => _changeStatusSelected(l10n),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _selectionAction({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback? onTap,
+  }) {
+    final disabled = onTap == null;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: disabled ? Colors.grey : color),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: disabled ? Colors.grey : color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -361,20 +782,6 @@ class _CollectionPageState extends State<CollectionPage> {
         onSelected: (selected) {
           if (selected) collection.setFilterStatus(status);
         },
-      ),
-    );
-  }
-
-  PopupMenuItem<UrutanKoleksi> _buildSortItem(
-      String label, UrutanKoleksi value, UrutanKoleksi current) {
-    return PopupMenuItem(
-      value: value,
-      child: Row(
-        children: [
-          if (current == value) const Icon(Icons.check, size: 18),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
       ),
     );
   }
@@ -397,7 +804,8 @@ class _CollectionPageState extends State<CollectionPage> {
           maxCrossAxisExtent: 180,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          mainAxisExtent: 180 * 1.5 + (72 * MediaQuery.textScalerOf(context).scale(1.0)),
+          mainAxisExtent: 180 * 1.5 +
+              (72 * MediaQuery.textScalerOf(context).scale(1.0)),
         ),
         itemCount: 6,
         itemBuilder: (context, index) => const SkeletonGridCard(),
@@ -448,24 +856,38 @@ class _CollectionPageState extends State<CollectionPage> {
         maxCrossAxisExtent: 180,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        mainAxisExtent: 180 * 1.5 + (72 * MediaQuery.textScalerOf(context).scale(1.0)),
+        mainAxisExtent: 180 * 1.5 +
+            (72 * MediaQuery.textScalerOf(context).scale(1.0)),
       ),
       itemCount: collection.entries.length,
       itemBuilder: (context, index) {
         final entri = collection.entries[index];
+        final id = entri.id!;
+        final isSelected = _selectedIds.contains(id);
         return CollectionCard(
           key: ValueKey(entri.id),
           entri: entri,
+          isSelectionMode: _isSelectionMode,
+          isSelected: isSelected,
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CollectionDetailPage(id: entri.id!),
-              ),
-            );
+            if (_isSelectionMode) {
+              _toggleSelection(id);
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      CollectionDetailPage(id: entri.id!),
+                ),
+              );
+            }
           },
           onLongPress: () {
-            _showQuickMenu(context, entri);
+            if (_isSelectionMode) {
+              _toggleSelection(id);
+            } else {
+              _enterSelectionMode(initialId: id);
+            }
           },
         );
       },
@@ -480,22 +902,38 @@ class _CollectionPageState extends State<CollectionPage> {
       itemCount: collection.entries.length,
       itemBuilder: (context, index) {
         final entri = collection.entries[index];
+        final id = entri.id!;
         final isProcessing = _processingIds.contains(entri.id);
+        final isSelected = _selectedIds.contains(id);
 
         return CollectionListCard(
           key: ValueKey(entri.id),
           entri: entri,
           isProcessing: isProcessing,
+          isSelectionMode: _isSelectionMode,
+          isSelected: isSelected,
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CollectionDetailPage(id: entri.id!),
-              ),
-            );
+            if (_isSelectionMode) {
+              _toggleSelection(id);
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      CollectionDetailPage(id: entri.id!),
+                ),
+              );
+            }
           },
-          onLongPress: () => _showQuickMenu(context, entri),
+          onLongPress: () {
+            if (_isSelectionMode) {
+              _toggleSelection(id);
+            } else {
+              _enterSelectionMode(initialId: id);
+            }
+          },
           onIncrement: () async {
+            if (_isSelectionMode) return;
             setState(() => _processingIds.add(entri.id!));
             final provider = context.read<CollectionProvider>();
             final messenger = ScaffoldMessenger.of(context);
@@ -523,173 +961,6 @@ class _CollectionPageState extends State<CollectionPage> {
           },
         );
       },
-    );
-  }
-
-  void _showQuickMenu(BuildContext context, EntriKoleksi entri) {
-    final l10n = AppLocalizations.of(context)!;
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final collection = context.read<CollectionProvider>();
-
-    showModalBottomSheet(
-      context: context,
-      builder: (sheetCtx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: Text(l10n.edit),
-              onTap: () {
-                Navigator.pop(sheetCtx);
-                navigator.push(
-                  MaterialPageRoute(
-                    builder: (context) => EditEntryPage(entri: entri),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading:
-                  const Icon(Icons.delete, color: Colors.redAccent),
-              title: Text(l10n.delete,
-                  style: const TextStyle(color: Colors.redAccent)),
-              onTap: () async {
-                Navigator.pop(sheetCtx);
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (dialogCtx) => AlertDialog(
-                    title: Text(l10n.delete),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${l10n.delete} "${entri.judul}"?',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            children: [
-                              Icon(Icons.category_outlined,
-                                  size: 14, color: Colors.grey),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(entri.jenis.label(l10n),
-                                    style: const TextStyle(fontSize: 12)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            children: [
-                              Icon(Icons.flag_outlined,
-                                  size: 14, color: Colors.grey),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                    entri.status.label(entri.jenis, l10n),
-                                    style: const TextStyle(fontSize: 12)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            children: [
-                              Icon(Icons.play_circle_outline,
-                                  size: 14, color: Colors.grey),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  '${entri.progres}/${entri.total ?? "?"} '
-                                  '${entri.jenis.satuanProgres(l10n)}',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color:
-                                Colors.redAccent.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.warning_amber_rounded,
-                                  size: 16, color: Colors.redAccent),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Data akan dihapus. Bisa di-undo lewat SnackBar.',
-                                  style: TextStyle(fontSize: 11),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogCtx, false),
-                        child: Text(l10n.cancel),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogCtx, true),
-                        style: TextButton.styleFrom(
-                            foregroundColor: Colors.redAccent),
-                        child: Text(l10n.delete),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirmed != true) return;
-                if (!context.mounted) return;
-                final berhasil = await collection.deleteEntry(entri);
-                if (!berhasil) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                        content: Text(collection.errorMessage ??
-                            l10n.errorLoadData)),
-                  );
-                  return;
-                }
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.entryDeleted),
-                    action: SnackBarAction(
-                      label: l10n.undo,
-                      onPressed: () async {
-                        final ok = await collection.createEntry(entri);
-                        if (!ok && collection.errorMessage != null) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text(collection.errorMessage!)),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -10,7 +10,7 @@ import '../models/status_collection_enum.dart';
 import '../models/profile_stats.dart';
 import '../repositories/collection_repository.dart';
 
-enum UrutanKoleksi { terbaru, judul, progres, rating }
+enum UrutanKoleksi { terbaru, ditambahkan, judul, progres, rating }
 enum HasilIncrement { ok, offline, alreadyCompleted, error, inFlight }
 
 class CollectionProvider extends ChangeNotifier {
@@ -27,6 +27,7 @@ class CollectionProvider extends ChangeNotifier {
   final Set<int> _inFlight = {};
 
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
+  bool _urutanAsc = false;
   StatusKoleksi? _filterStatus;
   bool _isListView = false;
   bool _filterFavorit = false;
@@ -48,6 +49,7 @@ class CollectionProvider extends ChangeNotifier {
   bool get isSaving => _isSaving;
   String? get errorMessage => _errorMessage;
   UrutanKoleksi get urutan => _urutan;
+  bool get urutanAsc => _urutanAsc;
   StatusKoleksi? get filterStatus => _filterStatus;
   String? get userId => _userId;
   String get query => _query;
@@ -103,23 +105,34 @@ class CollectionProvider extends ChangeNotifier {
       filtered.add(e);
     }
 
-    final fallback = DateTime.fromMillisecondsSinceEpoch(0);
-    switch (_urutan) {
-      case UrutanKoleksi.terbaru:
-        filtered.sort((a, b) =>
-            (b.updatedAt ?? fallback).compareTo(a.updatedAt ?? fallback));
-      case UrutanKoleksi.judul:
-        filtered.sort((a, b) =>
-            a.judul.toLowerCase().compareTo(b.judul.toLowerCase()));
-      case UrutanKoleksi.progres:
-        filtered.sort((a, b) => b.progres.compareTo(a.progres));
-      case UrutanKoleksi.rating:
-        filtered.sort((a, b) =>
-            (b.rating ?? 0).compareTo(a.rating ?? 0));
+    final cmp = _getComparator();
+    if (_urutanAsc) {
+      filtered.sort(cmp);
+    } else {
+      filtered.sort((a, b) => cmp(b, a));
     }
 
     _filteredCache = filtered;
     return _filteredCache!;
+  }
+
+  int Function(EntriKoleksi, EntriKoleksi) _getComparator() {
+    final fallback = DateTime.fromMillisecondsSinceEpoch(0);
+    switch (_urutan) {
+      case UrutanKoleksi.terbaru:
+        return (a, b) =>
+            (a.updatedAt ?? fallback).compareTo(b.updatedAt ?? fallback);
+      case UrutanKoleksi.ditambahkan:
+        return (a, b) =>
+            (a.createdAt ?? fallback).compareTo(b.createdAt ?? fallback);
+      case UrutanKoleksi.judul:
+        return (a, b) =>
+            a.judul.toLowerCase().compareTo(b.judul.toLowerCase());
+      case UrutanKoleksi.progres:
+        return (a, b) => a.progres.compareTo(b.progres);
+      case UrutanKoleksi.rating:
+        return (a, b) => (a.rating ?? 0).compareTo(b.rating ?? 0);
+    }
   }
 
   CollectionProvider(this._repository);
@@ -480,6 +493,82 @@ class CollectionProvider extends ChangeNotifier {
     }, onError: 0);
   }
 
+  Future<int> deleteMany(Set<int> ids) async {
+    if (_userId == null || _isOffline || ids.isEmpty) {
+      _errorMessage = _isOffline
+          ? 'Tidak dapat menghapus data saat offline.'
+          : 'Tidak ada item yang dipilih.';
+      _safeNotify();
+      return 0;
+    }
+    return _runSaving(() async {
+      final idList = ids.toList(growable: false);
+      await _repository.deleteEntries(idList);
+      _entries.removeWhere((e) => ids.contains(e.id));
+      _scheduleSaveCache();
+      _notifyDataChanged();
+      return idList.length;
+    }, onError: 0);
+  }
+
+  Future<int> updateManyStatus(Set<int> ids, StatusKoleksi status) async {
+    if (_userId == null || _isOffline || ids.isEmpty) {
+      _errorMessage = _isOffline
+          ? 'Tidak dapat mengubah data saat offline.'
+          : 'Tidak ada item yang dipilih.';
+      _safeNotify();
+      return 0;
+    }
+    return _runSaving(() async {
+      final idList = ids.toList(growable: false);
+      final nowUtc = DateTime.now().toUtc().toIso8601String();
+      await _repository.updateEntriesFields(idList, {
+        'status': status.name,
+        'updated_at': nowUtc,
+      });
+      final now = DateTime.now();
+      for (int i = 0; i < _entries.length; i++) {
+        final e = _entries[i];
+        if (!ids.contains(e.id)) continue;
+        _entries[i] = e.copyWith(status: status, updatedAt: now);
+      }
+      _scheduleSaveCache();
+      _notifyDataChanged();
+      return idList.length;
+    }, onError: 0);
+  }
+
+  Future<int> updateManyLabel(Set<int> ids, int? labelId) async {
+    if (_userId == null || _isOffline || ids.isEmpty) {
+      _errorMessage = _isOffline
+          ? 'Tidak dapat mengubah data saat offline.'
+          : 'Tidak ada item yang dipilih.';
+      _safeNotify();
+      return 0;
+    }
+    return _runSaving(() async {
+      final idList = ids.toList(growable: false);
+      final nowUtc = DateTime.now().toUtc().toIso8601String();
+      await _repository.updateEntriesFields(idList, {
+        'label_id': labelId,
+        'updated_at': nowUtc,
+      });
+      final now = DateTime.now();
+      for (int i = 0; i < _entries.length; i++) {
+        final e = _entries[i];
+        if (!ids.contains(e.id)) continue;
+        _entries[i] = e.copyWith(
+          labelId: labelId,
+          clearLabelId: labelId == null,
+          updatedAt: now,
+        );
+      }
+      _scheduleSaveCache();
+      _notifyDataChanged();
+      return idList.length;
+    }, onError: 0);
+  }
+
   Future<HasilIncrement> incrementProgress(EntriKoleksi entri) async {
     final id = entri.id;
     if (id == null) {
@@ -657,6 +746,23 @@ class CollectionProvider extends ChangeNotifier {
   void setUrutan(UrutanKoleksi urutan) {
     if (_urutan == urutan) return;
     _urutan = urutan;
+    switch (urutan) {
+      case UrutanKoleksi.judul:
+        _urutanAsc = true;
+        break;
+      case UrutanKoleksi.terbaru:
+      case UrutanKoleksi.ditambahkan:
+      case UrutanKoleksi.progres:
+      case UrutanKoleksi.rating:
+        _urutanAsc = false;
+        break;
+    }
+    _notifyDataChanged();
+  }
+
+  void setUrutanDirection(bool ascending) {
+    if (_urutanAsc == ascending) return;
+    _urutanAsc = ascending;
     _notifyDataChanged();
   }
 

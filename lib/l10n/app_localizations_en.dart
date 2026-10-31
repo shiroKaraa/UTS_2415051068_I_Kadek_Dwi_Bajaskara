@@ -1004,4 +1004,64 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get imageCacheDesc =>
       'Limit image cache to a maximum of 100MB. When disabled, the cache is unlimited.';
+
+  @override
+  String get sortAddedDate => 'Date Added';
+
+  @override
+  String get sortAscending => 'Ascending';
+
+  @override
+  String get sortDescending => 'Descending';
+
+  @override
+  String get sortDirection => 'Direction';
+
+  @override
+  String get selectItems => 'Select';
+
+  @override
+  String selectedCount(Object count) {
+    return '$count selected';
+  }
+
+  @override
+  String get selectAll => 'Select All';
+
+  @override
+  String get changeLabel => 'Change Label';
+
+  @override
+  String get changeStatus => 'Change Status';
+
+  @override
+  String get removeLabel => 'Remove Label';
+
+  @override
+  String get noLabel => 'No Label';
+
+  @override
+  String confirmDeleteMultiple(Object count) {
+    return 'Delete $count selected items?';
+  }
+
+  @override
+  String get confirmDeleteMultipleDesc =>
+      'This action will permanently remove the selected titles from your collection.';
+
+  @override
+  String bulkDeleted(Object count) {
+    return '$count items deleted.';
+  }
+
+  @override
+  String bulkUpdated(Object count) {
+    return '$count items updated.';
+  }
+
+  @override
+  String get comic => 'Comic';
+
+  @override
+  String get sortPickOrder => 'Sort by';
 }

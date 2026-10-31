@@ -15,6 +15,8 @@ class CollectionListCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback onIncrement;
+  final bool isSelectionMode;
+  final bool isSelected;
 
   const CollectionListCard({
     super.key,
@@ -23,6 +25,8 @@ class CollectionListCard extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
     required this.onIncrement,
+    this.isSelectionMode = false,
+    this.isSelected = false,
   });
 
   @override
@@ -41,6 +45,15 @@ class CollectionListCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: AppSizes.spacingM),
       clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.radiusM),
+        side: isSelected
+            ? BorderSide(color: theme.colorScheme.primary, width: 2.5)
+            : BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      color: isSelected
+          ? theme.colorScheme.primary.withValues(alpha: 0.08)
+          : null,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
@@ -49,11 +62,25 @@ class CollectionListCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (isSelectionMode) ...[
+                Padding(
+                  padding: const EdgeInsets.only(right: 8, top: 50),
+                  child: Icon(
+                    isSelected
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
               Stack(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(AppSizes.radiusS),
-                    child: CoverImage(url: entri.coverUrl, width: 84, height: 126),
+                    child: CoverImage(
+                        url: entri.coverUrl, width: 84, height: 126),
                   ),
                   Positioned(
                     top: 6,
@@ -76,10 +103,14 @@ class CollectionListCard extends StatelessWidget {
                         entri.judul,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 6),
-                      _StatusPill(label: entri.status.netralLabel(l10n), color: statusColor),
+                      _StatusPill(
+                        label: entri.status.netralLabel(l10n),
+                        color: statusColor,
+                      ),
                       const Spacer(),
                       Row(
                         children: [
@@ -95,20 +126,26 @@ class CollectionListCard extends StatelessWidget {
                             SizedBox(
                               height: 32,
                               child: FilledButton.tonal(
-                                onPressed: isProcessing ? null : () {
-                                  HapticFeedback.lightImpact();
-                                  onIncrement();
-                                },
+                                onPressed: isProcessing
+                                    ? null
+                                    : () {
+                                        HapticFeedback.lightImpact();
+                                        onIncrement();
+                                      },
                                 style: FilledButton.styleFrom(
                                   minimumSize: const Size(52, 32),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
                                 ),
                                 child: isProcessing
                                     ? const SizedBox(
                                         width: 14,
                                         height: 14,
-                                        child: CircularProgressIndicator(strokeWidth: 2))
-                                    : const Text('+1', style: TextStyle(fontWeight: FontWeight.w800)),
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))
+                                    : const Text('+1',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w800)),
                               ),
                             ),
                         ],
@@ -141,7 +178,8 @@ class _StatusPill extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
+          style: TextStyle(
+              color: color, fontSize: 11, fontWeight: FontWeight.w700),
         ),
       );
 }

@@ -1004,4 +1004,64 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get imageCacheDesc =>
       'Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi.';
+
+  @override
+  String get sortAddedDate => 'Tanggal Ditambahkan';
+
+  @override
+  String get sortAscending => 'Naik';
+
+  @override
+  String get sortDescending => 'Turun';
+
+  @override
+  String get sortDirection => 'Arah';
+
+  @override
+  String get selectItems => 'Pilih';
+
+  @override
+  String selectedCount(Object count) {
+    return '$count dipilih';
+  }
+
+  @override
+  String get selectAll => 'Pilih Semua';
+
+  @override
+  String get changeLabel => 'Ubah Label';
+
+  @override
+  String get changeStatus => 'Ubah Status';
+
+  @override
+  String get removeLabel => 'Hapus Label';
+
+  @override
+  String get noLabel => 'Tanpa Label';
+
+  @override
+  String confirmDeleteMultiple(Object count) {
+    return 'Hapus $count koleksi yang dipilih?';
+  }
+
+  @override
+  String get confirmDeleteMultipleDesc =>
+      'Tindakan ini akan menghapus permanen judul yang dipilih dari koleksimu.';
+
+  @override
+  String bulkDeleted(Object count) {
+    return '$count koleksi dihapus.';
+  }
+
+  @override
+  String bulkUpdated(Object count) {
+    return '$count koleksi diperbarui.';
+  }
+
+  @override
+  String get comic => 'Komik';
+
+  @override
+  String get sortPickOrder => 'Urutkan berdasarkan';
 }

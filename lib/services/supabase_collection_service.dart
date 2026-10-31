@@ -128,6 +128,36 @@ class SupabaseCollectionService implements CollectionDataSource {
   }
 
   @override
+  Future<void> deleteEntries(List<int> ids) async {
+    if (ids.isEmpty) return;
+    final userId = _requireUserId();
+    await _supabase
+        .from('koleksi')
+        .delete()
+        .inFilter('id', ids)
+        .eq('user_id', userId)
+        .timeout(_timeout,
+            onTimeout: () => throw TimeoutException('Bulk delete timeout'));
+  }
+
+  @override
+  Future<void> updateEntriesFields(
+      List<int> ids, Map<String, dynamic> data) async {
+    if (ids.isEmpty) return;
+    final userId = _requireUserId();
+    final payload = Map<String, dynamic>.from(data)
+      ..remove('user_id')
+      ..remove('device_id');
+    await _supabase
+        .from('koleksi')
+        .update(payload)
+        .inFilter('id', ids)
+        .eq('user_id', userId)
+        .timeout(_timeout,
+            onTimeout: () => throw TimeoutException('Bulk update timeout'));
+  }
+
+  @override
   Future<int> countClaimableCollections(String deviceId) async {
     try {
       final response = await _supabase

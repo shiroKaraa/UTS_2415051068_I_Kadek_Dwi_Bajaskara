@@ -321,5 +321,22 @@
   "preImportBackupSaved": "Backup sebelumnya disimpan: {filename}",
   "usernameHint": "3–20 karakter: huruf kecil, angka, underscore.",
   "usernameInvalidChars": "Hanya huruf kecil, angka, dan underscore.",
-  "imageCacheDesc": "Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi."
+  "imageCacheDesc": "Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi.",
+  "sortAddedDate": "Tanggal Ditambahkan",
+  "sortAscending": "Naik",
+  "sortDescending": "Turun",
+  "sortDirection": "Arah",
+  "selectItems": "Pilih",
+  "selectedCount": "{count} dipilih",
+  "selectAll": "Pilih Semua",
+  "changeLabel": "Ubah Label",
+  "changeStatus": "Ubah Status",
+  "removeLabel": "Hapus Label",
+  "noLabel": "Tanpa Label",
+  "confirmDeleteMultiple": "Hapus {count} koleksi yang dipilih?",
+  "confirmDeleteMultipleDesc": "Tindakan ini akan menghapus permanen judul yang dipilih dari koleksimu.",
+  "bulkDeleted": "{count} koleksi dihapus.",
+  "bulkUpdated": "{count} koleksi diperbarui.",
+  "comic": "Komik",
+  "sortPickOrder": "Urutkan berdasarkan"
 }

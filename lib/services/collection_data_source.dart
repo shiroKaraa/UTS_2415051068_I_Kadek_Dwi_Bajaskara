@@ -7,6 +7,8 @@ abstract class CollectionDataSource {
   Future<EntriKoleksi> updateEntry(EntriKoleksi entri);
   Future<void> deleteEntry(int id);
   Future<void> deleteAll(String userId);
+  Future<void> deleteEntries(List<int> ids);
+  Future<void> updateEntriesFields(List<int> ids, Map<String, dynamic> data);
   Future<int> countClaimableCollections(String deviceId);
   Future<bool> pingServer();
 }

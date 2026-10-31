@@ -320,5 +320,22 @@
   "preImportBackupSaved": "Previous backup saved: {filename}",
   "usernameHint": "3–20 characters: lowercase letters, numbers, underscore.",
   "usernameInvalidChars": "Only lowercase letters, numbers, and underscore allowed.",
-  "imageCacheDesc": "Limit image cache to a maximum of 100MB. When disabled, the cache is unlimited."
+  "imageCacheDesc": "Limit image cache to a maximum of 100MB. When disabled, the cache is unlimited.",
+  "sortAddedDate": "Date Added",
+  "sortAscending": "Ascending",
+  "sortDescending": "Descending",
+  "sortDirection": "Direction",
+  "selectItems": "Select",
+  "selectedCount": "{count} selected",
+  "selectAll": "Select All",
+  "changeLabel": "Change Label",
+  "changeStatus": "Change Status",
+  "removeLabel": "Remove Label",
+  "noLabel": "No Label",
+  "confirmDeleteMultiple": "Delete {count} selected items?",
+  "confirmDeleteMultipleDesc": "This action will permanently remove the selected titles from your collection.",
+  "bulkDeleted": "{count} items deleted.",
+  "bulkUpdated": "{count} items updated.",
+  "comic": "Comic",
+  "sortPickOrder": "Sort by"
 }

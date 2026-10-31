@@ -1957,6 +1957,108 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Batasi ukuran cache gambar maksimal 100MB. Saat nonaktif, cache tidak dibatasi.'**
   String get imageCacheDesc;
+
+  /// No description provided for @sortAddedDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanggal Ditambahkan'**
+  String get sortAddedDate;
+
+  /// No description provided for @sortAscending.
+  ///
+  /// In id, this message translates to:
+  /// **'Naik'**
+  String get sortAscending;
+
+  /// No description provided for @sortDescending.
+  ///
+  /// In id, this message translates to:
+  /// **'Turun'**
+  String get sortDescending;
+
+  /// No description provided for @sortDirection.
+  ///
+  /// In id, this message translates to:
+  /// **'Arah'**
+  String get sortDirection;
+
+  /// No description provided for @selectItems.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih'**
+  String get selectItems;
+
+  /// No description provided for @selectedCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} dipilih'**
+  String selectedCount(Object count);
+
+  /// No description provided for @selectAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Semua'**
+  String get selectAll;
+
+  /// No description provided for @changeLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Ubah Label'**
+  String get changeLabel;
+
+  /// No description provided for @changeStatus.
+  ///
+  /// In id, this message translates to:
+  /// **'Ubah Status'**
+  String get changeStatus;
+
+  /// No description provided for @removeLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Label'**
+  String get removeLabel;
+
+  /// No description provided for @noLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanpa Label'**
+  String get noLabel;
+
+  /// No description provided for @confirmDeleteMultiple.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus {count} koleksi yang dipilih?'**
+  String confirmDeleteMultiple(Object count);
+
+  /// No description provided for @confirmDeleteMultipleDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Tindakan ini akan menghapus permanen judul yang dipilih dari koleksimu.'**
+  String get confirmDeleteMultipleDesc;
+
+  /// No description provided for @bulkDeleted.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} koleksi dihapus.'**
+  String bulkDeleted(Object count);
+
+  /// No description provided for @bulkUpdated.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} koleksi diperbarui.'**
+  String bulkUpdated(Object count);
+
+  /// No description provided for @comic.
+  ///
+  /// In id, this message translates to:
+  /// **'Komik'**
+  String get comic;
+
+  /// No description provided for @sortPickOrder.
+  ///
+  /// In id, this message translates to:
+  /// **'Urutkan berdasarkan'**
+  String get sortPickOrder;
 }
 
 class _AppLocalizationsDelegate
