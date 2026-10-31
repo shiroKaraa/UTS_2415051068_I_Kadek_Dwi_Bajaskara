@@ -11,7 +11,7 @@ import '../models/profile_stats.dart';
 import '../repositories/collection_repository.dart';
 
 enum UrutanKoleksi { terbaru, judul, progres, rating }
-enum HasilIncrement { ok, offline, alreadyCompleted, error }
+enum HasilIncrement { ok, offline, alreadyCompleted, error, inFlight }
 
 class CollectionProvider extends ChangeNotifier {
   final CollectionRepository _repository;
@@ -155,6 +155,19 @@ class CollectionProvider extends ChangeNotifier {
         s.contains('AuthRetryableFetchException');
   }
 
+  String _friendlyError(Object e) {
+    if (e is TimeoutException) {
+      return 'Server terlalu lama merespons. Coba lagi.';
+    }
+    if (_isNetworkError(e)) {
+      return 'Koneksi terputus. Periksa internet Anda.';
+    }
+    final raw = e.toString().replaceAll('Exception: ', '').trim();
+    if (raw.isEmpty) return 'Terjadi kesalahan. Coba lagi.';
+    if (raw.length > 200) return 'Terjadi kesalahan pada server. Coba lagi.';
+    return raw;
+  }
+
   EntriKoleksi _reconcileStatus(EntriKoleksi entri) {
     if (entri.total == null) return entri;
 
@@ -181,7 +194,7 @@ class CollectionProvider extends ChangeNotifier {
     try {
       return await action();
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = _friendlyError(e);
       return onError;
     } finally {
       _isSaving = false;
@@ -375,14 +388,13 @@ class CollectionProvider extends ChangeNotifier {
     try {
       final toInsert =
           entri.id != null ? entri.copyWith(clearId: true) : entri;
-      final newEntry =
-          await _repository.createEntry(_reconcileStatus(toInsert));
+      final newEntry = await _repository.createEntry(toInsert);
       _entries.insert(0, newEntry);
       _scheduleSaveCache();
       _notifyDataChanged();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = _friendlyError(e);
       return false;
     } finally {
       _isSaving = false;
@@ -397,14 +409,13 @@ class CollectionProvider extends ChangeNotifier {
     _safeNotify();
 
     try {
-      final normalized = entries.map(_reconcileStatus).toList();
-      final newEntries = await _repository.createEntries(normalized);
+      final newEntries = await _repository.createEntries(entries);
       _entries.insertAll(0, newEntries);
       _scheduleSaveCache();
       _notifyDataChanged();
       return newEntries.length;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = _friendlyError(e);
       return 0;
     } finally {
       _isSaving = false;
@@ -421,7 +432,7 @@ class CollectionProvider extends ChangeNotifier {
       return false;
     }
     return _runSaving(() async {
-      final updated = await _repository.updateEntry(_reconcileStatus(entri));
+      final updated = await _repository.updateEntry(entri);
       final index = _entries.indexWhere((e) => e.id == updated.id);
       if (index != -1) _entries[index] = updated;
       _scheduleSaveCache();
@@ -471,22 +482,34 @@ class CollectionProvider extends ChangeNotifier {
 
   Future<HasilIncrement> incrementProgress(EntriKoleksi entri) async {
     final id = entri.id;
-    if (id == null) return HasilIncrement.error;
+    if (id == null) {
+      _errorMessage = 'Entri tidak valid.';
+      _safeNotify();
+      return HasilIncrement.error;
+    }
     if (_isOffline) return HasilIncrement.offline;
     if (entri.status == StatusKoleksi.selesai) {
       return HasilIncrement.alreadyCompleted;
     }
-    if (!_inFlight.add(id)) return HasilIncrement.error;
+    if (!_inFlight.add(id)) return HasilIncrement.inFlight;
     try {
       final current = findById(id);
-      if (current == null) return HasilIncrement.error;
+      if (current == null) {
+        _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
+        _safeNotify();
+        return HasilIncrement.error;
+      }
 
       if (current.total != null && current.progres >= current.total!) {
         return HasilIncrement.alreadyCompleted;
       }
 
       final index = _entries.indexWhere((e) => e.id == id);
-      if (index == -1) return HasilIncrement.error;
+      if (index == -1) {
+        _errorMessage = 'Entri tidak ditemukan. Coba refresh koleksi.';
+        _safeNotify();
+        return HasilIncrement.error;
+      }
 
       final old = _entries[index];
       final newProgres = current.progres + 1;
@@ -516,10 +539,11 @@ class CollectionProvider extends ChangeNotifier {
         _scheduleSaveCache();
         _notifyDataChanged();
         return HasilIncrement.ok;
-      } catch (_) {
+      } catch (e) {
         final i = _entries
             .indexWhere((e) => e.id == old.id && e.progres == newProgres);
         if (i != -1) _entries[i] = old;
+        _errorMessage = _friendlyError(e);
         _notifyDataChanged();
         return HasilIncrement.error;
       }
@@ -567,8 +591,7 @@ class CollectionProvider extends ChangeNotifier {
       return false;
     }
     return _runSaving(() async {
-      final updated =
-          await _repository.updateEntry(_reconcileStatus(entri));
+      final updated = await _repository.updateEntry(entri);
       final index = _entries.indexWhere((e) => e.id == updated.id);
       if (index != -1) {
         _entries[index] =

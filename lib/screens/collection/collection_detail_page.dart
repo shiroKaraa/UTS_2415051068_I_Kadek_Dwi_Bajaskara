@@ -233,33 +233,30 @@ class CollectionDetailPage extends StatelessWidget {
                         IconButton.filledTonal(
                           icon: const Icon(Icons.add),
                           onPressed: () async {
-                            final provider =
-                                context.read<CollectionProvider>();
-                            final result =
-                                await provider.incrementProgress(entri);
+                            final provider = context.read<CollectionProvider>();
+                            final result = await provider.incrementProgress(entri);
                             if (!context.mounted) return;
 
+                            if (result == HasilIncrement.inFlight) return;
                             if (result == HasilIncrement.ok) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content:
-                                          Text(l10n.progressAdded)));
+                                SnackBar(content: Text(l10n.progressAdded)),
+                              );
                             } else if (result == HasilIncrement.offline) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(l10n.offlineMode)));
-                            } else if (result ==
-                                HasilIncrement.alreadyCompleted) {
+                                SnackBar(content: Text(l10n.offlineMode)),
+                              );
+                            } else if (result == HasilIncrement.alreadyCompleted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content:
-                                          Text(l10n.congratsCompleted)));
+                                SnackBar(content: Text(l10n.congratsCompleted)),
+                              );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          provider.errorMessage ??
-                                              l10n.errorLoadData)));
+                                SnackBar(
+                                  content:
+                                      Text(provider.errorMessage ?? l10n.errorLoadData),
+                                ),
+                              );
                             }
                           },
                         ),

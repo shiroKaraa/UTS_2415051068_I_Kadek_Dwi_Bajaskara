@@ -29,7 +29,7 @@ class AppColors {
   static const Color shimmerBase = Color(0xFF2C3A33);
   static const Color shimmerHighlight = Color(0xFF3D4F46);
 
-  // --- Token Warna Semantik ---
+  // Token Warna Semantik
   static const Color danger = Color(0xFFE57373); 
   static const Color success = Color(0xFF81C784); 
   static const Color textMuted = Color(0xFF9E9E9E); 

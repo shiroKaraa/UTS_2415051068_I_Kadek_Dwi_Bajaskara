@@ -9,6 +9,8 @@ import '../../../models/custom_label.dart';
 class EntryFormFields extends StatelessWidget {
   final JenisMedia jenisMedia;
   final GlobalKey<FormState> formKey;
+  final GlobalKey<FormFieldState<String>>? progresKey;
+  final GlobalKey<FormFieldState<String>>? totalKey;
   final StatusKoleksi status;
   final ValueChanged<StatusKoleksi> onStatusChanged;
   final TextEditingController progresController;
@@ -28,6 +30,8 @@ class EntryFormFields extends StatelessWidget {
     super.key,
     required this.jenisMedia,
     required this.formKey,
+    this.progresKey,
+    this.totalKey,
     required this.status,
     required this.onStatusChanged,
     required this.progresController,
@@ -96,10 +100,11 @@ class EntryFormFields extends StatelessWidget {
             children: [
               Expanded(
                 child: TextFormField(
+                  key: progresKey,
                   controller: progresController,
                   decoration: InputDecoration(
-                    labelText: l10n.fieldProgressUnit(
-                        jenisMedia.satuanProgres(l10n)),
+                    labelText:
+                        l10n.fieldProgressUnit(jenisMedia.satuanProgres(l10n)),
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
@@ -125,6 +130,7 @@ class EntryFormFields extends StatelessWidget {
               const SizedBox(width: AppSizes.spacingS),
               Expanded(
                 child: TextFormField(
+                  key: totalKey,
                   controller: totalController,
                   decoration: InputDecoration(
                     labelText: l10n.fieldTotal,

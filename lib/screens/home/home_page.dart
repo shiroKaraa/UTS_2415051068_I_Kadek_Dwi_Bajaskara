@@ -494,17 +494,24 @@ class _ContinueSectionState extends State<_ContinueSection> {
     setState(() => _processingIds.remove(e.id));
 
     final l10n = AppLocalizations.of(context)!;
-    if (result == HasilIncrement.ok) {
-      messenger
-          .showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
-    } else if (result == HasilIncrement.offline) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
-    } else if (result == HasilIncrement.alreadyCompleted) {
-      messenger.showSnackBar(
-          SnackBar(content: Text(l10n.congratsCompleted)));
-    } else {
-      messenger.showSnackBar(SnackBar(
-          content: Text(provider.errorMessage ?? l10n.errorLoadData)));
+    switch (result) {
+      case HasilIncrement.ok:
+        messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
+        break;
+      case HasilIncrement.offline:
+        messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
+        break;
+      case HasilIncrement.alreadyCompleted:
+        messenger.showSnackBar(
+            SnackBar(content: Text(l10n.congratsCompleted)));
+        break;
+      case HasilIncrement.inFlight:
+        break;
+      case HasilIncrement.error:
+        messenger.showSnackBar(SnackBar(
+          content: Text(provider.errorMessage ?? l10n.errorLoadData),
+        ));
+        break;
     }
   }
 }

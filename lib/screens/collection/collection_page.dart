@@ -505,6 +505,7 @@ class _CollectionPageState extends State<CollectionPage> {
             if (!context.mounted) return;
             setState(() => _processingIds.remove(entri.id));
 
+            if (result == HasilIncrement.inFlight) return;
             if (result == HasilIncrement.ok) {
               messenger.showSnackBar(
                   SnackBar(content: Text(l10n.progressAdded)));
@@ -516,7 +517,8 @@ class _CollectionPageState extends State<CollectionPage> {
                   SnackBar(content: Text(l10n.congratsCompleted)));
             } else {
               messenger.showSnackBar(SnackBar(
-                  content: Text(provider.errorMessage ?? l10n.errorLoadData)));
+                  content:
+                      Text(provider.errorMessage ?? l10n.errorLoadData)));
             }
           },
         );

@@ -10,7 +10,7 @@ import '../../providers/label_provider.dart';
 import 'progress_bar.dart';
 import 'cover_image.dart';
 
-class CollectionCard extends StatelessWidget {
+class CollectionCard extends StatefulWidget {
   final EntriKoleksi entri;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
@@ -23,7 +23,52 @@ class CollectionCard extends StatelessWidget {
   });
 
   @override
+  State<CollectionCard> createState() => _CollectionCardState();
+}
+
+class _CollectionCardState extends State<CollectionCard> {
+  bool _isProcessing = false;
+
+  Future<void> _handleIncrement() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    final l10n = AppLocalizations.of(context)!;
+    final provider = context.read<CollectionProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+
+    final result = await provider.incrementProgress(widget.entri);
+
+    if (!mounted) return;
+    setState(() => _isProcessing = false);
+
+    switch (result) {
+      case HasilIncrement.ok:
+        messenger.showSnackBar(
+            SnackBar(content: Text(l10n.progressAdded)));
+        break;
+      case HasilIncrement.offline:
+        messenger.showSnackBar(
+            SnackBar(content: Text(l10n.offlineMode)));
+        break;
+      case HasilIncrement.alreadyCompleted:
+        messenger.showSnackBar(
+            SnackBar(content: Text(l10n.congratsCompleted)));
+        break;
+      case HasilIncrement.inFlight:
+        break;
+      case HasilIncrement.error:
+        messenger.showSnackBar(SnackBar(
+          content: Text(provider.errorMessage ?? l10n.errorLoadData),
+        ));
+        break;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final entri = widget.entri;
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final progress = (entri.total != null && entri.total! > 0)
@@ -34,8 +79,8 @@ class CollectionCard extends StatelessWidget {
         (p) => p.findById(entri.labelId));
 
     return InkWell(
-      onTap: onTap,
-      onLongPress: onLongPress,
+      onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
       borderRadius: BorderRadius.circular(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,28 +133,21 @@ class CollectionCard extends StatelessWidget {
                           color: AppColors.primaryGreen,
                           shape: const CircleBorder(),
                           child: InkWell(
-                            onTap: () async {
-                              final provider = context.read<CollectionProvider>();
-                              final messenger = ScaffoldMessenger.of(context);
-
-                              final result = await provider.incrementProgress(entri);
-
-                              if (!context.mounted) return;
-
-                              if (result == HasilIncrement.ok) {
-                                messenger.showSnackBar(SnackBar(content: Text(l10n.progressAdded)));
-                              } else if (result == HasilIncrement.offline) {
-                                messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
-                              } else if (result == HasilIncrement.alreadyCompleted) {
-                                messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
-                              } else {
-                                messenger.showSnackBar(SnackBar(content: Text(provider.errorMessage ?? l10n.errorLoadData)));
-                              }
-                            },
+                            onTap: _isProcessing ? null : _handleIncrement,
                             customBorder: const CircleBorder(),
-                            child: const Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: Icon(Icons.add, color: Colors.black, size: 24),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: _isProcessing
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.black,
+                                      ),
+                                    )
+                                  : const Icon(Icons.add,
+                                      color: Colors.black, size: 24),
                             ),
                           ),
                         ),
@@ -134,16 +172,19 @@ class CollectionCard extends StatelessWidget {
                   color: AppColors.infoBlue,
                   fontWeight: FontWeight.w600),
             ),
-
           Text(
             entri.status.netralLabel(l10n),
-            style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+            style: TextStyle(
+                fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
           ),
           Semantics(
-            label: '${l10n.progress} ${entri.progres} / ${entri.total ?? "?"}',
+            label:
+                '${l10n.progress} ${entri.progres} / ${entri.total ?? "?"}',
             child: Text(
               '${entri.progres}/${entri.total ?? "?"}',
-              style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.onSurfaceVariant),
             ),
           ),
           const SizedBox(height: 4),

@@ -48,6 +48,9 @@ class EntryFormScaffold extends StatefulWidget {
 
 class _EntryFormScaffoldState extends State<EntryFormScaffold> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
+  final _progresKey = GlobalKey<FormFieldState<String>>();
+  final _totalKey = GlobalKey<FormFieldState<String>>();
   late StatusKoleksi _status;
   late TextEditingController _progresController;
   late TextEditingController _totalController;
@@ -60,9 +63,12 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
   void initState() {
     super.initState();
     _status = widget.initialStatus;
-    _progresController = TextEditingController(text: widget.initialProgres.toString());
-    _totalController = TextEditingController(text: widget.initialTotal?.toString() ?? '');
-    _catatanController = TextEditingController(text: widget.initialCatatan ?? '');
+    _progresController =
+        TextEditingController(text: widget.initialProgres.toString());
+    _totalController = TextEditingController(
+        text: widget.initialTotal?.toString() ?? '');
+    _catatanController =
+        TextEditingController(text: widget.initialCatatan ?? '');
     _rating = widget.initialRating;
     _labelId = widget.existingEntry?.labelId;
   }
@@ -72,31 +78,115 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
     _progresController.dispose();
     _totalController.dispose();
     _catatanController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
+  void _scrollToFirstError() {
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (!mounted) return;
+      if (_progresKey.currentContext != null &&
+          (_progresKey.currentState?.hasError ?? false)) {
+        Scrollable.ensureVisible(
+          _progresKey.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.1,
+        );
+        return;
+      }
+      if (_totalKey.currentContext != null &&
+          (_totalKey.currentState?.hasError ?? false)) {
+        Scrollable.ensureVisible(
+          _totalKey.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.1,
+        );
+        return;
+      }
+    });
+  }
+
   Future<void> _simpan() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _scrollToFirstError();
+      return;
+    }
 
     final l10n = AppLocalizations.of(context)!;
     final collection = context.read<CollectionProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
-    final progresBaru = int.tryParse(_progresController.text) ?? 0;
+    int progresBaru = int.tryParse(_progresController.text) ?? 0;
     final totalBaru = int.tryParse(_totalController.text);
-    final catatanBaru = _catatanController.text.trim().isEmpty ? null : _catatanController.text.trim();
-    
+    final catatanBaru = _catatanController.text.trim().isEmpty
+        ? null
+        : _catatanController.text.trim();
+
     var statusUntukSimpan = _status;
-    if (totalBaru != null && progresBaru >= totalBaru && _status != StatusKoleksi.selesai) {
+
+    if (statusUntukSimpan == StatusKoleksi.selesai &&
+        totalBaru != null &&
+        progresBaru < totalBaru) {
+      if (progresBaru == 0) {
+        progresBaru = totalBaru;
+        _progresController.text = totalBaru.toString();
+      } else {
+        final fill = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(l10n.statusSuggestCompleted),
+            content: Text(
+              'Progresmu ($progresBaru/$totalBaru) belum penuh. '
+              'Sesuaikan ke $totalBaru/$totalBaru agar status Selesai valid?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.no),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.yes),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+        if (fill != true) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                'Ubah progres menjadi $totalBaru atau ganti status sebelum menyimpan.',
+              ),
+            ),
+          );
+          return;
+        }
+        progresBaru = totalBaru;
+        _progresController.text = totalBaru.toString();
+      }
+    }
+
+    if (totalBaru != null &&
+        progresBaru >= totalBaru &&
+        statusUntukSimpan != StatusKoleksi.selesai) {
       final suggest = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(l10n.statusSuggestCompleted),
           content: Text(l10n.statusSuggestCompletedDesc),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.no)),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.yes)),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.no),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.yes),
+            ),
           ],
         ),
       );
@@ -128,8 +218,14 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
             title: Text(l10n.inCollection),
             content: Text(l10n.duplicateTitleWarning),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
-              TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.addAnyway)),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.addAnyway),
+              ),
             ],
           ),
         );
@@ -155,10 +251,20 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
     if (!mounted) return;
 
     if (berhasil) {
-      messenger.showSnackBar(SnackBar(content: Text(widget.isEditing ? l10n.entryUpdated : l10n.entryAdded)));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.isEditing ? l10n.entryUpdated : l10n.entryAdded,
+          ),
+        ),
+      );
       navigator.pop();
     } else {
-      messenger.showSnackBar(SnackBar(content: Text(collection.errorMessage ?? l10n.errorLoadData)));
+      messenger.showSnackBar(
+        SnackBar(
+            content:
+                Text(collection.errorMessage ?? l10n.errorLoadData)),
+      );
     }
   }
 
@@ -174,7 +280,10 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
         title: Text(l10n.unsavedChangesTitle),
         content: Text(l10n.unsavedChangesDesc),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.keepEditing)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.keepEditing),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
@@ -189,7 +298,8 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isSaving = context.select<CollectionProvider, bool>((c) => c.isSaving);
+    final isSaving =
+        context.select<CollectionProvider, bool>((c) => c.isSaving);
     final labels = context.watch<LabelProvider>().labels;
 
     return PopScope(
@@ -201,6 +311,7 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
       child: Scaffold(
         appBar: AppBar(title: Text(widget.title)),
         body: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(AppSizes.spacingM),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,22 +324,32 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
                     child: CoverImage(url: widget.coverUrl),
                   ),
                   title: Text(widget.judul),
-                  subtitle: Text('${widget.jenisLabel} • ${widget.totalLabel}'),
+                  subtitle:
+                      Text('${widget.jenisLabel} • ${widget.totalLabel}'),
                 ),
               ),
               const SizedBox(height: AppSizes.spacingM),
               EntryFormFields(
-                jenisMedia: widget.existingEntry?.jenis ?? widget.item!.jenis,
+                jenisMedia:
+                    widget.existingEntry?.jenis ?? widget.item!.jenis,
                 formKey: _formKey,
+                progresKey: _progresKey,
+                totalKey: _totalKey,
                 status: _status,
                 onStatusChanged: (val) {
-                  setState(() { _status = val; _isDirty = true; });
+                  setState(() {
+                    _status = val;
+                    _isDirty = true;
+                  });
                 },
                 progresController: _progresController,
                 totalController: _totalController,
                 rating: _rating,
                 onRatingChanged: (val) {
-                  setState(() { _rating = val; _isDirty = true; });
+                  setState(() {
+                    _rating = val;
+                    _isDirty = true;
+                  });
                 },
                 catatanController: _catatanController,
                 isSaving: isSaving,
@@ -237,7 +358,10 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
                 labels: labels,
                 selectedLabelId: _labelId,
                 onLabelChanged: (val) {
-                  setState(() { _labelId = val; _isDirty = true; });
+                  setState(() {
+                    _labelId = val;
+                    _isDirty = true;
+                  });
                 },
                 onDirty: () {
                   if (!_isDirty) setState(() => _isDirty = true);
