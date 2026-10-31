@@ -75,6 +75,7 @@ class AniListService {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
+              'User-Agent': 'Tsuzuki/1.0 (Flutter; mobile app)',
             },
             body: jsonEncode({'query': query, 'variables': variables}),
           )
@@ -204,7 +205,11 @@ class AniListService {
       final response = await _client
           .post(
             Uri.parse(_url),
-            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'User-Agent': 'Tsuzuki/1.0 (Flutter; mobile app)',
+            },
             body: jsonEncode({'query': gql, 'variables': vars}),
           )
           .timeout(_timeout);
@@ -236,7 +241,11 @@ class AniListService {
       final response = await _client
           .post(
             Uri.parse(_url), 
-            headers: {'Content-Type': 'application/json'}, 
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'User-Agent': 'Tsuzuki/1.0 (Flutter; mobile app)',
+            },
             body: jsonEncode({'query': gql}),
           )
           .timeout(_timeout);
@@ -264,7 +273,11 @@ class AniListService {
       final response = await _client
           .post(
             Uri.parse(_url), 
-            headers: {'Content-Type': 'application/json'}, 
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'User-Agent': 'Tsuzuki/1.0 (Flutter; mobile app)',
+            },
             body: jsonEncode({'query': gql}),
           )
           .timeout(_timeout);

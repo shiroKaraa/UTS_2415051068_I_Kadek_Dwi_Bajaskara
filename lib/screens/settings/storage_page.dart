@@ -170,6 +170,40 @@ class _StoragePageState extends State<StoragePage> {
           : ListView(
               padding: const EdgeInsets.all(AppSizes.spacingM),
               children: [
+                if (overLimit) ...[
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: AppSizes.spacingM),
+                    padding: const EdgeInsets.all(AppSizes.spacingS),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                      border: Border.all(
+                        color: Colors.redAccent.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Cache gambar melebihi batas ~100MB. '
+                            'Pertimbangkan untuk menghapus cache.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 Card(
                   elevation: 0,
                   color: theme.cardColor,
@@ -180,7 +214,7 @@ class _StoragePageState extends State<StoragePage> {
                         const Icon(Icons.pie_chart_outline,
                             size: 48, color: AppColors.primaryGreen),
                         const SizedBox(height: AppSizes.spacingS),
-                        Text(l10n.imageCache,
+                        Text('Total Cache',
                             style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: AppSizes.spacingXs),
                         Text(_formatBytes(totalSize),
@@ -189,14 +223,10 @@ class _StoragePageState extends State<StoragePage> {
                         if (settings.limitImageCache) ...[
                           const SizedBox(height: AppSizes.spacingS),
                           Text(
-                            l10n.imageCacheLimitLabel(_formatBytes(_imageCacheLimitBytes)),
+                            'Batas cache: ~100MB (aktif)',
                             style: TextStyle(
                               fontSize: 12,
-                              color: overLimit
-                                  ? Colors.redAccent
-                                  : theme.colorScheme.onSurfaceVariant,
-                              fontWeight:
-                                  overLimit ? FontWeight.bold : null,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../providers/settings_provider.dart';
+import '../core/app_cache_manager.dart';
 
 class CoverImage extends StatelessWidget {
   final String? url;
@@ -44,20 +46,26 @@ class CoverImage extends StatelessWidget {
     final int? diskMaxWidth = limitCache ? 400 : null;
     final int? diskMaxHeight = limitCache ? 600 : null;
 
-    return CachedNetworkImage(
-      imageUrl: url!,
-      width: width,
-      height: height,
-      fit: fit,
-      memCacheWidth: memWidth,
-      memCacheHeight: memHeight,
-      maxWidthDiskCache: diskMaxWidth,
-      maxHeightDiskCache: diskMaxHeight,
-      fadeInDuration: const Duration(milliseconds: 200),
-      fadeOutDuration: const Duration(milliseconds: 100),
-      placeholder: (context, url) => placeholder(Icons.image_outlined),
-      errorWidget: (context, url, error) =>
-          placeholder(Icons.broken_image_outlined),
+    return FutureBuilder<CacheManager>(
+      future: AppCacheManager.getInstance(),
+      builder: (context, snapshot) {
+        return CachedNetworkImage(
+          imageUrl: url!,
+          width: width,
+          height: height,
+          fit: fit,
+          cacheManager: snapshot.data,
+          memCacheWidth: memWidth,
+          memCacheHeight: memHeight,
+          maxWidthDiskCache: diskMaxWidth,
+          maxHeightDiskCache: diskMaxHeight,
+          fadeInDuration: const Duration(milliseconds: 200),
+          fadeOutDuration: const Duration(milliseconds: 100),
+          placeholder: (context, url) => placeholder(Icons.image_outlined),
+          errorWidget: (context, url, error) =>
+              placeholder(Icons.broken_image_outlined),
+        );
+      },
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/app_colors.dart';
+import '../../../core/app_extras.dart';
 
 class SkeletonBase extends StatefulWidget {
   final Widget child;
@@ -33,6 +33,7 @@ class _SkeletonBaseState extends State<SkeletonBase>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
+                final x = context.extras;
         return ShaderMask(
           blendMode: BlendMode.srcATop,
           shaderCallback: (bounds) {
@@ -40,9 +41,9 @@ class _SkeletonBaseState extends State<SkeletonBase>
               begin: Alignment(-1.0 + _controller.value * 2, 0),
               end: Alignment(1.0 + _controller.value * 2, 0),
               colors: [
-                AppColors.shimmerBase,
-                AppColors.shimmerHighlight,
-                AppColors.shimmerBase,
+                x.shimmerBase,
+                x.shimmerHighlight,
+                x.shimmerBase,
               ],
               stops: const [0.0, 0.5, 1.0],
             ).createShader(bounds);

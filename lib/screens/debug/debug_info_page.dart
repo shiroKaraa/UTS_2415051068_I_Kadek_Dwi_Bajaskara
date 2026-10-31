@@ -45,12 +45,8 @@ class _DebugInfoPageState extends State<DebugInfoPage> {
   Future<void> _runPing() async {
     setState(() => _isPinging = true);
     final collection = context.read<CollectionProvider>();
-
-    // Cek konektivitas via Supabase
     final supaOk = await collection.retryConnection();
     if (!mounted) return;
-
-    // Cek AniList
     final anilist = AniListService();
     String aniStatus;
     try {

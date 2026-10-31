@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/app_theme.dart';
 import 'core/app_config.dart';
+import 'core/app_cache_manager.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
@@ -24,6 +25,7 @@ Future<void> main() async {
       url: KonfigurasiApp.supabaseUrl,
       publishableKey: KonfigurasiApp.supabaseAnonKey,
     );
+    await AppCacheManager.getInstance();
   } catch (e) {
     debugPrint('Gagal inisialisasi Supabase: $e');
     runApp(const _InitializationErrorApp());

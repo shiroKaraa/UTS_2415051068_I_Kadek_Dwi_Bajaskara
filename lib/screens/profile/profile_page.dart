@@ -444,37 +444,14 @@ class _StatsSection extends StatelessWidget {
           const SizedBox(height: AppSizes.spacingS),
         ],
         if (secondaryItems.isNotEmpty)
-          LayoutBuilder(
-            builder: (context, constraints) {
-              const spacing = AppSizes.spacingS;
-              final itemWidth = (constraints.maxWidth - spacing) / 2;
-              final rows = <Widget>[];
-              for (var i = 0; i < secondaryItems.length; i += 2) {
-                final left = secondaryItems[i];
-                final right = i + 1 < secondaryItems.length
-                    ? secondaryItems[i + 1]
-                    : const SizedBox.shrink();
-                rows.add(
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(width: itemWidth, child: left),
-                        const SizedBox(width: spacing),
-                        SizedBox(width: itemWidth, child: right),
-                      ],
-                    ),
-                  ),
-                );
-                if (i + 2 < secondaryItems.length) {
-                  rows.add(const SizedBox(height: spacing));
-                }
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: rows,
-              );
-            },
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: AppSizes.spacingS,
+            crossAxisSpacing: AppSizes.spacingS,
+            childAspectRatio: 2.8,
+            children: secondaryItems,
           ),
       ],
     );

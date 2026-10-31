@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:persistent_device_id/persistent_device_id.dart';
 import '../models/card_size_enum.dart';
+import '../core/app_cache_manager.dart';
 
 class SettingsProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
@@ -106,6 +107,7 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('limit_image_cache', value);
+    await AppCacheManager.refresh();
   }
 
   Future<void> setEnableNsfw(bool value) async {
