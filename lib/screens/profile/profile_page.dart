@@ -451,7 +451,7 @@ class _StatsSection extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: AppSizes.spacingS,
             crossAxisSpacing: AppSizes.spacingS,
-            childAspectRatio: 2.8,
+            childAspectRatio: 1.9,
             children: secondaryItems,
           ),
       ],
@@ -549,7 +549,13 @@ class _StatHighlightCard extends StatelessWidget {
                         ?.copyWith(
                             fontWeight: FontWeight.bold, color: color)),
               ),
-              Text(title, style: Theme.of(context).textTheme.labelSmall),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -575,45 +581,44 @@ class _StatSecondaryCard extends StatelessWidget {
     return Semantics(
       label: '$title: $value',
       child: Container(
-        padding: const EdgeInsets.all(AppSizes.spacingS),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.spacingM,
+          vertical: AppSizes.spacingS,
+        ),
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(AppSizes.radiusM),
           border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 20),
-            const SizedBox(width: AppSizes.spacingS),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        value,
-                        maxLines: 1,
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
+            Row(
+              children: [
+                Icon(icon, color: theme.colorScheme.primary, size: 18),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              maxLines: 1,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ],
