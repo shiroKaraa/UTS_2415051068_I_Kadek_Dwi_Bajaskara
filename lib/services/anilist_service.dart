@@ -39,6 +39,7 @@ class AniListService {
     genres
     seasonYear
     startDate { year }
+    isAdult
   ''';
 
   static const String _fullFields = '''
@@ -61,6 +62,7 @@ class AniListService {
     studios(isMain: true) { nodes { name } }
     trailer { id site }
     nextAiringEpisode { episode }
+    isAdult
   ''';
 
   Future<AniListResult> _query(String query, Map<String, dynamic> variables) async {

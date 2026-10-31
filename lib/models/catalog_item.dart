@@ -17,6 +17,7 @@ class ItemKatalog {
   final String? studio;
   final int? durasi;
   final int? popularitas;
+  final bool isAdult;
 
   ItemKatalog({
     required this.anilistId,
@@ -35,6 +36,7 @@ class ItemKatalog {
     this.studio,
     this.durasi,
     this.popularitas,
+    this.isAdult = false,
   });
 
   String get displayTitle {
@@ -68,7 +70,8 @@ class ItemKatalog {
       malId: json['idMal'] as int?,
       judul: titleObj?['romaji'] as String? ?? 'Tanpa Judul',
       judulInggris: titleObj?['english'] as String?,
-      coverUrl: coverObj?['large'] as String? ?? coverObj?['extraLarge'] as String?,
+      coverUrl:
+          coverObj?['large'] as String? ?? coverObj?['extraLarge'] as String?,
       bannerUrl: json['bannerImage'] as String?,
       sinopsis: json['description'] as String?,
       skor: skor,
@@ -82,6 +85,7 @@ class ItemKatalog {
           : null,
       durasi: json['duration'] as int?,
       popularitas: json['popularity'] as int?,
+      isAdult: json['isAdult'] as bool? ?? false,
     );
   }
 }

@@ -601,6 +601,7 @@ class _PopularSection extends StatelessWidget {
                       item: item,
                       width: cardWidth,
                       heroTag: 'home_${item.anilistId}',
+                      showAdultBadge: false,
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(

@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import '../core/app_extras.dart';
 import '../core/app_sizes.dart';
 import '../l10n/app_localizations.dart';
 import '../models/collection_entry.dart';
-import '../models/custom_label.dart';
 import '../models/status_collection_enum.dart';
-import '../providers/label_provider.dart';
 import 'cover_image.dart';
 import 'media_type_chip.dart';
 import 'progress_bar.dart';
@@ -40,9 +37,6 @@ class CollectionListCard extends StatelessWidget {
     final statusColor = x.statusColor(entri.status);
     final done = entri.status == StatusKoleksi.selesai;
     final unit = entri.jenis.satuanProgres(l10n);
-    final label = context.select<LabelProvider, LabelKustom?>(
-        (p) => p.findById(entri.labelId));
-    final hasCatatan = entri.catatan != null && entri.catatan!.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSizes.spacingM),
@@ -59,8 +53,7 @@ class CollectionListCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(AppSizes.radiusS),
-                    child: CoverImage(
-                        url: entri.coverUrl, width: 84, height: 126),
+                    child: CoverImage(url: entri.coverUrl, width: 84, height: 126),
                   ),
                   Positioned(
                     top: 6,
@@ -83,75 +76,10 @@ class CollectionListCard extends StatelessWidget {
                         entri.judul,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          _StatusPill(
-                              label: entri.status.netralLabel(l10n),
-                              color: statusColor),
-                          if (label != null) ...[
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: x.statusColor(entri.status)
-                                      .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(99),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.label_outline,
-                                        size: 10, color: x.anime),
-                                    const SizedBox(width: 3),
-                                    Flexible(
-                                      child: Text(
-                                        label.nama,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w700,
-                                          color: x.anime,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      if (hasCatatan) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.sticky_note_2_outlined,
-                                size: 11,
-                                color: theme.colorScheme.onSurfaceVariant),
-                            const SizedBox(width: 3),
-                            Expanded(
-                              child: Text(
-                                entri.catatan!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontStyle: FontStyle.italic,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      const SizedBox(height: 6),
+                      _StatusPill(label: entri.status.netralLabel(l10n), color: statusColor),
                       const Spacer(),
                       Row(
                         children: [
@@ -167,26 +95,20 @@ class CollectionListCard extends StatelessWidget {
                             SizedBox(
                               height: 32,
                               child: FilledButton.tonal(
-                                onPressed: isProcessing
-                                    ? null
-                                    : () {
-                                        HapticFeedback.lightImpact();
-                                        onIncrement();
-                                      },
+                                onPressed: isProcessing ? null : () {
+                                  HapticFeedback.lightImpact();
+                                  onIncrement();
+                                },
                                 style: FilledButton.styleFrom(
                                   minimumSize: const Size(52, 32),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
                                 ),
                                 child: isProcessing
                                     ? const SizedBox(
                                         width: 14,
                                         height: 14,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2))
-                                    : const Text('+1',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w800)),
+                                        child: CircularProgressIndicator(strokeWidth: 2))
+                                    : const Text('+1', style: TextStyle(fontWeight: FontWeight.w800)),
                               ),
                             ),
                         ],
@@ -219,8 +141,7 @@ class _StatusPill extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(
-              color: color, fontSize: 11, fontWeight: FontWeight.w700),
+          style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
         ),
       );
 }

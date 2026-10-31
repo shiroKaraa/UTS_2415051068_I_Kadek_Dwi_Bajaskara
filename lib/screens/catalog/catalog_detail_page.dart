@@ -8,7 +8,9 @@ import '../../models/media_type_enum.dart';
 import '../../providers/collection_provider.dart';
 import '../../services/anilist_service.dart';
 import '../../services/translation_service.dart';
+import '../../widgets/adult_badge.dart';
 import '../../widgets/cover_image.dart';
+import '../../widgets/cover_preview_dialog.dart';
 import '../../widgets/media_type_chip.dart';
 import '../collection/collection_detail_page.dart';
 import '../collection/entry_form_page.dart';
@@ -126,6 +128,14 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
     }
   }
 
+  void _openCoverPreview(String? url, String title) {
+    if (url == null || url.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (_) => CoverPreviewDialog(url: url, title: title),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -162,72 +172,84 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
             Center(
               child: Hero(
                 tag: 'poster_${item.anilistId}',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSizes.radiusL),
-                  child: Stack(
-                    children: [
-                      CoverImage(
-                        url: item.coverUrl,
-                        width: 180,
-                        height: 270,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 80,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.75),
-                              ],
+                child: GestureDetector(
+                  onTap: () =>
+                      _openCoverPreview(item.coverUrl, item.displayTitle),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppSizes.radiusL),
+                    child: Stack(
+                      children: [
+                        CoverImage(
+                          url: item.coverUrl,
+                          width: 180,
+                          height: 270,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: 80,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.75),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        top: AppSizes.spacingS,
-                        left: AppSizes.spacingS,
-                        child: MediaTypeChip(
-                          label: item.jenis.label(l10n),
-                          dotColor: _getColorForType(item.jenis),
-                        ),
-                      ),
-                      if (inCollection)
                         Positioned(
                           top: AppSizes.spacingS,
-                          right: AppSizes.spacingS,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryGreen
-                                  .withValues(alpha: 0.9),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.check_circle,
-                                    size: 14, color: Colors.black),
-                                const SizedBox(width: 4),
-                                Text(
-                                  l10n.inCollection,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                          left: AppSizes.spacingS,
+                          child: Row(
+                            children: [
+                              MediaTypeChip(
+                                label: item.jenis.label(l10n),
+                                dotColor: _getColorForType(item.jenis),
+                              ),
+                              if (item.isAdult) ...[
+                                const SizedBox(width: 6),
+                                const AdultBadge(),
                               ],
-                            ),
+                            ],
                           ),
                         ),
-                    ],
+                        if (inCollection)
+                          Positioned(
+                            top: AppSizes.spacingS,
+                            right: AppSizes.spacingS,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryGreen
+                                    .withValues(alpha: 0.9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.check_circle,
+                                      size: 14, color: Colors.black),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    l10n.inCollection,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -277,8 +299,7 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                   _infoChip(
                     context,
                     icon: Icons.menu_book_outlined,
-                    label:
-                        '${item.total} ${item.jenis.satuanProgres(l10n)}',
+                    label: '${item.total} ${item.jenis.satuanProgres(l10n)}',
                     color: _getColorForType(item.jenis),
                   ),
               ],

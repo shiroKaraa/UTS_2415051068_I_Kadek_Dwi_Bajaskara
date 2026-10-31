@@ -4,6 +4,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
 import '../../models/media_type_enum.dart';
+import 'adult_badge.dart';
 import 'cover_image.dart';
 import 'media_type_chip.dart';
 
@@ -13,6 +14,7 @@ class MediaCard extends StatelessWidget {
   final VoidCallback? onAddProgress;
   final double? width;
   final String? heroTag;
+  final bool showAdultBadge;
 
   const MediaCard({
     super.key,
@@ -21,6 +23,7 @@ class MediaCard extends StatelessWidget {
     this.onAddProgress,
     this.width,
     this.heroTag,
+    this.showAdultBadge = true,
   });
 
   @override
@@ -77,6 +80,12 @@ class MediaCard extends StatelessWidget {
               dotColor: _getColorForType(item.jenis),
             ),
           ),
+          if (showAdultBadge && item.isAdult)
+            const Positioned(
+              top: AppSizes.spacingS,
+              right: AppSizes.spacingS,
+              child: AdultBadge(),
+            ),
         ],
       ),
     );
