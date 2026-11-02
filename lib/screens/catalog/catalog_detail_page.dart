@@ -8,6 +8,7 @@ import '../../models/catalog_item.dart';
 import '../../models/media_type_enum.dart';
 import '../../models/character_item.dart';
 import '../../providers/collection_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../services/anilist_service.dart';
 import '../../services/translation_service.dart';
 import '../../widgets/adult_badge.dart';
@@ -16,6 +17,7 @@ import '../../widgets/cover_image.dart';
 import '../../widgets/cover_preview_dialog.dart';
 import '../../widgets/alternative_titles_section.dart';
 import '../../widgets/media_type_chip.dart';
+import '../../widgets/nsfw_blur_wrapper.dart';
 import '../catalog/catalog_page.dart';
 import 'character_list_page.dart';
 import '../collection/collection_detail_page.dart';
@@ -209,6 +211,9 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
     final inCollection = existingId != null;
     final showCharacters =
         _characters.isNotEmpty || _isLoadingCharacters || _charactersFailed;
+        
+    final hideBadge =
+        context.watch<SettingsProvider>().nsfw.shouldHideBadge;
 
     return Scaffold(
       appBar: AppBar(
@@ -224,94 +229,104 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Hero(
-                tag: 'poster_${item.anilistId}',
-                child: GestureDetector(
-                  onTap: () =>
-                      _openCoverPreview(item.coverUrl, item.displayTitle),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppSizes.radiusL),
-                    child: Stack(
-                      children: [
-                        CoverImage(
-                          url: item.coverUrl,
-                          width: 180,
-                          height: 270,
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: 80,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.75),
-                                ],
+              child: NsfwBlurWrapper(
+                isAdult: item.isAdult,
+                sensorCover: true,
+                radius: AppSizes.radiusL,
+                child: Hero(
+                  tag: 'poster_${item.anilistId}',
+                  child: GestureDetector(
+                    onTap: () =>
+                        _openCoverPreview(item.coverUrl, item.displayTitle),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppSizes.radiusL),
+                      child: Stack(
+                        children: [
+                          CoverImage(
+                            url: item.coverUrl,
+                            width: 180,
+                            height: 270,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: 80,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withValues(alpha: 0.75),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          top: AppSizes.spacingS,
-                          left: AppSizes.spacingS,
-                          child: Row(
-                            children: [
-                              MediaTypeChip(
-                                label: item.jenis.label(l10n),
-                                dotColor: x.typeColor(item.jenis),
-                              ),
-                              if (item.isAdult) ...[
-                                const SizedBox(width: 6),
-                                const AdultBadge(),
-                              ],
-                            ],
-                          ),
-                        ),
-                        if (inCollection)
                           Positioned(
                             top: AppSizes.spacingS,
-                            right: AppSizes.spacingS,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryGreen
-                                    .withValues(alpha: 0.9),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.check_circle,
-                                      size: 14, color: Colors.black),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    l10n.inCollection,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                            left: AppSizes.spacingS,
+                            child: Row(
+                              children: [
+                                MediaTypeChip(
+                                  label: item.jenis.label(l10n),
+                                  dotColor: x.typeColor(item.jenis),
+                                ),
+                                if (item.isAdult && !hideBadge) ...[
+                                  const SizedBox(width: 6),
+                                  const AdultBadge(),
                                 ],
-                              ),
+                              ],
                             ),
                           ),
-                      ],
+                          if (inCollection)
+                            Positioned(
+                              top: AppSizes.spacingS,
+                              right: AppSizes.spacingS,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryGreen
+                                      .withValues(alpha: 0.9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.check_circle,
+                                        size: 14, color: Colors.black),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      l10n.inCollection,
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
             const SizedBox(height: AppSizes.spacingL),
-            Text(
-              item.displayTitle,
-              style: theme.textTheme.titleLarge?.copyWith(fontSize: 22),
+            NsfwBlurWrapper(
+              isAdult: item.isAdult,
+              sensorText: true,
+              radius: 4,
+              child: Text(
+                item.displayTitle,
+                style: theme.textTheme.titleLarge?.copyWith(fontSize: 22),
+              ),
             ),
             if (item.judul.isNotEmpty && item.judul != item.displayTitle) ...[
               const SizedBox(height: AppSizes.spacingXs),

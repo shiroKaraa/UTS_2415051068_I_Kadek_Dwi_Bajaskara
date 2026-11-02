@@ -29,8 +29,6 @@ class KarakterAnime {
     final node = edge['node'] as Map<String, dynamic>? ?? {};
     final nameObj = node['name'] as Map<String, dynamic>?;
     final imageObj = node['image'] as Map<String, dynamic>?;
-
-    // Ambil voice actor pertama (biasanya Japanese)
     final vas = edge['voiceActors'] as List<dynamic>?;
     Map<String, dynamic>? va;
     if (vas != null && vas.isNotEmpty) {

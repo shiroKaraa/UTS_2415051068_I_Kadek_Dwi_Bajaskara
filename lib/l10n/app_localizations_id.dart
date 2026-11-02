@@ -1287,4 +1287,64 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get networkError => 'Koneksi terputus. Periksa internet Anda.';
+
+  @override
+  String get nsfwSectionSensor => 'Sensor Konten';
+
+  @override
+  String get nsfwSectionLevel => 'Tingkat Sensor';
+
+  @override
+  String get nsfwBlurCovers => 'Sensor Cover';
+
+  @override
+  String get nsfwBlurCoversDesc =>
+      'Cover konten 18+ diblur. Tap untuk melihat.';
+
+  @override
+  String get nsfwBlurTitles => 'Sensor Judul';
+
+  @override
+  String get nsfwBlurTitlesDesc => 'Teks judul 18+ diblur.';
+
+  @override
+  String get nsfwHideBadge => 'Sembunyikan Badge 18+';
+
+  @override
+  String get nsfwHideBadgeDesc =>
+      'Badge merah tidak ditampilkan. Berguna untuk screenshot.';
+
+  @override
+  String get nsfwLevelOff => 'Nonaktif';
+
+  @override
+  String get nsfwLevelOffDesc => 'Tidak ada sensor. Konten tampil normal.';
+
+  @override
+  String get nsfwLevelLight => 'Ringan';
+
+  @override
+  String get nsfwLevelLightDesc =>
+      'Blur cover/judul. Tap untuk reveal sementara.';
+
+  @override
+  String get nsfwLevelHeavy => 'Berat';
+
+  @override
+  String get nsfwLevelHeavyDesc =>
+      'Blur total. Butuh konfirmasi + tap untuk reveal.';
+
+  @override
+  String get nsfwInfoNote =>
+      'Pengaturan ini hanya mempengaruhi tampilan katalog. Koleksi pribadi Anda tetap menampilkan konten asli.';
+
+  @override
+  String get nsfwRevealTitle => 'Buka Konten 18+?';
+
+  @override
+  String get nsfwRevealDesc =>
+      'Konten ini mengandung materi dewasa. Pastikan Anda berusia 18 tahun ke atas.';
+
+  @override
+  String get nsfwRevealBtn => 'Buka';
 }

@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
       GlobalKey<RefreshIndicatorState>();
   bool _claimChecked = false;
   bool _claimDialogShown = false;
-  bool _updateChecked = false; // ← TAMBAHAN
+  bool _updateChecked = false;
 
   @override
   void initState() {
@@ -63,14 +63,12 @@ class _HomePageState extends State<HomePage> {
       _claimChecked = false;
     }
 
-    // ← TAMBAHAN: cek update sekali per sesi
     if (!_updateChecked) {
       _updateChecked = true;
       Future.delayed(const Duration(seconds: 3), _checkUpdate);
     }
   }
 
-  // ← METHOD BARU: cek update
   Future<void> _checkUpdate() async {
     if (!mounted) return;
     final service = UpdateService();
@@ -79,6 +77,8 @@ class _HomePageState extends State<HomePage> {
 
     showDialog(
       context: context,
+      useRootNavigator: true,
+      barrierDismissible: false,
       builder: (_) => UpdateDialog(info: info, service: service),
     );
   }

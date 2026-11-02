@@ -1285,4 +1285,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get networkError => 'Connection lost. Please check your internet.';
+
+  @override
+  String get nsfwSectionSensor => 'Content Sensor';
+
+  @override
+  String get nsfwSectionLevel => 'Sensor Level';
+
+  @override
+  String get nsfwBlurCovers => 'Blur Covers';
+
+  @override
+  String get nsfwBlurCoversDesc => '18+ covers are blurred. Tap to reveal.';
+
+  @override
+  String get nsfwBlurTitles => 'Blur Titles';
+
+  @override
+  String get nsfwBlurTitlesDesc => '18+ titles are blurred.';
+
+  @override
+  String get nsfwHideBadge => 'Hide 18+ Badge';
+
+  @override
+  String get nsfwHideBadgeDesc =>
+      'Red badge is hidden. Useful for screenshots.';
+
+  @override
+  String get nsfwLevelOff => 'Off';
+
+  @override
+  String get nsfwLevelOffDesc => 'No sensor. Content shows normally.';
+
+  @override
+  String get nsfwLevelLight => 'Light';
+
+  @override
+  String get nsfwLevelLightDesc =>
+      'Blur cover/title. Tap to temporarily reveal.';
+
+  @override
+  String get nsfwLevelHeavy => 'Heavy';
+
+  @override
+  String get nsfwLevelHeavyDesc =>
+      'Full blur. Requires confirmation + tap to reveal.';
+
+  @override
+  String get nsfwInfoNote =>
+      'This setting only affects the catalog. Your personal collection still shows original content.';
+
+  @override
+  String get nsfwRevealTitle => 'Reveal 18+ Content?';
+
+  @override
+  String get nsfwRevealDesc =>
+      'This content contains adult material. Make sure you are 18 years or older.';
+
+  @override
+  String get nsfwRevealBtn => 'Reveal';
 }

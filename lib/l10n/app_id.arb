@@ -412,6 +412,24 @@
   "characterYearsOld": "{age} thn",
   "characterVoiceActor": "CV",
   "rateLimitError": "Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.",
-  "networkError": "Koneksi terputus. Periksa internet Anda."
+  "networkError": "Koneksi terputus. Periksa internet Anda.",
+  "nsfwSectionSensor": "Sensor Konten",
+  "nsfwSectionLevel": "Tingkat Sensor",
+  "nsfwBlurCovers": "Sensor Cover",
+  "nsfwBlurCoversDesc": "Cover konten 18+ diblur. Tap untuk melihat.",
+  "nsfwBlurTitles": "Sensor Judul",
+  "nsfwBlurTitlesDesc": "Teks judul 18+ diblur.",
+  "nsfwHideBadge": "Sembunyikan Badge 18+",
+  "nsfwHideBadgeDesc": "Badge merah tidak ditampilkan. Berguna untuk screenshot.",
+  "nsfwLevelOff": "Nonaktif",
+  "nsfwLevelOffDesc": "Tidak ada sensor. Konten tampil normal.",
+  "nsfwLevelLight": "Ringan",
+  "nsfwLevelLightDesc": "Blur cover/judul. Tap untuk reveal sementara.",
+  "nsfwLevelHeavy": "Berat",
+  "nsfwLevelHeavyDesc": "Blur total. Butuh konfirmasi + tap untuk reveal.",
+  "nsfwInfoNote": "Pengaturan ini hanya mempengaruhi tampilan katalog. Koleksi pribadi Anda tetap menampilkan konten asli.",
+  "nsfwRevealTitle": "Buka Konten 18+?",
+  "nsfwRevealDesc": "Konten ini mengandung materi dewasa. Pastikan Anda berusia 18 tahun ke atas.",
+  "nsfwRevealBtn": "Buka"
   
 }

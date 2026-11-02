@@ -2461,6 +2461,114 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Koneksi terputus. Periksa internet Anda.'**
   String get networkError;
+
+  /// No description provided for @nsfwSectionSensor.
+  ///
+  /// In id, this message translates to:
+  /// **'Sensor Konten'**
+  String get nsfwSectionSensor;
+
+  /// No description provided for @nsfwSectionLevel.
+  ///
+  /// In id, this message translates to:
+  /// **'Tingkat Sensor'**
+  String get nsfwSectionLevel;
+
+  /// No description provided for @nsfwBlurCovers.
+  ///
+  /// In id, this message translates to:
+  /// **'Sensor Cover'**
+  String get nsfwBlurCovers;
+
+  /// No description provided for @nsfwBlurCoversDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Cover konten 18+ diblur. Tap untuk melihat.'**
+  String get nsfwBlurCoversDesc;
+
+  /// No description provided for @nsfwBlurTitles.
+  ///
+  /// In id, this message translates to:
+  /// **'Sensor Judul'**
+  String get nsfwBlurTitles;
+
+  /// No description provided for @nsfwBlurTitlesDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Teks judul 18+ diblur.'**
+  String get nsfwBlurTitlesDesc;
+
+  /// No description provided for @nsfwHideBadge.
+  ///
+  /// In id, this message translates to:
+  /// **'Sembunyikan Badge 18+'**
+  String get nsfwHideBadge;
+
+  /// No description provided for @nsfwHideBadgeDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Badge merah tidak ditampilkan. Berguna untuk screenshot.'**
+  String get nsfwHideBadgeDesc;
+
+  /// No description provided for @nsfwLevelOff.
+  ///
+  /// In id, this message translates to:
+  /// **'Nonaktif'**
+  String get nsfwLevelOff;
+
+  /// No description provided for @nsfwLevelOffDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada sensor. Konten tampil normal.'**
+  String get nsfwLevelOffDesc;
+
+  /// No description provided for @nsfwLevelLight.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringan'**
+  String get nsfwLevelLight;
+
+  /// No description provided for @nsfwLevelLightDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Blur cover/judul. Tap untuk reveal sementara.'**
+  String get nsfwLevelLightDesc;
+
+  /// No description provided for @nsfwLevelHeavy.
+  ///
+  /// In id, this message translates to:
+  /// **'Berat'**
+  String get nsfwLevelHeavy;
+
+  /// No description provided for @nsfwLevelHeavyDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Blur total. Butuh konfirmasi + tap untuk reveal.'**
+  String get nsfwLevelHeavyDesc;
+
+  /// No description provided for @nsfwInfoNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengaturan ini hanya mempengaruhi tampilan katalog. Koleksi pribadi Anda tetap menampilkan konten asli.'**
+  String get nsfwInfoNote;
+
+  /// No description provided for @nsfwRevealTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Konten 18+?'**
+  String get nsfwRevealTitle;
+
+  /// No description provided for @nsfwRevealDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Konten ini mengandung materi dewasa. Pastikan Anda berusia 18 tahun ke atas.'**
+  String get nsfwRevealDesc;
+
+  /// No description provided for @nsfwRevealBtn.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka'**
+  String get nsfwRevealBtn;
 }
 
 class _AppLocalizationsDelegate

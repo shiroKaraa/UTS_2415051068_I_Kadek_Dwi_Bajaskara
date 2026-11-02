@@ -138,7 +138,7 @@ class _CharacterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!; // Declare l10n here
+    final l10n = AppLocalizations.of(context)!;
 
     return InkWell(
       onTap: onTap,
@@ -171,7 +171,7 @@ class _CharacterCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          l10n.characterMain, // Use l10n.characterMain
+                          l10n.characterMain,
                           style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
@@ -225,7 +225,7 @@ class CharacterDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!; // Declare l10n here
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final c = karakter;
 

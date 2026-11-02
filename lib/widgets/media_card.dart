@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../../core/app_colors.dart';
-import '../../core/app_extras.dart'; 
+import '../../core/app_extras.dart';
 import '../../core/app_sizes.dart';
 import '../../core/title_actions.dart';
 import '../../models/catalog_item.dart';
+import '../providers/settings_provider.dart';
 import 'adult_badge.dart';
 import 'cover_image.dart';
 import 'media_type_chip.dart';
+import 'nsfw_blur_wrapper.dart';
 
 class MediaCard extends StatelessWidget {
   final ItemKatalog item;
@@ -34,8 +37,7 @@ class MediaCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final satuan = item.jenis.satuanProgres(l10n);
     final x = context.extras;
-
-    final poster = ClipRRect(
+    final posterContent = ClipRRect(
       borderRadius: BorderRadius.circular(AppSizes.radiusM),
       child: Stack(
         fit: StackFit.expand,
@@ -84,7 +86,9 @@ class MediaCard extends StatelessWidget {
               dotColor: x.typeColor(item.jenis),
             ),
           ),
-          if (showAdultBadge && item.isAdult)
+          if (showAdultBadge &&
+              item.isAdult &&
+              !context.watch<SettingsProvider>().nsfw.shouldHideBadge)
             const Positioned(
               top: AppSizes.spacingS,
               right: AppSizes.spacingS,
@@ -93,7 +97,12 @@ class MediaCard extends StatelessWidget {
         ],
       ),
     );
-
+    final poster = NsfwBlurWrapper(
+      isAdult: item.isAdult,
+      sensorCover: true,
+      radius: AppSizes.radiusM,
+      child: posterContent,
+    );
     return SizedBox(
       width: width,
       child: InkWell(
@@ -109,18 +118,23 @@ class MediaCard extends StatelessWidget {
                   : poster,
             ),
             const SizedBox(height: AppSizes.spacingS),
-            GestureDetector(
-              onLongPress: () => showTitleActions(
-                context,
-                title: item.displayTitle,
-                onSearch: onSearch,
-              ),
-              child: Text(
-                item.displayTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 14),
+            NsfwBlurWrapper(
+              isAdult: item.isAdult,
+              sensorText: true,
+              radius: 4,
+              child: GestureDetector(
+                onLongPress: () => showTitleActions(
+                  context,
+                  title: item.displayTitle,
+                  onSearch: onSearch,
+                ),
+                child: Text(
+                  item.displayTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14),
+                ),
               ),
             ),
             Text(
@@ -134,5 +148,4 @@ class MediaCard extends StatelessWidget {
       ),
     );
   }
-
 }

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:persistent_device_id/persistent_device_id.dart';
 import '../models/card_size_enum.dart';
 import '../core/app_cache_manager.dart';
+import '../models/nsfw_settings.dart';
 
 class SettingsProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
@@ -11,7 +12,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _hasSeenOnboarding = false;
   Locale _locale = const Locale('id');
   bool _limitImageCache = false;
-  bool _enableNsfw = false;
+  NsfwSettings _nsfw = const NsfwSettings();
   CardSize _cardSize = CardSize.medium;
   int _itemsPerRow = 3;
   bool _isListView = false;
@@ -22,7 +23,14 @@ class SettingsProvider extends ChangeNotifier {
   bool get hasSeenOnboarding => _hasSeenOnboarding;
   Locale get locale => _locale;
   bool get limitImageCache => _limitImageCache;
-  bool get enableNsfw => _enableNsfw;
+
+  NsfwSettings get nsfw => _nsfw;
+  bool get enableNsfw => _nsfw.enabled;
+  bool get blurNsfwCovers => _nsfw.blurCovers;
+  bool get blurNsfwTitles => _nsfw.blurTitles;
+  bool get hideNsfwBadge => _nsfw.hideBadge;
+  NsfwFilterLevel get nsfwFilterLevel => _nsfw.filterLevel;
+  
   int get itemsPerRow => _itemsPerRow;
   bool get isListView => _isListView;
   CardSize get cardSize => _cardSize;
@@ -50,7 +58,21 @@ class SettingsProvider extends ChangeNotifier {
       }
 
       _limitImageCache = prefs.getBool('limit_image_cache') ?? false;
-      _enableNsfw = prefs.getBool('enable_nsfw') ?? false;
+
+      final nsfwEnabled = prefs.getBool('enable_nsfw') ?? false;
+      final nsfwBlurCovers = prefs.getBool('nsfw_blur_covers') ?? true;
+      final nsfwBlurTitles = prefs.getBool('nsfw_blur_titles') ?? false;
+      final nsfwHideBadge = prefs.getBool('nsfw_hide_badge') ?? false;
+      final nsfwFilterIdx = prefs.getInt('nsfw_filter_level') ?? 1;
+      final nsfwFilterLevel = NsfwFilterLevel.values[
+          nsfwFilterIdx.clamp(0, NsfwFilterLevel.values.length - 1)];
+      _nsfw = NsfwSettings(
+        enabled: nsfwEnabled,
+        blurCovers: nsfwBlurCovers,
+        blurTitles: nsfwBlurTitles,
+        hideBadge: nsfwHideBadge,
+        filterLevel: nsfwFilterLevel,
+      );
 
       final savedCardSize = prefs.getString('card_size');
       _cardSize = CardSize.values.firstWhere(
@@ -111,10 +133,45 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setEnableNsfw(bool value) async {
-    _enableNsfw = value;
+    if (_nsfw.enabled == value) return;
+
+    _nsfw = value ? _nsfw.copyWith(enabled: true) : const NsfwSettings();
     notifyListeners();
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('enable_nsfw', value);
+    await prefs.setBool('nsfw_blur_covers', _nsfw.blurCovers);
+    await prefs.setBool('nsfw_blur_titles', _nsfw.blurTitles);
+    await prefs.setBool('nsfw_hide_badge', _nsfw.hideBadge);
+    await prefs.setInt('nsfw_filter_level', _nsfw.filterLevel.index);
+  }
+
+  Future<void> setNsfwBlurCovers(bool v) async {
+    _nsfw = _nsfw.copyWith(blurCovers: v);
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('nsfw_blur_covers', v);
+  }
+
+  Future<void> setNsfwBlurTitles(bool v) async {
+    _nsfw = _nsfw.copyWith(blurTitles: v);
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('nsfw_blur_titles', v);
+  }
+
+  Future<void> setNsfwHideBadge(bool v) async {
+    _nsfw = _nsfw.copyWith(hideBadge: v);
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('nsfw_hide_badge', v);
+  }
+
+  Future<void> setNsfwFilterLevel(NsfwFilterLevel level) async {
+    _nsfw = _nsfw.copyWith(filterLevel: level);
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('nsfw_filter_level', level.index);
   }
 
   Future<void> setCardSize(CardSize size) async {

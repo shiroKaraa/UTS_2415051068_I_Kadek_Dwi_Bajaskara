@@ -16,6 +16,7 @@ import '../../widgets/empty_view.dart';
 import '../../widgets/display_mode_sheet.dart';
 import '../../widgets/skeleton/skeleton_grid_card.dart';
 import '../../widgets/skeleton/skeleton_list_card.dart';
+import '../../widgets/nsfw_blur_wrapper.dart';
 import 'catalog_detail_page.dart';
 
 class CatalogPage extends StatefulWidget {
@@ -469,66 +470,66 @@ class _CatalogPageState extends State<CatalogPage> {
       appBar: AppBar(
         title: Text(l10n.navCatalog),
         actions: [
-        IconButton(
-          icon: const Icon(Icons.shuffle),
-          tooltip: l10n.randomPick,
-          onPressed: () {
-            final item = catalog.getRandomItem();
-            if (item == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.noResults)),
+          IconButton(
+            icon: const Icon(Icons.shuffle),
+            tooltip: l10n.randomPick,
+            onPressed: () {
+              final item = catalog.getRandomItem();
+              if (item == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.noResults)),
+                );
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CatalogDetailPage(item: item),
+                ),
               );
-              return;
-            }
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => CatalogDetailPage(item: item),
-              ),
-            );
-          },
-        ),
-        IconButton(
-          icon: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              const Icon(Icons.filter_list),
-              if (catalog.hasActiveFilters)
-                Positioned(
-                  right: -2,
-                  top: -2,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.redAccent,
-                      shape: BoxShape.circle,
+            },
+          ),
+          IconButton(
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.filter_list),
+                if (catalog.hasActiveFilters)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
+            tooltip: l10n.filterTooltip,
+            onPressed: () => _showFilterSheet(context, l10n),
           ),
-          tooltip: l10n.filterTooltip,
-          onPressed: () => _showFilterSheet(context, l10n),
-        ),
-        IconButton(
-          icon: Icon(isListView ? Icons.grid_view : Icons.view_list),
-          tooltip: isListView ? l10n.gridView : l10n.listView,
-          onPressed: () =>
-              context.read<SettingsProvider>().setListView(!isListView),
-        ),
-        IconButton(
-          icon: const Icon(Icons.view_quilt_outlined),
-          tooltip: l10n.displayMode,
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (_) => const DisplayModeSheet(),
-            );
-          },
-        ),
-      ],
+          IconButton(
+            icon: Icon(isListView ? Icons.grid_view : Icons.view_list),
+            tooltip: isListView ? l10n.gridView : l10n.listView,
+            onPressed: () =>
+                context.read<SettingsProvider>().setListView(!isListView),
+          ),
+          IconButton(
+            icon: const Icon(Icons.view_quilt_outlined),
+            tooltip: l10n.displayMode,
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => const DisplayModeSheet(),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -763,19 +764,30 @@ class _CatalogPageState extends State<CatalogPage> {
             child: ListTile(
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: CoverImage(url: item.coverUrl, width: 50, height: 70),
-              ),
-              title: GestureDetector(
-                onLongPress: () => showTitleActions(
-                  context,
-                  title: item.displayTitle,
-                  onSearch: () => _searchByTitle(item.displayTitle),
+                child: NsfwBlurWrapper(
+                  isAdult: item.isAdult,
+                  sensorCover: true,
+                  radius: 8,
+                  child:
+                      CoverImage(url: item.coverUrl, width: 50, height: 70),
                 ),
-                child: Text(
-                  item.displayTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              title: NsfwBlurWrapper(
+                isAdult: item.isAdult,
+                sensorText: true,
+                radius: 2,
+                child: GestureDetector(
+                  onLongPress: () => showTitleActions(
+                    context,
+                    title: item.displayTitle,
+                    onSearch: () => _searchByTitle(item.displayTitle),
+                  ),
+                  child: Text(
+                    item.displayTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               subtitle: Text(

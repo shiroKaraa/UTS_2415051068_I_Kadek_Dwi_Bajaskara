@@ -12,7 +12,6 @@ class UpdateService {
   static const String _repo = 'UTS_2415051068_I_Kadek_Dwi_Bajaskara';
 
   Future<UpdateInfo?> checkForUpdate() async {
-    // iOS tidak support install APK — skip.
     if (Platform.isIOS) return null;
 
     try {
@@ -71,7 +70,11 @@ class UpdateService {
       await existing.delete();
     }
 
-    final dio = Dio();
+    final dio = Dio(BaseOptions(
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(minutes: 5),
+    ));
+    
     await dio.download(
       info.apkUrl,
       filePath,

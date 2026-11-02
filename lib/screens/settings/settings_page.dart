@@ -4,9 +4,22 @@ import '../../l10n/app_localizations.dart';
 import '../../models/card_size_enum.dart';
 import '../../providers/settings_provider.dart';
 import 'backup_restore_page.dart';
+import '../../models/nsfw_settings.dart';
+import 'nsfw_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
+
+  String _levelLabel(NsfwFilterLevel l, AppLocalizations l10n) {
+    switch (l) {
+      case NsfwFilterLevel.off:
+        return l10n.nsfwLevelOff;
+      case NsfwFilterLevel.light:
+        return l10n.nsfwLevelLight;
+      case NsfwFilterLevel.heavy:
+        return l10n.nsfwLevelHeavy;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +97,6 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
           const Divider(),
-
           ListTile(
             leading: const Icon(Icons.backup_outlined),
             title: Text(l10n.backupRestore),
@@ -98,42 +110,26 @@ class SettingsPage extends StatelessWidget {
             },
           ),
           const Divider(),
-          SwitchListTile(
-            secondary: Icon(
+          ListTile(
+            leading: Icon(
               Icons.visibility_off_outlined,
               color: settings.enableNsfw ? Colors.redAccent : null,
             ),
             title: Text(l10n.nsfwSettingsTitle),
-            subtitle: Text(l10n.nsfwSettingsSubtitle),
-            value: settings.enableNsfw,
-            onChanged: (value) async {
-              if (value && !settings.enableNsfw) {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (dialogCtx) => AlertDialog(
-                    title: Text(l10n.nsfwEnableTitle),
-                    content: Text(l10n.nsfwEnableBody),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogCtx, false),
-                        child: Text(l10n.cancel),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogCtx, true),
-                        style: TextButton.styleFrom(
-                            foregroundColor: Colors.redAccent),
-                        child: Text(l10n.yes),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirmed != true) return;
-              }
-
-              if (!context.mounted) return;
-              await context.read<SettingsProvider>().setEnableNsfw(value);
+            subtitle: Text(
+              settings.enableNsfw
+                  ? '${l10n.yes} · ${_levelLabel(settings.nsfwFilterLevel, l10n)}'
+                  : l10n.nsfwSettingsSubtitle,
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NsfwSettingsPage()),
+              );
             },
           ),
+          
           const Divider(),
           SwitchListTile(
             secondary: const Icon(Icons.image_outlined),
