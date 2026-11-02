@@ -12,10 +12,12 @@ import '../../providers/auth_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../services/update_service.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/shimmer_loading.dart';
+import '../../widgets/update_dialog.dart';
 import '../catalog/catalog_detail_page.dart';
 import '../collection/collection_page.dart';
 
@@ -33,6 +35,7 @@ class _HomePageState extends State<HomePage> {
       GlobalKey<RefreshIndicatorState>();
   bool _claimChecked = false;
   bool _claimDialogShown = false;
+  bool _updateChecked = false; // ← TAMBAHAN
 
   @override
   void initState() {
@@ -54,12 +57,30 @@ class _HomePageState extends State<HomePage> {
         if (!mounted) return;
         try {
           await _maybeOfferClaim();
-        } finally {
-        }
+        } finally {}
       });
     } else if (!auth.isAuthenticated) {
       _claimChecked = false;
     }
+
+    // ← TAMBAHAN: cek update sekali per sesi
+    if (!_updateChecked) {
+      _updateChecked = true;
+      Future.delayed(const Duration(seconds: 3), _checkUpdate);
+    }
+  }
+
+  // ← METHOD BARU: cek update
+  Future<void> _checkUpdate() async {
+    if (!mounted) return;
+    final service = UpdateService();
+    final info = await service.checkForUpdate();
+    if (info == null || !mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => UpdateDialog(info: info, service: service),
+    );
   }
 
   Future<void> _maybeOfferClaim() async {
@@ -363,9 +384,8 @@ class _ContinueSectionState extends State<_ContinueSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final items = context
-        .select<CollectionProvider, List<EntriKoleksi>>(
-            (c) => c.continueWatching);
+    final items = context.select<CollectionProvider, List<EntriKoleksi>>(
+        (c) => c.continueWatching);
 
     if (items.isEmpty) {
       return Card(
@@ -411,7 +431,6 @@ class _ContinueSectionState extends State<_ContinueSection> {
           ],
         ),
         const SizedBox(height: AppSizes.spacingS),
-
         SizedBox(
           height: 220,
           child: ListView.separated(
@@ -575,8 +594,7 @@ class _PopularSection extends StatelessWidget {
               onPressed: () {
                 final catalog = context.read<CatalogProvider>();
                 catalog.clearFilters();
-                catalog.setJenis(
-                    isAnime ? JenisMedia.anime : JenisMedia.manga);
+                catalog.setJenis(isAnime ? JenisMedia.anime : JenisMedia.manga);
                 onNavigateTab?.call(1);
               },
               child: Text(l10n.seeAll),
@@ -624,8 +642,7 @@ class _PopularSection extends StatelessWidget {
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) =>
-                                  CatalogDetailPage(item: item))),
+                              builder: (_) => CatalogDetailPage(item: item))),
                     ),
                   ),
                 );
