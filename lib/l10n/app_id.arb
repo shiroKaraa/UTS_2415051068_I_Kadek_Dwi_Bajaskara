@@ -399,6 +399,19 @@
   "tagLabel": "Tag",
   "allTags": "Semua Tag",
   "genreTagInfo": "Genre dan Tag digabung (AND). Semakin banyak dipilih, hasil semakin sedikit.",
-  "exitGuestMode": "Keluar Mode Tamu"
+  "exitGuestMode": "Keluar Mode Tamu",
+  "completeWithoutTotalTitle": "Tandai Selesai?",
+  "completeWithoutTotalWarning": "Judul ini tidak punya total episode/chapter. Tetap tandai sebagai Selesai?",
+  "characterMain": "Utama",
+  "characterSupporting": "Pendukung",
+  "characterBackground": "Latar",
+  "characterSection": "Karakter",
+  "characterLoadFailed": "Gagal memuat karakter.",
+  "characterSeeAll": "Lihat Semua",
+  "characterAbout": "Tentang",
+  "characterYearsOld": "{age} thn",
+  "characterVoiceActor": "CV",
+  "rateLimitError": "Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.",
+  "networkError": "Koneksi terputus. Periksa internet Anda."
   
 }

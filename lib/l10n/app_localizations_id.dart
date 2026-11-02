@@ -1244,4 +1244,47 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exitGuestMode => 'Keluar Mode Tamu';
+
+  @override
+  String get completeWithoutTotalTitle => 'Tandai Selesai?';
+
+  @override
+  String get completeWithoutTotalWarning =>
+      'Judul ini tidak punya total episode/chapter. Tetap tandai sebagai Selesai?';
+
+  @override
+  String get characterMain => 'Utama';
+
+  @override
+  String get characterSupporting => 'Pendukung';
+
+  @override
+  String get characterBackground => 'Latar';
+
+  @override
+  String get characterSection => 'Karakter';
+
+  @override
+  String get characterLoadFailed => 'Gagal memuat karakter.';
+
+  @override
+  String get characterSeeAll => 'Lihat Semua';
+
+  @override
+  String get characterAbout => 'Tentang';
+
+  @override
+  String characterYearsOld(Object age) {
+    return '$age thn';
+  }
+
+  @override
+  String get characterVoiceActor => 'CV';
+
+  @override
+  String get rateLimitError =>
+      'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.';
+
+  @override
+  String get networkError => 'Koneksi terputus. Periksa internet Anda.';
 }

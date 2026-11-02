@@ -1242,4 +1242,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exitGuestMode => 'Exit Guest Mode';
+
+  @override
+  String get completeWithoutTotalTitle => 'Mark as Completed?';
+
+  @override
+  String get completeWithoutTotalWarning =>
+      'This title has no total episodes/chapters. Mark as Completed anyway?';
+
+  @override
+  String get characterMain => 'Main';
+
+  @override
+  String get characterSupporting => 'Supporting';
+
+  @override
+  String get characterBackground => 'Background';
+
+  @override
+  String get characterSection => 'Characters';
+
+  @override
+  String get characterLoadFailed => 'Failed to load characters.';
+
+  @override
+  String get characterSeeAll => 'See All';
+
+  @override
+  String get characterAbout => 'About';
+
+  @override
+  String characterYearsOld(Object age) {
+    return '$age years old';
+  }
+
+  @override
+  String get characterVoiceActor => 'CV';
+
+  @override
+  String get rateLimitError =>
+      'Too many requests. Please wait a moment and try again.';
+
+  @override
+  String get networkError => 'Connection lost. Please check your internet.';
 }

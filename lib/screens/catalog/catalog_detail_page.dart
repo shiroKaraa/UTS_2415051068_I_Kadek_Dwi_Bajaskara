@@ -6,15 +6,18 @@ import '../../core/app_extras.dart';
 import '../../core/app_sizes.dart';
 import '../../models/catalog_item.dart';
 import '../../models/media_type_enum.dart';
+import '../../models/character_item.dart';
 import '../../providers/collection_provider.dart';
 import '../../services/anilist_service.dart';
 import '../../services/translation_service.dart';
 import '../../widgets/adult_badge.dart';
+import '../../widgets/character_section.dart';
 import '../../widgets/cover_image.dart';
 import '../../widgets/cover_preview_dialog.dart';
 import '../../widgets/alternative_titles_section.dart';
 import '../../widgets/media_type_chip.dart';
 import '../catalog/catalog_page.dart';
+import 'character_list_page.dart';
 import '../collection/collection_detail_page.dart';
 import '../collection/entry_form_page.dart';
 
@@ -38,12 +41,16 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
   String? _sinopsisTerjemahan;
   bool _isTranslating = false;
   String _rawSinopsis = '';
+  List<KarakterAnime> _characters = [];
+  bool _isLoadingCharacters = false;
+  bool _charactersFailed = false;
 
   @override
   void initState() {
     super.initState();
     _rawSinopsis = _bersihkanSinopsis(widget.item.sinopsis);
     _muatDetailLengkap();
+    _loadCharacters();
   }
 
   @override
@@ -97,7 +104,10 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
 
     setState(() => _isLoadingDetail = true);
     try {
-      final json = await _anilist.fetchDetail(widget.item.anilistId);
+      final json = await _anilist.fetchDetail(
+        widget.item.anilistId,
+        isAdult: widget.item.isAdult,
+      );
       if (!mounted) return;
       final full = ItemKatalog.fromAniList(json, widget.item.jenis);
       setState(() {
@@ -133,6 +143,28 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
       _sinopsisTerjemahan = hasil;
       _isTranslating = false;
     });
+  }
+
+  Future<void> _loadCharacters() async {
+    if (_isLoadingCharacters) return;
+    setState(() {
+      _isLoadingCharacters = true;
+      _charactersFailed = false;
+    });
+    try {
+      final result = await _anilist.fetchCharacters(widget.item.anilistId);
+      if (!mounted) return;
+      setState(() {
+        _characters = result.characters;
+        _isLoadingCharacters = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _charactersFailed = true;
+        _isLoadingCharacters = false;
+      });
+    }
   }
 
   String _bersihkanSinopsis(String? raw) {
@@ -175,6 +207,8 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
       (p) => p.findByExternal('al:${item.anilistId}', item.jenis)?.id,
     );
     final inCollection = existingId != null;
+    final showCharacters =
+        _characters.isNotEmpty || _isLoadingCharacters || _charactersFailed;
 
     return Scaffold(
       appBar: AppBar(
@@ -450,6 +484,24 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                 ),
               ),
             ),
+            if (showCharacters) ...[
+              const SizedBox(height: AppSizes.spacingL),
+              CharacterSection(
+                characters: _characters,
+                isLoading: _isLoadingCharacters,
+                hasError: _charactersFailed,
+                onRetry: _loadCharacters,
+                onSeeAll: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CharacterListPage(
+                      anilistId: widget.item.anilistId,
+                      judul: widget.item.displayTitle,
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: AppSizes.spacingXl),
             SizedBox(
               width: double.infinity,
@@ -459,7 +511,8 @@ class _CatalogDetailPageState extends State<CatalogDetailPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CollectionDetailPage(id: existingId),
+                            builder: (context) =>
+                                CollectionDetailPage(id: existingId),
                           ),
                         );
                       },

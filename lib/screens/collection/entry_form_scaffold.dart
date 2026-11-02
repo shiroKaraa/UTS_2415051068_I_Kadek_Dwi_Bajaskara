@@ -187,10 +187,7 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           title: Text(l10n.statusSuggestCompleted),
-          content: const Text(
-            'Judul ini tidak punya total episode/chapter. '
-            'Tetap tandai sebagai Selesai?',
-          ),
+          content: Text(l10n.completeWithoutTotalWarning),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),

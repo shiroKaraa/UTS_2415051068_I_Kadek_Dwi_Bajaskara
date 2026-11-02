@@ -2383,6 +2383,84 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Keluar Mode Tamu'**
   String get exitGuestMode;
+
+  /// No description provided for @completeWithoutTotalTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tandai Selesai?'**
+  String get completeWithoutTotalTitle;
+
+  /// No description provided for @completeWithoutTotalWarning.
+  ///
+  /// In id, this message translates to:
+  /// **'Judul ini tidak punya total episode/chapter. Tetap tandai sebagai Selesai?'**
+  String get completeWithoutTotalWarning;
+
+  /// No description provided for @characterMain.
+  ///
+  /// In id, this message translates to:
+  /// **'Utama'**
+  String get characterMain;
+
+  /// No description provided for @characterSupporting.
+  ///
+  /// In id, this message translates to:
+  /// **'Pendukung'**
+  String get characterSupporting;
+
+  /// No description provided for @characterBackground.
+  ///
+  /// In id, this message translates to:
+  /// **'Latar'**
+  String get characterBackground;
+
+  /// No description provided for @characterSection.
+  ///
+  /// In id, this message translates to:
+  /// **'Karakter'**
+  String get characterSection;
+
+  /// No description provided for @characterLoadFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat karakter.'**
+  String get characterLoadFailed;
+
+  /// No description provided for @characterSeeAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Semua'**
+  String get characterSeeAll;
+
+  /// No description provided for @characterAbout.
+  ///
+  /// In id, this message translates to:
+  /// **'Tentang'**
+  String get characterAbout;
+
+  /// No description provided for @characterYearsOld.
+  ///
+  /// In id, this message translates to:
+  /// **'{age} thn'**
+  String characterYearsOld(Object age);
+
+  /// No description provided for @characterVoiceActor.
+  ///
+  /// In id, this message translates to:
+  /// **'CV'**
+  String get characterVoiceActor;
+
+  /// No description provided for @rateLimitError.
+  ///
+  /// In id, this message translates to:
+  /// **'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.'**
+  String get rateLimitError;
+
+  /// No description provided for @networkError.
+  ///
+  /// In id, this message translates to:
+  /// **'Koneksi terputus. Periksa internet Anda.'**
+  String get networkError;
 }
 
 class _AppLocalizationsDelegate

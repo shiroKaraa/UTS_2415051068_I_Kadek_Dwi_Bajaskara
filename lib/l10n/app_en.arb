@@ -444,6 +444,18 @@
   "tagLabel": "Tag",
   "allTags": "All Tags",
   "genreTagInfo": "Genres and Tags are combined (AND). More selections = fewer results.",
-  "exitGuestMode": "Exit Guest Mode"
-  
+  "exitGuestMode": "Exit Guest Mode",
+  "completeWithoutTotalTitle": "Mark as Completed?",
+  "completeWithoutTotalWarning": "This title has no total episodes/chapters. Mark as Completed anyway?",
+  "characterMain": "Main",
+  "characterSupporting": "Supporting",
+  "characterBackground": "Background",
+  "characterSection": "Characters",
+  "characterLoadFailed": "Failed to load characters.",
+  "characterSeeAll": "See All",
+  "characterAbout": "About",
+  "characterYearsOld": "{age} years old",
+  "characterVoiceActor": "CV",
+  "rateLimitError": "Too many requests. Please wait a moment and try again.",
+  "networkError": "Connection lost. Please check your internet."
 }
