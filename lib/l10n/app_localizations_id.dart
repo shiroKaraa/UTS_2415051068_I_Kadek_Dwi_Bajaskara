@@ -1086,7 +1086,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get cardSizeLarge => 'Besar';
 
   @override
-  String get copy => ' salin ';
+  String get copy => 'Salin';
 
   @override
   String get copiedToClipboard => 'Disalin ke clipboard';
@@ -1104,10 +1104,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get displayCardSize => 'Ukuran card';
 
   @override
-  String get itemsPerRow => 'Item per baris';
+  String get alternativeTitles => 'Judul Alternatif';
 
   @override
-  String get alternativeTitles => 'Judul Alternatif';
+  String get itemsPerRow => 'Item per baris';
 
   @override
   String get randomPick => 'Acak';

@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_sizes.dart';
 import '../../models/collection_entry.dart';
 import '../../models/custom_label.dart';
+import '../../models/status_collection_enum.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/label_provider.dart';
 import '../../widgets/cover_image.dart';
@@ -410,6 +411,38 @@ class _ProgressControlsState extends State<_ProgressControls> {
     }
   }
 
+    Future<void> _handleDecrement(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final entri = widget.entri;
+    if (entri.status == StatusKoleksi.selesai) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Konfirmasi'),
+          content: Text(
+            'Judul ini sudah ditandai Selesai. '
+            'Menurunkan progres akan mengubah status menjadi Sedang. '
+            'Lanjutkan?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.yes),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+      if (!mounted) return;
+    }
+
+    await _run(increment: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final entri = widget.entri;
@@ -426,7 +459,7 @@ class _ProgressControlsState extends State<_ProgressControls> {
               : const Icon(Icons.remove),
           onPressed: (entri.progres <= 0 || _busy)
               ? null
-              : () => _run(increment: false),
+              : () => _handleDecrement(context),
         ),
         const SizedBox(width: AppSizes.spacingL),
         IconButton.filledTonal(

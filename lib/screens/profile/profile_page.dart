@@ -17,12 +17,19 @@ class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   Future<bool> _konfirmasiLogout(
-      BuildContext context, AppLocalizations l10n) async {
+    BuildContext context,
+    AppLocalizations l10n, {
+    bool isGuest = false,
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.logoutTitle),
-        content: Text(l10n.logoutConfirmDesc),
+        title: Text(isGuest ? l10n.exitGuestMode : l10n.logoutTitle),
+        content: Text(
+          isGuest
+              ? 'Keluar dari mode tamu? Data cache lokal akan dipertahankan.'
+              : l10n.logoutConfirmDesc,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
@@ -32,7 +39,9 @@ class ProfilePage extends StatelessWidget {
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: TextButton.styleFrom(
                 foregroundColor: Theme.of(dialogCtx).colorScheme.error),
-            child: Text(l10n.logoutConfirmBtn),
+            child: Text(
+              isGuest ? l10n.exitGuestMode : l10n.logoutConfirmBtn,
+            ),
           ),
         ],
       ),
@@ -90,11 +99,15 @@ class ProfilePage extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSizes.spacingM),
                 child: Align(
                   alignment: Alignment.bottomCenter,
-                  child: _LogoutButton(
-                    onConfirm: () => _konfirmasiLogout(context, l10n),
-                    onSignOut: () => context.read<AuthProvider>().signOut(),
-                    isGuest: context.watch<AuthProvider>().isGuest,
+                child: _LogoutButton(
+                  onConfirm: () => _konfirmasiLogout(
+                    context,
+                    l10n,
+                    isGuest: context.read<AuthProvider>().isGuest,
                   ),
+                  onSignOut: () => context.read<AuthProvider>().signOut(),
+                  isGuest: context.watch<AuthProvider>().isGuest,
+                ),
                 ),
               ),
             ),

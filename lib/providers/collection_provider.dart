@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import '../models/collection_entry.dart';
 import '../models/media_type_enum.dart';
 import '../models/status_collection_enum.dart';
@@ -30,7 +31,6 @@ class CollectionProvider extends ChangeNotifier {
   UrutanKoleksi _urutan = UrutanKoleksi.terbaru;
   bool _urutanAsc = false;
   StatusKoleksi? _filterStatus;
-  bool _isListView = false;
   bool _filterFavorit = false;
   String _query = '';
   JenisMedia? _filterJenis;
@@ -44,7 +44,6 @@ class CollectionProvider extends ChangeNotifier {
   Timer? _reconnectTimer;
 
   bool get isOffline => _isOffline;
-  bool get isListView => _isListView;
   bool get filterFavorit => _filterFavorit;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
@@ -155,19 +154,34 @@ class CollectionProvider extends ChangeNotifier {
     _safeNotify();
   }
 
+  bool _notifyScheduled = false;
   void _safeNotify() {
     if (_disposed) return;
+    if (_notifyScheduled) return;
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    final isBuilding = phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks;
+
+    if (isBuilding) {
+      _notifyScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _notifyScheduled = false;
+        if (!_disposed) {
+          _notifySafely();
+        }
+      });
+      return;
+    }
+
+    _notifySafely();
+  }
+
+  void _notifySafely() {
     try {
       notifyListeners();
-    } catch (e) {
-      if (e.toString().contains('setState') ||
-          e.toString().contains('markNeedsBuild')) {
-        Future.microtask(() {
-          if (!_disposed) notifyListeners();
-        });
-      } else {
-        rethrow;
-      }
+    } catch (e, stack) {
+      debugPrint('CollectionProvider.notifyListeners error: $e');
+      debugPrintStack(stackTrace: stack);
     }
   }
 
@@ -786,14 +800,12 @@ class CollectionProvider extends ChangeNotifier {
       return false;
     }
     return _runSaving(() async {
-      final updated = await _repository.updateEntry(entri);
+      final payload = entri.copyWith(
+        updatedAt: preserveUpdatedAt ?? entri.updatedAt,
+      );
+      final updated = await _repository.updateEntry(payload);
       final index = _entries.indexWhere((e) => e.id == updated.id);
-      if (index != -1) {
-        _entries[index] =
-            updated.updatedAt == null && preserveUpdatedAt != null
-                ? updated.copyWith(updatedAt: preserveUpdatedAt)
-                : updated;
-      }
+      if (index != -1) _entries[index] = updated;
       _scheduleSaveCache();
       _invalidateAndNotify();
       return true;
@@ -884,11 +896,6 @@ class CollectionProvider extends ChangeNotifier {
     _query = '';
     _filterFavorit = false;
     _invalidateAndNotify();
-  }
-
-  void toggleView() {
-    _isListView = !_isListView;
-    _safeNotify();
   }
 
   Future<void> refresh() async {

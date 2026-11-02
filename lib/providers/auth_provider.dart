@@ -22,6 +22,8 @@ class AuthProvider extends ChangeNotifier {
   String? _avatarEmoji;
   StreamSubscription<AuthState>? _sub;
   String _bgPreset = 'default';
+  int _initGen = 0;
+  bool _disposed = false;
 
   AuthStatus get status => _status;
   User? get user => _user;
@@ -48,17 +50,22 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _loadLocalBgPreset() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      if (_disposed) return;
       _bgPreset =
           prefs.getString('profile_bg_${_user?.id ?? "guest"}') ?? 'default';
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     } catch (_) {
+      if (_disposed) return;
       _bgPreset = 'default';
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     }
   }
 
   void _init() async {
+    final gen = ++_initGen;
     _sub = _service.onAuthStateChange.listen((state) async {
+      if (_disposed || gen != _initGen) return;
+
       final user = state.session?.user;
       if (user != null) {
         if (_user?.id == user.id && _username != null) {
@@ -69,15 +76,20 @@ class AuthProvider extends ChangeNotifier {
         _user = user;
         _status = AuthStatus.authenticated;
         await _loadProfile();
+        if (_disposed || gen != _initGen) return;
         await _loadLocalBgPreset();
+        if (_disposed || gen != _initGen) return;
         if (_user?.id == user.id) notifyListeners();
       } else {
         if (_status == AuthStatus.guest) return;
         final prefs = await SharedPreferences.getInstance();
+        if (_disposed || gen != _initGen) return;
         final isGuestSaved = prefs.getBool('is_guest_mode') ?? false;
         _status = isGuestSaved ? AuthStatus.guest : AuthStatus.unauthenticated;
         Future.microtask(() async {
+          if (_disposed || gen != _initGen) return;
           await _loadLocalBgPreset();
+          if (_disposed || gen != _initGen) return;
           notifyListeners();
         });
       }
@@ -91,19 +103,26 @@ class AuthProvider extends ChangeNotifier {
       _loadProfile()
           .timeout(const Duration(seconds: 5))
           .then((_) async {
+        if (_disposed || gen != _initGen) return;
         await _loadLocalBgPreset();
+        if (_disposed || gen != _initGen) return;
         if (_user?.id == current.id) notifyListeners();
       }).catchError((_) async {
+        if (_disposed || gen != _initGen) return;
         await _loadLocalBgPreset();
+        if (_disposed || gen != _initGen) return;
         if (_user?.id == current.id) notifyListeners();
       });
     } else {
       final prefs = await SharedPreferences.getInstance();
+      if (_disposed || gen != _initGen) return;
       final isGuestSaved = prefs.getBool('is_guest_mode') ?? false;
       _status = isGuestSaved ? AuthStatus.guest : AuthStatus.unauthenticated;
-      
+
       Future.microtask(() async {
+        if (_disposed || gen != _initGen) return;
         await _loadLocalBgPreset();
+        if (_disposed || gen != _initGen) return;
         notifyListeners();
       });
     }
@@ -276,7 +295,10 @@ class AuthProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    _initGen++;
     _sub?.cancel();
     super.dispose();
   }
+  
 }

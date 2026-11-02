@@ -264,8 +264,8 @@ class _CollectionPageState extends State<CollectionPage> {
                     const SizedBox(height: AppSizes.spacingM),
                     SwitchListTile(
                       title: Text(l10n.onlyFavorites),
-                      secondary: const Icon(Icons.favorite,
-                          color: Colors.redAccent),
+                      secondary:
+                          const Icon(Icons.favorite, color: Colors.redAccent),
                       value: tempFavorit,
                       onChanged: (val) => setState(() => tempFavorit = val),
                       contentPadding: EdgeInsets.zero,
@@ -375,8 +375,8 @@ class _CollectionPageState extends State<CollectionPage> {
             ),
             ...labels.map(
               (LabelKustom lbl) => ListTile(
-                leading: const Icon(Icons.label_outline,
-                    color: AppColors.infoBlue),
+                leading:
+                    const Icon(Icons.label_outline, color: AppColors.infoBlue),
                 title: Text(lbl.nama),
                 onTap: () => Navigator.pop(sheetCtx, lbl.id),
               ),
@@ -425,8 +425,8 @@ class _CollectionPageState extends State<CollectionPage> {
             ),
             ...StatusKoleksi.values.map(
               (s) => ListTile(
-                leading: Icon(Icons.flag_outlined,
-                    color: AppColors.primaryGreen),
+                leading:
+                    Icon(Icons.flag_outlined, color: AppColors.primaryGreen),
                 title: Text(s.netralLabel(l10n)),
                 onTap: () => Navigator.pop(sheetCtx, s),
               ),
@@ -460,7 +460,8 @@ class _CollectionPageState extends State<CollectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final collection = context.watch<CollectionProvider>();
-    context.watch<SettingsProvider>(); 
+    final isListView =
+        context.select<SettingsProvider, bool>((s) => s.isListView);
 
     if (collection.query != _lastQuery) {
       _lastQuery = collection.query;
@@ -476,7 +477,10 @@ class _CollectionPageState extends State<CollectionPage> {
       }
     }
 
-    final validIds = collection.allEntries.map((e) => e.id).toSet();
+    final validIds = collection.allEntries
+        .map((e) => e.id)
+        .whereType<int>()
+        .toSet();
     if (_selectedIds.isNotEmpty) {
       final stale = _selectedIds.difference(validIds.cast<int>());
       if (stale.isNotEmpty) {
@@ -499,9 +503,9 @@ class _CollectionPageState extends State<CollectionPage> {
       child: Scaffold(
         appBar: _isSelectionMode
             ? _buildSelectionAppBar(l10n, collection)
-            : _buildNormalAppBar(l10n, collection),
+            : _buildNormalAppBar(l10n, collection, isListView),
         body: _isSelectionMode
-            ? _buildContent(context, collection, l10n)
+            ? _buildContent(context, collection, l10n, isListView)
             : Column(
                 children: [
                   Padding(
@@ -525,8 +529,7 @@ class _CollectionPageState extends State<CollectionPage> {
                         hintText: l10n.searchInCollection,
                         prefixIcon: const Icon(Icons.search),
                         isDense: true,
-                        suffixIcon:
-                            ValueListenableBuilder<TextEditingValue>(
+                        suffixIcon: ValueListenableBuilder<TextEditingValue>(
                           valueListenable: _searchController,
                           builder: (context, value, child) {
                             return value.text.isNotEmpty
@@ -553,11 +556,10 @@ class _CollectionPageState extends State<CollectionPage> {
                         vertical: AppSizes.spacingS),
                     child: Row(
                       children: [
-                        _buildStatusChip(
-                            context, l10n.all, null, collection),
+                        _buildStatusChip(context, l10n.all, null, collection),
                         ...StatusKoleksi.values.map((status) =>
-                            _buildStatusChip(context,
-                                status.netralLabel(l10n), status, collection)),
+                            _buildStatusChip(context, status.netralLabel(l10n),
+                                status, collection)),
                       ],
                     ),
                   ),
@@ -570,7 +572,7 @@ class _CollectionPageState extends State<CollectionPage> {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '${collection.entries.length} ${l10n.trackedTitles('').trim()}',
+                          _buildTrackedCountText(collection, l10n),
                           style: TextStyle(
                               fontSize: 12,
                               color: Theme.of(context)
@@ -596,15 +598,12 @@ class _CollectionPageState extends State<CollectionPage> {
                           ),
                           TextButton(
                             onPressed: () async {
-                              final messenger =
-                                  ScaffoldMessenger.of(context);
-                              final ok =
-                                  await collection.retryConnection();
+                              final messenger = ScaffoldMessenger.of(context);
+                              final ok = await collection.retryConnection();
                               if (!context.mounted) return;
                               messenger.showSnackBar(SnackBar(
-                                content: Text(ok
-                                    ? l10n.reconnected
-                                    : l10n.stillOffline),
+                                content: Text(
+                                    ok ? l10n.reconnected : l10n.stillOffline),
                               ));
                             },
                             child: Text(l10n.retryConnection,
@@ -616,7 +615,8 @@ class _CollectionPageState extends State<CollectionPage> {
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: () => collection.refresh(),
-                      child: _buildContent(context, collection, l10n),
+                      child:
+                          _buildContent(context, collection, l10n, isListView),
                     ),
                   ),
                 ],
@@ -628,7 +628,7 @@ class _CollectionPageState extends State<CollectionPage> {
   }
 
   AppBar _buildNormalAppBar(
-      AppLocalizations l10n, CollectionProvider collection) {
+      AppLocalizations l10n, CollectionProvider collection, bool isListView) {
     return AppBar(
       title: Text(l10n.navCollection),
       actions: [
@@ -656,10 +656,10 @@ class _CollectionPageState extends State<CollectionPage> {
           onPressed: () => _showFilterSheet(context, l10n),
         ),
         IconButton(
-          icon: Icon(
-              collection.isListView ? Icons.grid_view : Icons.view_list),
-          tooltip: collection.isListView ? l10n.gridView : l10n.listView,
-          onPressed: () => collection.toggleView(),
+          icon: Icon(isListView ? Icons.grid_view : Icons.view_list),
+          tooltip: isListView ? l10n.gridView : l10n.listView,
+          onPressed: () =>
+              context.read<SettingsProvider>().setListView(!isListView),
         ),
         IconButton(
           icon: const Icon(Icons.sort),
@@ -672,7 +672,7 @@ class _CollectionPageState extends State<CollectionPage> {
           onPressed: () => _enterSelectionMode(),
         ),
         IconButton(
-        icon: const Icon(Icons.view_quilt_outlined),
+          icon: const Icon(Icons.view_quilt_outlined),
           tooltip: 'Tampilan',
           onPressed: () {
             showModalBottomSheet(
@@ -723,9 +723,8 @@ class _CollectionPageState extends State<CollectionPage> {
                 icon: Icons.delete_outline,
                 label: l10n.delete,
                 color: Colors.redAccent,
-                onTap: _selectedIds.isEmpty
-                    ? null
-                    : () => _deleteSelected(l10n),
+                onTap:
+                    _selectedIds.isEmpty ? null : () => _deleteSelected(l10n),
               ),
             ),
             Expanded(
@@ -800,6 +799,20 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
+  String _buildTrackedCountText(
+      CollectionProvider collection, AppLocalizations l10n) {
+    final filtered = collection.entries.length;
+    final totalAll = collection.allEntries.length;
+
+    if (filtered == totalAll) {
+      return l10n.trackedTitles(filtered);
+    }
+
+    final tracked = l10n.trackedTitles(filtered);
+    final results = l10n.showingResults(filtered, totalAll);
+    return '$tracked · $results';
+  }
+
   ({int itemsPerRow, double mainAxisExtent}) _computeGridMetrics(
       BuildContext context, CardSize cardSize) {
     final settings = context.read<SettingsProvider>();
@@ -819,13 +832,13 @@ class _CollectionPageState extends State<CollectionPage> {
   }
 
   Widget _buildContent(BuildContext context, CollectionProvider collection,
-      AppLocalizations l10n) {
+      AppLocalizations l10n, bool isListView) {
     final cardSize =
         context.select<SettingsProvider, CardSize>((s) => s.cardSize);
     final metrics = _computeGridMetrics(context, cardSize);
 
     if (collection.isLoading && collection.allEntries.isEmpty) {
-      if (collection.isListView) {
+      if (isListView) {
         return ListView.builder(
           padding: const EdgeInsets.all(AppSizes.spacingM),
           physics: const AlwaysScrollableScrollPhysics(),
@@ -858,11 +871,9 @@ class _CollectionPageState extends State<CollectionPage> {
       final isFiltered = collection.hasActiveFilters;
       return EmptyView(
         title: isFiltered ? l10n.noResults : l10n.emptyCollection,
-        subtitle:
-            isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
-        icon: isFiltered
-            ? Icons.search_off
-            : Icons.collections_bookmark_outlined,
+        subtitle: isFiltered ? l10n.noResultsDesc : l10n.emptyCollectionDesc,
+        icon:
+            isFiltered ? Icons.search_off : Icons.collections_bookmark_outlined,
         actionLabel: isFiltered ? l10n.resetFilter : l10n.searchNow,
         onAction: isFiltered
             ? () => collection.clearFilters()
@@ -875,7 +886,7 @@ class _CollectionPageState extends State<CollectionPage> {
       );
     }
 
-    if (collection.isListView) {
+    if (isListView) {
       return _buildListView(context, collection, l10n);
     } else {
       return _buildGridView(context, collection, metrics);
@@ -913,8 +924,7 @@ class _CollectionPageState extends State<CollectionPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      CollectionDetailPage(id: entri.id!),
+                  builder: (context) => CollectionDetailPage(id: entri.id!),
                 ),
               );
             }
@@ -931,8 +941,8 @@ class _CollectionPageState extends State<CollectionPage> {
     );
   }
 
-  Widget _buildListView(BuildContext context,
-      CollectionProvider collection, AppLocalizations l10n) {
+  Widget _buildListView(BuildContext context, CollectionProvider collection,
+      AppLocalizations l10n) {
     return ListView.builder(
       padding: const EdgeInsets.all(AppSizes.spacingM),
       physics: const AlwaysScrollableScrollPhysics(),
@@ -956,8 +966,7 @@ class _CollectionPageState extends State<CollectionPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      CollectionDetailPage(id: entri.id!),
+                  builder: (context) => CollectionDetailPage(id: entri.id!),
                 ),
               );
             }
@@ -989,8 +998,8 @@ class _CollectionPageState extends State<CollectionPage> {
                       SnackBar(content: Text(l10n.progressAdded)));
                   break;
                 case HasilIncrement.offline:
-                  messenger.showSnackBar(
-                      SnackBar(content: Text(l10n.offlineMode)));
+                  messenger
+                      .showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
                   break;
                 case HasilIncrement.alreadyCompleted:
                   messenger.showSnackBar(
@@ -1000,8 +1009,8 @@ class _CollectionPageState extends State<CollectionPage> {
                   break;
                 case HasilIncrement.error:
                   messenger.showSnackBar(SnackBar(
-                      content: Text(
-                          provider.errorMessage ?? l10n.errorLoadData)));
+                      content:
+                          Text(provider.errorMessage ?? l10n.errorLoadData)));
                   break;
               }
             } finally {

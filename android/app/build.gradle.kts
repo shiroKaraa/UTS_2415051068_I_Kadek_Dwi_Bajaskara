@@ -26,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "id.karadev.tsuzuki"   // Ganti dengan ID final milikmu
+        applicationId = "id.karadev.tsuzuki" 
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

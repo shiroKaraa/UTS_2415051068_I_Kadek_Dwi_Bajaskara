@@ -181,6 +181,39 @@ class _EntryFormScaffoldState extends State<EntryFormScaffold> {
       }
     }
 
+    if (statusUntukSimpan == StatusKoleksi.selesai && totalBaru == null) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.statusSuggestCompleted),
+          content: const Text(
+            'Judul ini tidak punya total episode/chapter. '
+            'Tetap tandai sebagai Selesai?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.no),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.yes),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+
+      if (confirm != true) {
+        setState(() {
+          _status = widget.initialStatus;
+          _isDirty = false;
+        });
+        return;
+      }
+    }
+
     if (totalBaru != null &&
         totalBaru > 0 &&
         progresBaru >= totalBaru &&

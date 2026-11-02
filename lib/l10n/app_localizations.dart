@@ -2099,7 +2099,7 @@ abstract class AppLocalizations {
   /// Menu action to copy the title to clipboard
   ///
   /// In id, this message translates to:
-  /// **' salin '**
+  /// **'Salin'**
   String get copy;
 
   /// Snackbar shown after copying the title
@@ -2132,17 +2132,17 @@ abstract class AppLocalizations {
   /// **'Ukuran card'**
   String get displayCardSize;
 
-  /// No description provided for @itemsPerRow.
-  ///
-  /// In id, this message translates to:
-  /// **'Item per baris'**
-  String get itemsPerRow;
-
   /// No description provided for @alternativeTitles.
   ///
   /// In id, this message translates to:
   /// **'Judul Alternatif'**
   String get alternativeTitles;
+
+  /// No description provided for @itemsPerRow.
+  ///
+  /// In id, this message translates to:
+  /// **'Item per baris'**
+  String get itemsPerRow;
 
   /// No description provided for @randomPick.
   ///

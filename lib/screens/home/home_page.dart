@@ -496,11 +496,15 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
     try {
       final minWait = Future.delayed(const Duration(milliseconds: 400));
-      final result = await provider.incrementProgress(e);
+      HasilIncrement result;
+      try {
+        result = await provider.incrementProgress(e);
+      } catch (_) {
+        result = HasilIncrement.error;
+      }
       await minWait;
 
       if (!mounted) return;
-      
       final l10n = AppLocalizations.of(context)!;
       switch (result) {
         case HasilIncrement.ok:
@@ -510,7 +514,8 @@ class _ContinueSectionState extends State<_ContinueSection> {
           messenger.showSnackBar(SnackBar(content: Text(l10n.offlineMode)));
           break;
         case HasilIncrement.alreadyCompleted:
-          messenger.showSnackBar(SnackBar(content: Text(l10n.congratsCompleted)));
+          messenger.showSnackBar(
+              SnackBar(content: Text(l10n.congratsCompleted)));
           break;
         case HasilIncrement.inFlight:
           break;
@@ -568,9 +573,10 @@ class _PopularSection extends StatelessWidget {
                     ?.copyWith(fontWeight: FontWeight.bold)),
             TextButton(
               onPressed: () {
-                context.read<CatalogProvider>().setJenis(
-                  isAnime ? JenisMedia.anime : JenisMedia.manga
-                );
+                final catalog = context.read<CatalogProvider>();
+                catalog.clearFilters();
+                catalog.setJenis(
+                    isAnime ? JenisMedia.anime : JenisMedia.manga);
                 onNavigateTab?.call(1);
               },
               child: Text(l10n.seeAll),

@@ -10,6 +10,8 @@ import '../../providers/settings_provider.dart';
 import 'package:provider/provider.dart';
 import '../../services/anilist_service.dart';
 import '../../models/media_type_enum.dart';
+import '../../repositories/collection_repository.dart';
+import '../../services/supabase_collection_service.dart';
 
 class DebugInfoPage extends StatefulWidget {
   const DebugInfoPage({super.key});
@@ -44,9 +46,16 @@ class _DebugInfoPageState extends State<DebugInfoPage> {
 
   Future<void> _runPing() async {
     setState(() => _isPinging = true);
-    final collection = context.read<CollectionProvider>();
-    final supaOk = await collection.retryConnection();
+    bool supaOk;
+    try {
+      final repo = CollectionRepository(SupabaseCollectionService());
+      supaOk = await repo.pingServer();
+    } catch (_) {
+      supaOk = false;
+    }
+
     if (!mounted) return;
+
     final anilist = AniListService();
     String aniStatus;
     try {

@@ -90,7 +90,7 @@ void main() {
     });
 
     test('pas jam bulat (tanpa sisa menit)', () {
-      const stats = ProfileStats(totalEpisodes: 5); // 120 menit
+      const stats = ProfileStats(totalEpisodes: 5);
       expect(stats.formattedWatchTime, '2j');
     });
   });

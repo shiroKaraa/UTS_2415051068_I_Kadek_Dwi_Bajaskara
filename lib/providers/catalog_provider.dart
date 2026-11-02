@@ -27,8 +27,6 @@ class CatalogProvider extends ChangeNotifier {
   String _query = '';
   int _requestGeneration = 0;
   bool _isNsfwEnabled = false;
-  bool _isListView = false;
-  bool get isListView => _isListView;
   List<String> _filterGenres = [];
   List<String> _filterTags = [];
   int? _filterTahun;
@@ -473,11 +471,6 @@ class CatalogProvider extends ChangeNotifier {
     if (_selectedJenis == jenis) return;
     _selectedJenis = jenis;
     fetchCatalog();
-  }
-
-  void toggleView() {
-    _isListView = !_isListView;
-    _safeNotify();
   }
 
   void setQuery(String query) {

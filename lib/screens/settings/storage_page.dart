@@ -246,7 +246,7 @@ class _StoragePageState extends State<StoragePage> {
                   child: ListTile(
                     leading: const Icon(Icons.image_outlined,
                         color: AppColors.infoBlue),
-                    title: const Text('Total Cache'),
+                    title: Text(l10n.storageCacheImages),
                     subtitle: Text(_formatBytes(_imageCacheSize)),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline,
@@ -284,7 +284,7 @@ class _StoragePageState extends State<StoragePage> {
                   child: ListTile(
                     leading: const Icon(Icons.translate,
                         color: AppColors.typeManhua),
-                    title: Text(l10n.synopsis),
+                    title: Text(l10n.storageCacheTranslation),
                     subtitle: Text(_formatBytes(_translationDataSize)),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline,

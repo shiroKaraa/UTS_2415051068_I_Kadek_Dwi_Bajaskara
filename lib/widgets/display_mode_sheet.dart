@@ -5,24 +5,8 @@ import '../l10n/app_localizations.dart';
 import '../models/card_size_enum.dart';
 import '../providers/settings_provider.dart';
 
-class DisplayModeSheet extends StatefulWidget {
+class DisplayModeSheet extends StatelessWidget {
   const DisplayModeSheet({super.key});
-
-  @override
-  State<DisplayModeSheet> createState() => _DisplayModeSheetState();
-}
-
-class _DisplayModeSheetState extends State<DisplayModeSheet> {
-  late int _tempItemsPerRow;
-  late bool _tempListView;
-
-  @override
-  void initState() {
-    super.initState();
-    final s = context.read<SettingsProvider>();
-    _tempItemsPerRow = s.itemsPerRow;
-    _tempListView = s.isListView;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,20 +44,18 @@ class _DisplayModeSheetState extends State<DisplayModeSheet> {
                 _modeButton(
                   context: context,
                   label: l10n.displayGrid,
-                  isSelected: !_tempListView,
-                  onTap: () {
-                    setState(() => _tempListView = false);
-                    context.read<SettingsProvider>().setListView(false);
-                  },
+                  isSelected: !settings.isListView,
+                  onTap: () => context
+                      .read<SettingsProvider>()
+                      .setListView(false),
                 ),
                 _modeButton(
                   context: context,
                   label: l10n.displayList,
-                  isSelected: _tempListView,
-                  onTap: () {
-                    setState(() => _tempListView = true);
-                    context.read<SettingsProvider>().setListView(true);
-                  },
+                  isSelected: settings.isListView,
+                  onTap: () => context
+                      .read<SettingsProvider>()
+                      .setListView(true),
                 ),
               ],
             ),
@@ -117,27 +99,26 @@ class _DisplayModeSheetState extends State<DisplayModeSheet> {
                   style: theme.textTheme.titleSmall,
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '$_tempItemsPerRow',
+                    '${settings.itemsPerRow}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
             Slider(
-              value: _tempItemsPerRow.toDouble(),
+              value: settings.itemsPerRow.toDouble(),
               min: 2,
               max: 6,
               divisions: 4,
-              label: '$_tempItemsPerRow',
+              label: '${settings.itemsPerRow}',
               onChanged: (v) {
-                setState(() => _tempItemsPerRow = v.round());
                 context.read<SettingsProvider>().setItemsPerRow(v.round());
               },
             ),
@@ -157,9 +138,8 @@ class _DisplayModeSheetState extends State<DisplayModeSheet> {
     return OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
-        backgroundColor: isSelected
-            ? theme.colorScheme.primary.withValues(alpha: 0.15)
-            : null,
+        backgroundColor:
+            isSelected ? theme.colorScheme.primary.withValues(alpha: 0.15) : null,
         side: BorderSide(
           color: isSelected
               ? theme.colorScheme.primary

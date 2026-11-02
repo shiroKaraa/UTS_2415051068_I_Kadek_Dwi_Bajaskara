@@ -29,6 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submit() async {
+    if (context.read<AuthProvider>().isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     final auth = context.read<AuthProvider>();

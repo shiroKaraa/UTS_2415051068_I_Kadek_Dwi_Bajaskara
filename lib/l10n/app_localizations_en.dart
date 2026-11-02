@@ -1103,10 +1103,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get displayCardSize => 'Card size';
 
   @override
-  String get itemsPerRow => 'Items per row';
+  String get alternativeTitles => 'Alternative Titles';
 
   @override
-  String get alternativeTitles => 'Alternative Titles';
+  String get itemsPerRow => 'Items per row';
 
   @override
   String get randomPick => 'Random';

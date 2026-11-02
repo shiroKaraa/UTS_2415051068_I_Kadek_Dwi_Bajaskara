@@ -77,9 +77,14 @@ class _CatalogPageState extends State<CatalogPage> {
     });
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 400) {
-      context.read<CatalogProvider>().loadMore();
+      if (!_scrollController.hasClients) return;
+      final pos = _scrollController.position;
+      if (pos.pixels >= pos.maxScrollExtent - 400) {
+        context.read<CatalogProvider>().loadMore();
+      }
+      final shouldShow = pos.pixels > 800;
+      if (_showBackToTop.value != shouldShow) {
+        _showBackToTop.value = shouldShow;
       }
     });
   }
@@ -444,12 +449,13 @@ class _CatalogPageState extends State<CatalogPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final catalog = context.watch<CatalogProvider>();
-    context.watch<SettingsProvider>();
 
     final cardSize =
         context.select<SettingsProvider, CardSize>((s) => s.cardSize);
     final itemsPerRow =
         context.select<SettingsProvider, int>((s) => s.itemsPerRow);
+    final isListView =
+        context.select<SettingsProvider, bool>((s) => s.isListView);
     final screenWidth = MediaQuery.sizeOf(context).width;
     const padding = AppSizes.spacingM * 2;
     const spacing = 16.0;
@@ -506,9 +512,10 @@ class _CatalogPageState extends State<CatalogPage> {
           onPressed: () => _showFilterSheet(context, l10n),
         ),
         IconButton(
-          icon: Icon(catalog.isListView ? Icons.grid_view : Icons.view_list),
-          tooltip: catalog.isListView ? l10n.gridView : l10n.listView,
-          onPressed: () => catalog.toggleView(),
+          icon: Icon(isListView ? Icons.grid_view : Icons.view_list),
+          tooltip: isListView ? l10n.gridView : l10n.listView,
+          onPressed: () =>
+              context.read<SettingsProvider>().setListView(!isListView),
         ),
         IconButton(
           icon: const Icon(Icons.view_quilt_outlined),
@@ -656,6 +663,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 l10n,
                 itemsPerRow,
                 mainAxisExtent,
+                isListView,
               ),
             ),
           ),
@@ -680,9 +688,10 @@ class _CatalogPageState extends State<CatalogPage> {
     AppLocalizations l10n,
     int itemsPerRow,
     double mainAxisExtent,
+    bool isListView,
   ) {
     if (catalog.isLoading) {
-      if (catalog.isListView) {
+      if (isListView) {
         return ListView.builder(
           padding: const EdgeInsets.all(AppSizes.spacingM),
           itemCount: 6,
@@ -719,7 +728,7 @@ class _CatalogPageState extends State<CatalogPage> {
         },
       );
     }
-    if (catalog.isListView) {
+    if (isListView) {
       return ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.all(AppSizes.spacingM),

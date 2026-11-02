@@ -344,7 +344,7 @@
   "cardSizeSmall": "Kecil",
   "cardSizeMedium": "Sedang",
   "cardSizeLarge": "Besar",
-  "copy": " salin ",
+  "copy": "Salin",
   "@copy": {
     "description": "Menu action to copy the title to clipboard"
   },
@@ -356,7 +356,6 @@
   "displayGrid": "Grid",
   "displayList": "Daftar",
   "displayCardSize": "Ukuran card",
-  "itemsPerRow": "Item per baris",
   "alternativeTitles": "Judul Alternatif",
   "itemsPerRow": "Item per baris",
   "randomPick": "Acak",
