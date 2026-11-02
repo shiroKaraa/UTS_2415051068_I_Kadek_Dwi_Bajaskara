@@ -54,13 +54,22 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/logo/logo.png" 
+  image_path: "assets/logo/logo.png"
+  remove_alpha_ios: true
   min_sdk_android: 21
+  adaptive_icon_background: "#0F1613"
+  adaptive_icon_foreground: "assets/logo/logo.png"
+  adaptive_icon_foreground_inset: 16
 
 # Konfigurasi Splash Screen
 flutter_native_splash:
-  color: "#0F1613" 
+  color: "#0F1613"
+  color_dark: "#0F1613"
   image: assets/logo/logo.png
+  image_dark: assets/logo/logo.png
   android_12:
     image: assets/logo/logo.png
-    color: "#0F1613"
+    icon_background_color: "#0F1613"
+    image_dark: assets/logo/logo.png
+    icon_background_color_dark: "#0F1613"
+  web: false
