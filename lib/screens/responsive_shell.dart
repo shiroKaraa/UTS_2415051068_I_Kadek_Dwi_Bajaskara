@@ -131,7 +131,7 @@ class _ResponsiveShellState extends State<ResponsiveShell>
               ],
             ),
           );
-          
+
           if (shouldPop == true) {
             SystemNavigator.pop();
           }
@@ -166,21 +166,31 @@ class _ResponsiveShellState extends State<ResponsiveShell>
     required List<NavigationRailDestination> destinations,
   }) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Row(
         children: [
           SafeArea(
-            child: NavigationRail(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: _onNavigateTab,
-              labelType: labelType,
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Icon(
-                  Icons.menu_book,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              destinations: destinations,
+            right: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final showLeading = constraints.maxHeight > 400;
+
+                return NavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: _onNavigateTab,
+                  labelType: labelType,
+                  leading: showLeading
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Icon(
+                            Icons.menu_book,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
+                      : null,
+                  destinations: destinations,
+                );
+              },
             ),
           ),
           const VerticalDivider(thickness: 1, width: 1),

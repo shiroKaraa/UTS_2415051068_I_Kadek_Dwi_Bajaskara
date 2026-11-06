@@ -45,16 +45,11 @@ class _NsfwBlurWrapperState extends State<NsfwBlurWrapper> {
 
     final heavy = nsfw.isHeavyMode;
 
-    // Reset _revealed jika user mengubah mode dari Heavy ke Light (atau sebaliknya)
     if (_lastHeavy != heavy) {
       _lastHeavy = heavy;
-      // Jangan panggil setState di dalam build.
-      // Cukup ubah nilai _revealed secara langsung.
       _revealed = false; 
     }
 
-    // Jika sudah di-reveal (baik mode light maupun heavy), tampilkan asli.
-    // Long press untuk menyembunyikan kembali (blur lagi).
     if (_revealed) {
       return GestureDetector(
         onLongPress: () => setState(() => _revealed = false),
@@ -62,7 +57,6 @@ class _NsfwBlurWrapperState extends State<NsfwBlurWrapper> {
       );
     }
 
-    // Jika masih blur, tampilkan overlay
     return RepaintBoundary(
       child: GestureDetector(
         onTap: () {

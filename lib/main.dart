@@ -23,7 +23,7 @@ Future<void> main() async {
     KonfigurasiApp.ensureConfigured();
     await Supabase.initialize(
       url: KonfigurasiApp.supabaseUrl,
-      publishableKey: KonfigurasiApp.supabaseAnonKey,
+      anonKey: KonfigurasiApp.supabaseAnonKey,
     );
     await AppCacheManager.getInstance();
   } catch (e) {

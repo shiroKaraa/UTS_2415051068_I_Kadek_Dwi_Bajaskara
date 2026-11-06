@@ -1,0 +1,97 @@
+b493dbd sensor konten NSFW (blur cover, judul, filter level) + patch update APK
+3db76c8 cek update via GitHub Releases + download & install APK
+8c90927 chore(assets): generate adaptive icon & native splash dengan brand color #0F1613
+0962fde section & list karakter + lokalisasi lengkap
+13fbdc6 fix: batch 1 — perbaikan 13 bug + pembersihan l10n & label
+06b3c68 chore(release): konfigurasi signing dan persiapan build release Android
+0c6bb8f style(profile): sempurnakan tampilan kartu statistik
+a82aee9 feat(auth): tambahkan fitur Mode Tamu dan konfirmasi keluar aplikasi
+200023b fix(core): perbaiki pengelolaan koleksi, katalog, dan backup
+8e8fe83 refactor(collection): perbarui pengujian status dan mekanisme berbagi backup
+671ffdd feat(cache): optimalkan pengelolaan cache gambar dan penyempurnaan UI
+2fb75eb fix(core): perbaiki validasi koleksi, pemuatan katalog, dan autentikasi
+a4e4947 fix(state): optimasi pengelolaan state, katalog, profil, dan cache terjemahan
+2554f01 feat(ui): perbaikan tampilan, halaman bantuan lengkap, dan fitur pendukung
+cb5fd09 feat: update besar — grid dinamis, perbaikan bug kritis, refactor
+6b5632b feat(collection): sorting lengkap, filter favorit, & bulk action
+f0df694 new badge + & cover preview fullscreen
+f7af31e fix(keamanan): tambah konfirmasi hapus cache gambar dan perkaya dialog hapus koleksi
+8395041 feat(koleksi): tampilkan catatan singkat dan samakan tampilan label di grid & list
+f72ce14 refactor(label): sederhanakan Label jadi penanda murni, hapus input progress, dan amankan penghapusan
+3960560 Sinkronkan _totalResults dengan server di loadMore agar info 'X dari Y' akurat setelah scroll (sebelumnya X bisa melebihi Y) + konsistensi error state filter
+c9882a8 perbaiki bug kritis progress, status, dan feedback interaksi
+9dd7ec2 update konfigurasi build & test release APK
+16ff25e penyempurnaan UI/UX, perbaikan bug kritis, dan implementasi Design System
+2aa53d9 refactor: ubah entitas Kategori menjadi Label secara menyeluruh
+ca4de32 fix: perbaikan bug krusial, lokalisasi, dan stabilitas UI
+974fb36 fix(catalog): integrasi tag dinamis AniList dan perbaikan UI filter
+b94b548 perbaiki sinkronisasi NSFW, filter katalog, dan optimasi UI form
+e6e7a97 perbaiki database kategori, optimasi UI, refactor form, dan perbaikan bug katalog
+90c7614 perbaikan bug UTS, ganti nama aplikasi jadi Tsuzuki, dan tambah pengaturan cache
+44db330 Penyempurnaan UX, filter lanjutan, dan dukungan multi-bahasa penuh
+a2de1c8 Optimasi performa, perbaikan bug, dan peningkatan stabilitas aplikasi
+8ca4a43 perbaikan menyeluruh auth, katalog, koleksi, profil, dan navigasi
+8516d1d perbaikan menyeluruh untuk stabilitas katalog, logika koleksi, UI profil/home, dan navigasi
+7f237a1 perbaikan menyeluruh untuk stabilitas navigasi, logika koleksi, dan tampilan profil
+cfa2060 refactor: menata ulang struktur folder UI ke dalam sub-folder per fitur (auth, home, catalog, dll) dan memperbaiki seluruh import
+be8011d Rombak UI halaman Lainnya, optimasi performa provider katalog, dan perbaikan layout serta state management
+2a0f6d1 rombak UI dashboard, tambah sapaan dinamis, optimasi performa render, dan perbaikan bug klaim data
+745becc feat(profile): perombakan UI profil final, optimasi cache statistik, dan perbaikan logika logout
+3e8bf49 chore: ignore node_modules & add stats getter
+4ed1bbf Perbaikan crash navigasi AuthGate dan optimasi gambar untuk mencegah freeze UI saat scroll
+1667f93 tambah halaman Favorit khusus dan perbaiki navigasi dari profil
+c71b9f7 optimasi (Katalog) memori gambar
+2ade87a feat(profile): perombakan UI profil, tambah fitur edit profil (avatar, nama, password), dan statistik pengguna
+e82edde feat(offline): tambah cache gambar (cached_network_image), timeout fetch, dan cache terjemahan
+e157b91 feat(ui): tambah halaman login/register, perbaiki navigasi auth gate, dan UI logout
+8e60a15 feat: implementasi sistem auth (Supabase) dan migrasi device_id ke user_id
+019a521 feat: terjemahan sinopsis ID + ikon kompas Katalog + perbaikan hitung cache
+0147b68 fix: perbaiki bug kritis provider, form, dan l10n + peningkatan kualitas UI
+1eb87c7 feat: implementasi multi-bahasa (Indonesia & Inggris) menggunakan flutter_localizations
+bec1dfd Menambahkan fitur Onboarding Screen dengan penyimpanan status di SharedPreferences
+db7d429 Refactor Form: ekstraksi EntryFormFields dan penambahan token warna semantik di AppColors
+e0ccd16 Menambahkan statistik lanjutan: Days Watch, Episodes, Chapters, dan Volumes
+e48f9d6 Menambahkan fitur Kategori Kustom: model, service, provider, dan halaman CRUD
+686d5fb Menambahkan Storage Breakdown: menampilkan ukuran cache gambar dan data, serta tombol hapus spesifik
+a4469b6 Fitur Backup & Restore: Ekspor/Impor JSON dengan file_selector, batch insert, dan mode Merge/Replace
+bad1821 Menambahkan skeleton loading spesifik dan meningkatkan desain Empty/Error State
+2f46014 Menambahkan fitur favorit (bintang) dengan toggle, indikator kartu, dan filter favorit
+878d895 Menambahkan fitur pencarian, filter lanjutan (jenis, rating, status), dan opsi urutan di halaman Koleksi
+3ac9e0b Menambahkan fitur filter Genre & Tahun di Katalog serta melengkapi info di Detail Katalog
+448c22d Implementasi Logo dan Menampilkan logo asli di halaman Lainnya
+88b587c Peningkatan aksesibilitas: perbaikan tap target, kontras warna, dan dukungan text scale
+f57c49d Fix nullable deviceId handling dan membersihkan linter warnings
+ea35bcd Menambahkan halaman Statistik dan Data Penyimpanan yang fungsional di menu Lainnya
+7927890 UI Polish: Desain ulang Detail Katalog dan Detail Koleksi, perbaikan konflik import
+bfbd55b Implementasi fitur Undo pada hapus, perbaikan tap target tombol +1, dan konsistensi feedback
+90b0f0b Ekstraksi CollectionCard, perbaikan CoverImage, dan fix bug scroll/debounce di Katalog
+d318b6c Refactor state management: pisahkan allEntries dan filteredEntries, fix bug context async, dan optimasi UI loading
+efbfbde Membangun halaman Lainnya dengan menu Tema, FAQ, dan Tentang Aplikasi
+32858d3 Menambahkan fitur cache offline pada koleksi dan penanganan mode offline
+653a166 Perbaikan bug feedback +1, pembersihan profil, dan perbaikan layout shimmer di Home
+268f22d Memperbarui tampilan loading dengan skeleton shimmer di halaman katalog dan koleksi
+7c18978 Menambahkan interaction feedback dan status label pada kartu koleksi
+c36706f Implementasi fitur Delete: hapus koleksi dengan konfirmasi
+c55b76d Implementasi fitur +1 untuk progres cepat
+f6de0b1 Implementasi fitur Update: edit koleksi di Supabase
+33e5d74 Implementasi fitur Create: tambah koleksi ke Supabase
+4904a78 Implementasi Home Dashboard dengan statistik dan data populer
+c0ebeb6 Implementasi provider koleksi dan tampilan Read dari Supabase
+6199245 Integrasi Supabase dan membuat repository koleksi
+e873a07 Implementasi debounce pencarian dan polish UI katalog
+37043ac Integrasi REST API Anilist untuk pencarian dan data populer
+af8a195 Implementasi state management katalog dengan Provider
+1dca421 Implementasi MediaCard, grid responsif, dan transisi Hero
+e373eab Perbarui fondasi tema, spasi, dan ganti nama aplikasi menjadi Tsuzuki
+6999f91 Implementasi navigasi dan passing data antar screen
+0d54642 Membuat model data entri koleksi
+c7730b8 Membuat enum dan model data katalog
+30e0ff6 Implementasi state management pengaturan dengan persistent device id
+7da1582 Menampilkan identitas mahasiswa dan membuat widget Chip
+92d95ee Membuat reusable widget ErrorView, EmptyView, dan ProgressBar
+4d0e30a feat: navigasi responsif dengan NavigationRail + perbaikan SafeArea & tema
+aac3622 Bangun kerangka utama dan navigasi bawah
+f40a50f Implementasi tema aplikasi dan dark mode
+33bc204 Setup struktur folder dan file konfigurasi dasar
+a6b5a89 Setup dependencies dan konfigurasi environment
+621b2fa Inisialisasi Project UTS Flutter
