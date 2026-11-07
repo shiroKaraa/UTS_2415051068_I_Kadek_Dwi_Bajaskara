@@ -178,16 +178,6 @@ Semua screenshot disimpan di folder `docs/screenshots/`.
 |:---:|:---:|:---:|
 | ![Statistik](docs/screenshots/Statistik_Page.png) | | |
 
-### Responsive Layout & Bukti Data
-
-| Responsive: Compact | Responsive: Expanded |
-|:---:|:---:|
-| ![Compact](docs/screenshots/Responsive_Compact.png) | ![Expanded](docs/screenshots/Responsive_Expanded.png) |
-
-| Data dari API (AniList) | Data dari Database (Supabase) |
-|:---:|:---:|
-| ![API](docs/screenshots/Data_API_AniList.png) | ![Database](docs/screenshots/Data_Supabase_Table.png) |
-
 ### Halaman Lainnya
 
 | Lainnya | Pengaturan | Storage |
@@ -516,7 +506,7 @@ flutter build apk --release
 | Deliverable | Link |
 |---|---|
 | APK Release (v1.0.1) | [Download APK](https://github.com/shiroKaraa/UTS_2415051068_I_Kadek_Dwi_Bajaskara/releases/tag/v1.0.1) |
-| Dokumentasi PDF | [UTS_2415051068_I_Kadek_Dwi_Bajaskara.pdf](https://github.com/shiroKaraa/UTS_2415051068_I_Kadek_Dwi_Bajaskara/blob/main/docs/pdf/UTS_2415051068_I_Kadek_Dwi_Bajaskara.pdf) |
+| LAMPIRAN | [UTS_2415051068_I_Kadek_Dwi_Bajaskara.pdf](https://drive.google.com/drive/folders/1QtaqE8D0066MRBD4mLoqBwQQGTTSvgea?usp=sharing) |
 | Git Log | [Lihat Commit History](https://github.com/shiroKaraa/UTS_2415051068_I_Kadek_Dwi_Bajaskara/commits/main) |
 
 ---
